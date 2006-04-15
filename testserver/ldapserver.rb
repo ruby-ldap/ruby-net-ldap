@@ -89,16 +89,16 @@ module LdapServer
   def handle_bind_request pdu
     # TODO, return a proper LDAP error instead of blowing up on version error
     if pdu[1][0] != 3
-      send_ldap_response 0, pdu[0].to_i, 2, "", "We only support version 3"
+      send_ldap_response 1, pdu[0].to_i, 2, "", "We only support version 3"
     elsif pdu[1][1] != "cn=bigshot,dc=bayshorenetworks,dc=com"
-      send_ldap_response 0, pdu[0].to_i, 48, "", "Who are you?"
+      send_ldap_response 1, pdu[0].to_i, 48, "", "Who are you?"
     elsif pdu[1][2].ber_identifier != 0x80
-      send_ldap_response 0, pdu[0].to_i, 7, "", "Keep it simple, man"
+      send_ldap_response 1, pdu[0].to_i, 7, "", "Keep it simple, man"
     elsif pdu[1][2] != "opensesame"
-      send_ldap_response 0, pdu[0].to_i, 49, "", "Make my day"
+      send_ldap_response 1, pdu[0].to_i, 49, "", "Make my day"
     else
       @authenticated = true
-      send_ldap_response 0, pdu[0].to_i, 0, pdu[1][1], "I'll take it"
+      send_ldap_response 1, pdu[0].to_i, 0, pdu[1][1], "I'll take it"
     end
   end
 
