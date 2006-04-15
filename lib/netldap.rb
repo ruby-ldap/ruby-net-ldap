@@ -57,28 +57,32 @@ module Net
 
     AsnSyntax = {
       :application => {
-        0 => :array,              # BindRequest
-        1 => :array,              # BindResponse
-        2 => :array,              # UnbindRequest
-        3 => :array,              # SearchRequest
-        4 => :array,              # SearchData
-        5 => :array,              # SearchResult
-        6 => :array,              # ModifyRequest
-        7 => :array,              # ModifyResponse
-        8 => :array,              # AddRequest
-        9 => :array,              # AddResponse
-        10 => :array,             # DelRequest
-        11 => :array,             # DelResponse
-        12 => :array,             # ModifyRdnRequest
-        13 => :array,             # ModifyRdnResponse
-        14 => :array,             # CompareRequest
-        15 => :array,             # CompareResponse
-        16 => :array,             # AbandonRequest
+        :constructed => {
+          0 => :array,              # BindRequest
+          1 => :array,              # BindResponse
+          2 => :array,              # UnbindRequest
+          3 => :array,              # SearchRequest
+          4 => :array,              # SearchData
+          5 => :array,              # SearchResult
+          6 => :array,              # ModifyRequest
+          7 => :array,              # ModifyResponse
+          8 => :array,              # AddRequest
+          9 => :array,              # AddResponse
+          10 => :array,             # DelRequest
+          11 => :array,             # DelResponse
+          12 => :array,             # ModifyRdnRequest
+          13 => :array,             # ModifyRdnResponse
+          14 => :array,             # CompareRequest
+          15 => :array,             # CompareResponse
+          16 => :array,             # AbandonRequest
+        }
       },
       :context_specific => {
-        0 => :string,             # password
-        1 => :string,             # Kerberos v4
-        2 => :string,             # Kerberos v5
+        :primitive => {
+          0 => :string,             # password
+          1 => :string,             # Kerberos v4
+          2 => :string,             # Kerberos v5
+        }
       }
     }
 
