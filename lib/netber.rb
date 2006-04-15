@@ -44,17 +44,25 @@ module Net
 
     BuiltinSyntax = {
       :universal => {
-        1 => :boolean,
-        2 => :integer,
-        4 => :string,
-        10 => :integer,
-        16 => :array,
-        17 => :array,
+        :primitive => {
+          1 => :boolean,
+          2 => :integer,
+          4 => :string,
+          10 => :integer,
+        },
+        :constructed => {
+          16 => :array,
+          17 => :array
+        }
       }
     }
 
     #
     # read_ber
+    # TODO: clean this up so it works properly with partial
+    # packets coming from streams that don't block when
+    # we ask for more data (like StringIOs). At it is,
+    # this can throw TypeErrors and other nasties.
     #
     def read_ber syntax=nil
       eof? and return nil
@@ -63,7 +71,7 @@ module Net
       tag = id & 31
       tag < 31 or raise BerError.new( "unsupported tag encoding: #{id}" )
       tagclass = TagClasses[ id >> 6 ]
-      constructed = (id & 0x20 != 0)
+      encoding = (id & 0x20 != 0) ? :constructed : :primitive
 
       n = getc
       lengthlength,contentlength = if n <= 127
@@ -75,24 +83,30 @@ module Net
 
       newobj = read contentlength
 
-      objtype = (ot = BuiltinSyntax[tagclass]) && ot[tag]
-      objtype = objtype || (syntax && (ot = syntax[tagclass]) && ot[tag])
+      objtype = nil
+      [syntax, BuiltinSyntax].each {|syn|
+        if syn && (ot = syn[tagclass]) && (ot = ot[encoding]) && ot[tag]
+          objtype = ot[tag]
+          break
+        end
+      }
+      
       obj = case objtype
       when :boolean
-        raise BerError.new( "boolean unimplemented- fix this now, dummy" )
+        newobj != "\000"
       when :string
-        newobj.dup
+        (newobj || "").dup
       when :integer
         j = 0
         newobj.each_byte {|b| j = (j << 8) + b}
         j
       when :array
         seq = []
-        sio = StringIO.new newobj
+        sio = StringIO.new( newobj || "" )
         while e = sio.read_ber(syntax); seq << e; end
         seq
       else
-        raise BerError.new( "unsupported object type: class=#{tagclass}, tag=#{tag}" )
+        raise BerError.new( "unsupported object type: class=#{tagclass}, encoding=#{encoding}, tag=#{tag}" )
       end
 
       # Add the identifier bits into the object if it's a String or an Array.
