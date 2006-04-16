@@ -14,6 +14,9 @@ require 'stringio'
 
 class TestLdapClient < Test::Unit::TestCase
 
+  # TODO: these tests crash and burn if the associated
+  # LDAP testserver isn't up and running.
+
   def setup
     @host = "127.0.0.1"
     @port = 3890
@@ -53,11 +56,34 @@ class TestLdapClient < Test::Unit::TestCase
     assert_equal( 0, ldap.search( search ))
     
     ldap.search( search ) {|res|
-      p res
+      # STUB.
+      #p res
     }
+  end
     
 
+  def test_search_attributes
+    ldap = Net::LDAP.new :host => @host, :port => @port, :auth => @auth
+    assert_equal( 0, ldap.bind )
+
+    search = {
+      :base => "dc=bigdomain,dc=com",
+      :attributes => ["mail"]
+    }
+    assert_equal( 0, ldap.search( search ))
+
+    ldap.search( search ) {|res|
+      # STUB.
+      p res
+    }
   end
+
+
+  def test_search_filters
+  end
+
+
+
 
 
 end
