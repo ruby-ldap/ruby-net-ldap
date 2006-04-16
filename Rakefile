@@ -18,7 +18,6 @@ spec = Gem::Specification.new {|s|
 	s.summary = "Net::LDAP library"
 	s.files = FileList["{bin,tests,lib}/**/*"].exclude("rdoc").to_a
 	s.require_paths = ["lib"]
-	s.autorequire = "netldap"
 	s.test_file = "tests/testem.rb"
 	s.has_rdoc = true
 	s.extra_rdoc_files = ["README", "RELEASE_NOTES", "COPYING"]
