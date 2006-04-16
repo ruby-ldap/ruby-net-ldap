@@ -54,6 +54,12 @@ class LdapPdu
   # The application-specific tag in the sequence tells
   # us what kind of packet it is, and each kind has its
   # own format, defined in RFC-1777.
+  # Observe that many clients (such as ldapsearch)
+  # do not necessarily enforce the expected application
+  # tags on received protocol packets. This implementation
+  # does interpret the RFC strictly in this regard, and
+  # it remains to be seen whether there are servers out
+  # there that will not work well with our approach.
   #
   def initialize ber_object
     begin
@@ -122,7 +128,7 @@ class LdapPdu
   # We concoct a search response that is a hash of the returned attribute values.
   # NOW OBSERVE CAREFULLY: WE ARE DOWNCASING THE RETURNED ATTRIBUTE NAMES.
   # This is to make them more predictable for user programs, but it
-  # may not be a good idea. Should make this somehow a configurable parameter.
+  # may not be a good idea. Maybe this should be configurable.
   #
   def parse_search_return sequence
     sequence.length >= 2 or raise LdapPduError
