@@ -39,8 +39,6 @@
 #
 
 
-#require 'rubygems'
-#require_gem "eventmachine", ">= 0.3.1"
 
 require 'socket'
 
