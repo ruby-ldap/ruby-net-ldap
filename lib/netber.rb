@@ -8,7 +8,7 @@
 #
 # Copyright (C) 2006 by Francis Cianfrocca. All Rights Reserved.
 #
-# Gmail: garbagecat20
+# Gmail: garbagecat10
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,10 +37,13 @@ module Net
 
   class BerError < Exception; end
 
-  TagClasses = [:universal, :application, :context_specific, :private]
 
   # This module is for mixing into IO and IO-like objects.
   module BERParser
+
+    # The order of these follows the class-codes in BER.
+    # Maybe this should have been a hash.
+    TagClasses = [:universal, :application, :context_specific, :private]
 
     BuiltinSyntax = {
       :universal => {
