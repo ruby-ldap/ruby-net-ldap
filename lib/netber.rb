@@ -137,7 +137,7 @@ end
 
 class String
   def read_ber syntax=nil
-    StringIO.new(self).read_ber
+    StringIO.new(self).read_ber(syntax)
   end
 end
 
