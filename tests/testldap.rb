@@ -3,10 +3,12 @@
 #
 
 
-require 'lib/netber'
-require 'lib/netldap'
-require 'lib/ldappdu'
-require 'lib/netldapfilter'
+$:.unshift "lib"
+
+require 'net/ber'
+require 'net/ldap'
+require 'net/ldappdu'
+require 'net/ldapfilter'
 require 'stringio'
 
 
