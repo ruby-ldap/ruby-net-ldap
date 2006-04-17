@@ -190,10 +190,10 @@ if __FILE__ == $0
   $logger.info "adding ../lib to loadpath, to pick up dev version of Net::LDAP."
   $:.unshift "../lib"
 
-  require 'net/ber'
-  require 'net/ldappdu'
+  #require 'net/ber'
   require 'net/ldap'
-  require 'net/ldapfilter'
+  #require 'net/ldap/pdu'
+  #require 'net/ldap/filter'
 
   EventMachine.run {
     $logger.info "starting LDAP server on 127.0.0.1 port 3890"

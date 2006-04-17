@@ -5,10 +5,10 @@
 
 $:.unshift "lib"
 
-require 'net/ber'
+#require 'net/ber'
 require 'net/ldap'
-require 'net/ldappdu'
-require 'net/ldapfilter'
+#require 'net/ldap/pdu'
+#require 'net/ldap/filter'
 require 'stringio'
 
 
