@@ -103,6 +103,20 @@ module LdapServer
     end
   end
 
+
+
+  #--
+  # Search Response ::=
+  #       CHOICE {
+  #            entry          [APPLICATION 4] SEQUENCE {
+  #                                objectName     LDAPDN,
+  #                                attributes     SEQUENCE OF SEQUENCE {
+  #                                                    AttributeType,
+  #                                                    SET OF AttributeValue
+  #                                               }
+  #                           },
+  #            resultCode     [APPLICATION 5] LDAPResult
+  #        }
   def handle_search_request pdu
     unless @authenticated
       send_ldap_response 5, pdu[0].to_i, 50, "", "Who did you say you were?"
@@ -117,12 +131,23 @@ module LdapServer
 
     msgid = pdu[0].to_i.to_ber
 
+    # pdu[1][7] is the list of requested attributes.
+    # If it's an empty array, that means that *all* attributes were requested.
+    requested_attrs = if pdu[1][7].length > 0
+      pdu[1][7].map {|a| a.downcase}
+    else
+      :all
+    end
+
+
     $ldif.each {|dn, entry|
 
       attrs = []
       entry.each {|k, v|
-        attrvals = v.map {|v1| v1.to_ber}.to_ber_set
-        attrs << [k.to_ber, attrvals].to_ber_sequence
+        if requested_attrs == :all or requested_attrs.include?(k.downcase)
+          attrvals = v.map {|v1| v1.to_ber}.to_ber_set
+          attrs << [k.to_ber, attrvals].to_ber_sequence
+        end
       }
 
       appseq = [dn.to_ber, attrs.to_ber_sequence].to_ber_appsequence(4)
@@ -130,62 +155,11 @@ module LdapServer
       send_data pkt
     }
 
-    # pdu[1][7] is the attributes. It's an empty array to signify ALL attributes.
-    puts "WARNING, not interpreting attributes specifier"
-=begin
-Search Response ::=
-      CHOICE {
-           entry          [APPLICATION 4] SEQUENCE {
-                               objectName     LDAPDN,
-                               attributes     SEQUENCE OF SEQUENCE {
-                                                   AttributeType,
-                                                   SET OF AttributeValue
-                                              }
-                          },
-           resultCode     [APPLICATION 5] LDAPResult
-       }
-=end
-
-=begin
-    send_data( [
-      pdu[0].to_i.to_ber, [
-        "abcdefghijklmnopqrstuvwxyz".to_ber, [
-
-          [
-            "mail".to_ber, ["aaa".to_ber, "bbb".to_ber, "ccc".to_ber].to_ber_set
-          ].to_ber_sequence,
-          [
-            "objectclass".to_ber, ["111".to_ber, "222".to_ber, "333".to_ber].to_ber_set
-          ].to_ber_sequence,
-          [
-            "cn".to_ber, ["CNCNCNCN".to_ber].to_ber_set
-          ].to_ber_sequence,
-
-        ].to_ber_sequence
-      ].to_ber_appsequence(4)
-    ].to_ber_sequence)
-
-    send_data( [
-      pdu[0].to_i.to_ber, [
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ".to_ber, [
-
-          [
-            "mail".to_ber, ["aaa".to_ber, "bbb".to_ber, "ccc".to_ber].to_ber_set
-          ].to_ber_sequence,
-          [
-            "objectclass".to_ber, ["111".to_ber, "222".to_ber, "333".to_ber].to_ber_set
-          ].to_ber_sequence,
-          [
-            "cn".to_ber, ["CNCNCNCN".to_ber].to_ber_set
-          ].to_ber_sequence,
-
-        ].to_ber_sequence
-      ].to_ber_appsequence(4)
-    ].to_ber_sequence)
-=end
 
     send_ldap_response 5, pdu[0].to_i, 0, "", "Was that what you wanted?"
   end
+
+
 
   def send_ldap_response pkt_tag, msgid, code, dn, text
     send_data( [msgid.to_ber, [code.to_ber, dn.to_ber, text.to_ber].to_ber_appsequence(pkt_tag) ].to_ber )
