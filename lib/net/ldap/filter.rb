@@ -171,6 +171,41 @@ class Filter
   end
 
 
+
+  # We get a Ruby object which comes from parsing an RFC-1777 "Filter"
+  # object. Convert it to a Net::LDAP::Filter.
+  # TODO, we're hardcoding the RFC-1777 BER-encodings of the various
+  # filter types. Could pull them out into a constant.
+  #
+  def Filter::parse_ldap_filter obj
+    case obj.ber_identifier
+    when 0x87         # present. context-specific primitive 7.
+      Filter.eq( obj.to_s, "*" )
+    when 0xa3         # equalityMatch. context-specific constructed 3.
+      Filter.eq( obj[0], obj[1] )
+    else
+      raise LdapError.new( "unknown ldap search-filter type: #{obj.ber_identifier}" )
+    end
+  end
+
+
+  # We got a hash of attribute values.
+  # Do we match the attributes?
+  # Return T/F, and call match recursively as necessary.
+  def match entry
+    case @op
+    when :eq
+      if @right == "*"
+        l = entry[@left] and l.length > 0
+      else
+        l = entry[@left] and l = l.to_a and l.index(@right)
+      end
+    else
+      raise LdapError.new( "unknown filter type in match: #{@op}" )
+    end
+  end
+
+
 end # class Net::LDAP::Filter
 
 end # class Net::LDAP

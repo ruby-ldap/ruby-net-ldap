@@ -141,7 +141,7 @@ class TestLdapClient < Test::Unit::TestCase
     ldap = Net::LDAP.new :host => @host, :port => @port, :auth => @auth
     search = {
       :base => "dc=bayshorenetworks,dc=com",
-      :filter => Net::LDAP::Filter.eq( "sn", "Verdon" )
+      :filter => Net::LDAP::Filter.eq( "sn", "Fosse" )
     }
 
     ldap.search( search ) {|res|

@@ -122,6 +122,7 @@ module LdapServer
   #        }
   def handle_search_request pdu
     unless @authenticated
+      # NOTE, early exit.
       send_ldap_response 5, pdu[0].to_i, 50, "", "Who did you say you were?"
       return
     end
@@ -143,23 +144,28 @@ module LdapServer
     end
 
     filters = pdu[1][6]
-    if filters.length > 0
-      p filters.ber_identifier
+    if filters.length == 0
+      # NOTE, early exit.
+      send_ldap_response 5, pdu[0].to_i, 53, "", "No filter specified"
     end
 
+    # TODO, what if this returns nil?
+    filter = Net::LDAP::Filter.parse_ldap_filter( filters )
+
     $ldif.each {|dn, entry|
+      if filter.match( entry )
+        attrs = []
+        entry.each {|k, v|
+          if requested_attrs == :all or requested_attrs.include?(k.downcase)
+            attrvals = v.map {|v1| v1.to_ber}.to_ber_set
+            attrs << [k.to_ber, attrvals].to_ber_sequence
+          end
+        }
 
-      attrs = []
-      entry.each {|k, v|
-        if requested_attrs == :all or requested_attrs.include?(k.downcase)
-          attrvals = v.map {|v1| v1.to_ber}.to_ber_set
-          attrs << [k.to_ber, attrvals].to_ber_sequence
-        end
-      }
-
-      appseq = [dn.to_ber, attrs.to_ber_sequence].to_ber_appsequence(4)
-      pkt = [msgid.to_ber, appseq].to_ber_sequence
-      send_data pkt
+        appseq = [dn.to_ber, attrs.to_ber_sequence].to_ber_appsequence(4)
+        pkt = [msgid.to_ber, appseq].to_ber_sequence
+        send_data pkt
+      end
     }
 
 
