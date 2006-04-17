@@ -117,7 +117,7 @@ class Filter
     case @op
     when :eq
       if @right == "*"          # present
-        @left.to_ber_application_string 7
+        @left.to_ber_contextspecific 7
       elsif @right =~ /[\*]/    #substring
         ary = @right.split( /[\*]+/ )
         final_star = @right =~ /[\*]$/
