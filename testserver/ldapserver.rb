@@ -42,12 +42,13 @@ module LdapServer
         3 => :array                # LDAP SearchRequest
       },
       :primitive => {
-        2 => :string               # ldapsearch sends this to unbind
+        2 => :string,              # ldapsearch sends this to unbind
       }
     },
     :context_specific => {
       :primitive => {
-        0 => :string               # simple auth (password)
+        0 => :string,              # simple auth (password)
+        7 => :string               # present filter
       },
     }
   }
@@ -114,6 +115,8 @@ module LdapServer
       return
     end
 
+    # pdu[1][7] is the attributes. It's an empty array to signify ALL attributes.
+    puts "WARNING, not interpreting attributes specifier"
 =begin
 Search Response ::=
       CHOICE {
@@ -187,10 +190,10 @@ if __FILE__ == $0
   $logger.info "adding ../lib to loadpath, to pick up dev version of Net::LDAP."
   $:.unshift "../lib"
 
-  require 'netber'
-  require 'ldappdu'
-  require 'netldap'
-  require 'netldapfilter'
+  require 'net/ber'
+  require 'net/ldappdu'
+  require 'net/ldap'
+  require 'net/ldapfilter'
 
   EventMachine.run {
     $logger.info "starting LDAP server on 127.0.0.1 port 3890"
