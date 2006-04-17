@@ -50,6 +50,9 @@ module LdapServer
         0 => :string,              # simple auth (password)
         7 => :string               # present filter
       },
+      :constructed => {
+        3 => :array                # equality filter
+      },
     }
   }
 
@@ -139,6 +142,10 @@ module LdapServer
       :all
     end
 
+    filters = pdu[1][6]
+    if filters.length > 0
+      p filters.ber_identifier
+    end
 
     $ldif.each {|dn, entry|
 
