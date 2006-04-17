@@ -110,10 +110,25 @@ module LdapServer
     end
 
     treebase = pdu[1][0]
-    if treebase != "dc=bigdomain,dc=com"
+    if treebase != "dc=bayshorenetworks,dc=com"
       send_ldap_response 5, pdu[0].to_i, 32, "", "unknown treebase"
       return
     end
+
+    msgid = pdu[0].to_i.to_ber
+
+    $ldif.each {|dn, entry|
+
+      attrs = []
+      entry.each {|k, v|
+        attrvals = v.map {|v1| v1.to_ber}.to_ber_set
+        attrs << [k.to_ber, attrvals].to_ber_sequence
+      }
+
+      appseq = [dn.to_ber, attrs.to_ber_sequence].to_ber_appsequence(4)
+      pkt = [msgid.to_ber, appseq].to_ber_sequence
+      send_data pkt
+    }
 
     # pdu[1][7] is the attributes. It's an empty array to signify ALL attributes.
     puts "WARNING, not interpreting attributes specifier"
@@ -131,6 +146,7 @@ Search Response ::=
        }
 =end
 
+=begin
     send_data( [
       pdu[0].to_i.to_ber, [
         "abcdefghijklmnopqrstuvwxyz".to_ber, [
@@ -166,6 +182,7 @@ Search Response ::=
         ].to_ber_sequence
       ].to_ber_appsequence(4)
     ].to_ber_sequence)
+=end
 
     send_ldap_response 5, pdu[0].to_i, 0, "", "Was that what you wanted?"
   end
@@ -174,6 +191,28 @@ Search Response ::=
     send_data( [msgid.to_ber, [code.to_ber, dn.to_ber, text.to_ber].to_ber_appsequence(pkt_tag) ].to_ber )
   end
 
+end
+
+
+#------------------------------------------------
+
+# Rather bogus, a global method, which reads a HARDCODED filename
+# parses out LDIF data. It will be used to serve LDAP queries out of this server.
+#
+def load_test_data
+  ary = File.readlines( "./testdata.ldif" )
+  hash = {}
+  while line = ary.shift and line.chomp!
+    if line =~ /^dn:[\s]*/i
+      dn = $'
+      hash[dn] = {}
+      while attr = ary.shift and attr.chomp! and attr =~ /^([\w]+)[\s]*:[\s]*/
+        hash[dn][$1.downcase] ||= []
+        hash[dn][$1.downcase] << $'
+      end
+    end
+  end
+  hash
 end
 
 
@@ -189,6 +228,8 @@ if __FILE__ == $0
 
   $logger.info "adding ../lib to loadpath, to pick up dev version of Net::LDAP."
   $:.unshift "../lib"
+
+  $ldif = load_test_data
 
   require 'net/ldap'
 

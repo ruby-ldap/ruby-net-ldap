@@ -49,7 +49,7 @@ class TestLdapClient < Test::Unit::TestCase
     search = {:base => "dc=smalldomain,dc=com"}
     assert_equal( 32, ldap.search( search ))
     
-    search = {:base => "dc=bigdomain,dc=com"}
+    search = {:base => "dc=bayshorenetworks,dc=com"}
     assert_equal( 0, ldap.search( search ))
     
     ldap.search( search ) {|res|
@@ -64,7 +64,7 @@ class TestLdapClient < Test::Unit::TestCase
     assert_equal( 0, ldap.bind )
 
     search = {
-      :base => "dc=bigdomain,dc=com",
+      :base => "dc=bayshorenetworks,dc=com",
       :attributes => ["mail"]
     }
     assert_equal( 0, ldap.search( search ))
