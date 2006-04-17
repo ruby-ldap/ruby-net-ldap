@@ -106,7 +106,12 @@ module Net
       when :array
         seq = []
         sio = StringIO.new( newobj || "" )
-        while e = sio.read_ber(syntax); seq << e; end
+        # Interpret the subobject, but note how the loop
+        # is built: nil ends the loop, but false (a valid
+        # BER value) does not!
+        while (e = sio.read_ber(syntax)) != nil
+          seq << e
+        end
         seq
       else
         raise BerError.new( "unsupported object type: class=#{tagclass}, encoding=#{encoding}, tag=#{tag}" )
@@ -224,11 +229,9 @@ class String
 
   #
   # to_ber_application_string
-  # TODO. WARNING, IS THIS WRONG? Shouldn't app-specific string
-  # have a prefix of 0x40?
   #
   def to_ber_application_string code
-    to_ber( 0x80 + code )
+    to_ber( 0x40 + code )
   end
 
   #
