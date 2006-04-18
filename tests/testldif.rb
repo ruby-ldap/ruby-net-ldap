@@ -6,9 +6,6 @@
 $:.unshift "lib"
 
 require 'test/unit'
-require 'tests/testber'
-require 'tests/testldif'
-require 'tests/testldap'
 
 require 'net/ldap'
 require 'net/ldif'

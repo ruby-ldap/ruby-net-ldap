@@ -5,6 +5,8 @@
 
 $:.unshift "lib"
 
+require 'test/unit'
+
 require 'net/ldap'
 require 'stringio'
 
@@ -146,6 +148,14 @@ class TestLdapClient < Test::Unit::TestCase
 
     ldap.search( search ) {|res|
       p res
+    }
+  end
+
+
+
+  def test_open
+    Net::LDAP.open( :host => @host, :port => @port, :auth => @auth ) {
+      p "NO TESTS!!!"
     }
   end
 

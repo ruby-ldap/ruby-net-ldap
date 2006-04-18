@@ -136,30 +136,79 @@ module Net
     #
     # open
     #
-    def LDAP::open
+    def LDAP::open args
+      #ldap = LDAP.new args
+      #ldap.connect
+      #yield ldap
+      #ldap.disconnect
     end
+
+
+    # This method opens a network connection to the server and then
+    # passes self to the caller-supplied block. The connection is
+    # closed when the block completes. It's for executing multiple
+    # LDAP operations without requiring a separate network connection
+    # (and authentication) for each one.
+    #
+    #
+    def open
+      conn = connect
+      yield self
+      disconnect
+    end
+
 
     #
     # search
+    #--
+    # If an open call is in progress (@open_connection will be non-nil),
+    # then ASSUME a bind has been performed and accepted, and just
+    # execute the search.
+    # If @open_connection is nil, then we have to connect, bind,
+    # search, and then disconnect. (The disconnect is not strictly
+    # necessary but it's friendlier to the network to do it here
+    # rather than waiting for Ruby's GC.)
+    # Note that in the standalone case, we're permitting the caller
+    # to modify the auth parms.
     #
     def search args
-      conn = Connection.new( :host => @host, :port => @port )
-      # TODO, hardcoded Ldap result code in next line
-      (rc = conn.bind @auth) == 0 or return rc
-      result_code = conn.search( args ) {|values|
-        block_given? and yield( values )
-      }
-      result_code
+      if @open_connection
+        result_code = @open_connection.search( args ) {|values|
+          block_given? and yield( values )
+        }
+        result_code
+      else
+        result_code = 0
+        conn = Connection.new( :host => @host, :port => @port )
+        if (result_code = conn.bind( args[:auth] || @auth )) == 0
+          result_code = conn.search( args ) {|values|
+            block_given? and yield( values )
+          }
+        end
+        conn.close
+        result_code
+      end
+
     end
 
     #
     # bind
     # Bind and unbind.
     # Can serve as a connectivity test as well as an auth test.
+    #--
+    # If there is an @open_connection, then perform the bind
+    # on it. Otherwise, connect, bind, and disconnect.
+    # The latter operation is obviously useful only as an auth check.
     #
     def bind
-      conn = Connection.new( :host => @host, :port => @port )
-      conn.bind @auth
+      if @open_connection
+        @open_connection.bind @auth
+      else
+        conn = Connection.new( :host => @host, :port => @port )
+        result = conn.bind @auth
+        conn.close
+        result
+      end
     end
 
     #
@@ -180,10 +229,17 @@ module Net
     # Add a full RDN to the remote DIS.
     #
     def add args
-      conn = Connection.new( :host => @host, :port => @port )
-      # TODO, hardcoded Ldap result code in next line
-      (rc = conn.bind @auth) == 0 or return rc
-      conn.add( args )
+      if @open_connection
+          @open_connection.add( args )
+      else
+        result_code = 0
+        conn = Connection.new( :host => @host, :port => @port )
+        if (result_code = conn.bind( args[:auth] || @auth )) == 0
+          result_code = conn.add( args )
+        end
+        conn.close
+        result_code
+      end
     end
 
 
@@ -192,10 +248,17 @@ module Net
     # Modify the attributes of an entry on the remote DIS.
     #
     def modify args
-      conn = Connection.new( :host => @host, :port => @port )
-      # TODO, hardcoded Ldap result code in next line
-      (rc = conn.bind @auth) == 0 or return rc
-      conn.modify( args )
+      if @open_connection
+          @open_connection.modify( args )
+      else
+        result_code = 0
+        conn = Connection.new( :host => @host, :port => @port )
+        if (result_code = conn.bind( args[:auth] || @auth )) == 0
+          result_code = conn.modify( args )
+        end
+        conn.close
+        result_code
+      end
     end
 
     #
@@ -203,10 +266,17 @@ module Net
     # Rename an entry on the remote DIS by changing the last RDN of its DN.
     #
     def rename args
-      conn = Connection.new( :host => @host, :port => @port )
-      # TODO, hardcoded Ldap result code in next line
-      (rc = conn.bind @auth) == 0 or return rc
-      conn.rename( args )
+      if @open_connection
+          @open_connection.rename( args )
+      else
+        result_code = 0
+        conn = Connection.new( :host => @host, :port => @port )
+        if (result_code = conn.bind( args[:auth] || @auth )) == 0
+          result_code = conn.rename( args )
+        end
+        conn.close
+        result_code
+      end
     end
 
   end # class LDAP
@@ -230,6 +300,18 @@ module Net
       end
 
       block_given? and yield self
+    end
+
+
+    #
+    # close
+    # This is provided as a convenience method to make
+    # sure a connection object gets closed without waiting
+    # for a GC to happen. Clients shouldn't have to call it,
+    # but perhaps it will come in handy someday.
+    def close
+      @conn.close
+      @conn = nil
     end
 
     #
