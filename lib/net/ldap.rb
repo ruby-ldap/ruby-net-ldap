@@ -137,10 +137,8 @@ module Net
     # open
     #
     def LDAP::open args
-      #ldap = LDAP.new args
-      #ldap.connect
-      #yield ldap
-      #ldap.disconnect
+      ldap = LDAP.new args
+      ldap.open {|ldap1| yield ldap1 }
     end
 
 
@@ -149,12 +147,18 @@ module Net
     # closed when the block completes. It's for executing multiple
     # LDAP operations without requiring a separate network connection
     # (and authentication) for each one.
-    #
-    #
+    #--
+    # First we make a connection and then a binding, but we don't
+    # do anything with the bind results.
+    # We then pass self to the caller's block, where he will execute
+    # his LDAP operations. Of course they will all generate auth failures
+    # if the bind was unsuccessful.
     def open
-      conn = connect
+      raise LdapError.new( "open already in progress" ) if @open_connection
+      @open_connection = Connection.new( :host => @host, :port => @port )
+      @open_connection.bind @auth
       yield self
-      disconnect
+      @open_connection.close
     end
 
 

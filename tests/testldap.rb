@@ -154,8 +154,22 @@ class TestLdapClient < Test::Unit::TestCase
 
 
   def test_open
-    Net::LDAP.open( :host => @host, :port => @port, :auth => @auth ) {
-      p "NO TESTS!!!"
+    ldap = Net::LDAP.new :host => @host, :port => @port, :auth => @auth
+    ldap.open {|ldap|
+      10.times {
+        rc = ldap.search( :base => "dc=bayshorenetworks,dc=com" )
+        assert_equal( 0, rc )
+      }
+    }
+  end
+
+
+  def test_ldap_open
+    Net::LDAP.open( :host => @host, :port => @port, :auth => @auth ) {|ldap|
+      10.times {
+        rc = ldap.search( :base => "dc=bayshorenetworks,dc=com" )
+        assert_equal( 0, rc )
+      }
     }
   end
 
