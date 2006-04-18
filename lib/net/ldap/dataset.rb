@@ -26,11 +26,56 @@
 #
 
 
+require 'base64'
+
+
 module Net
 class LDAP
 
-class Dataset
+class Dataset < Hash
 
+  attr_reader :comments
+
+
+  def Dataset::read_ldif io
+    ds = Dataset.new
+
+    line = io.gets && chomp
+    dn = nil
+
+    while line
+      io.gets and chomp
+      if $_ =~ /^[\s]+/
+        line << " " << $'
+      else
+        nextline = $_
+
+        if line =~ /^\#/
+          ds.comments << line
+        elsif line =~ /^dn:[\s]*/i
+          dn = $'
+          ds[dn] = Hash.new {|k,v| k[v] = []}
+        elsif line.length == 0
+          dn = nil
+        elsif line =~ /^([^:]+):([\:]?)[\s]*/
+          # $1 is the attribute name
+          # $2 is a colon iff the attr-value is base-64 encoded
+          # $' is the attr-value
+          attrvalue = ($2 == ":") ? Base64.decode64($') : $'
+          ds[dn][$1.downcase.intern] << attrvalue
+        end
+
+        line = nextline
+      end
+    end
+  
+    ds
+  end
+
+
+  def initialize
+    @comments = []
+  end
 
 
 end # Dataset
