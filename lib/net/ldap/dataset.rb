@@ -35,8 +35,8 @@ class Dataset
 
 end # Dataset
 
-end #LDAP
-end Net
+end # LDAP
+end # Net
 
 
 #-----------------------------------
