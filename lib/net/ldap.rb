@@ -44,6 +44,7 @@ require 'socket'
 require 'net/ber'
 require 'net/ldap/pdu'
 require 'net/ldap/filter'
+require 'net/ldap/dataset'
 
 
 module Net
