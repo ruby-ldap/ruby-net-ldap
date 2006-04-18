@@ -60,7 +60,7 @@ class Dataset < Hash
           # $1 is the attribute name
           # $2 is a colon iff the attr-value is base-64 encoded
           # $' is the attr-value
-          #attrvalue = ($2 == ":") ? Base64.decode64($') : $'
+          # Avoid the Base64 class because not all Ruby versions have it.
           attrvalue = ($2 == ":") ? $'.unpack('m').shift : $'
           ds[dn][$1.downcase.intern] << attrvalue
         end
@@ -75,6 +75,28 @@ class Dataset < Hash
 
   def initialize
     @comments = []
+  end
+
+
+  def to_ldif
+    ary = []
+    ary += (@comments || [])
+
+    keys.sort.each {|dn|
+      ary << "dn: #{dn}"
+
+      self[dn].keys.map {|sym| sym.to_s}.sort.each {|attr|
+        self[dn][attr.intern].each {|val|
+          ary << "#{attr}: #{val}"
+        }
+      }
+
+      ary << ""
+    }
+
+    block_given? and ary.each {|line| yield line}
+
+    ary
   end
 
 

@@ -5,6 +5,11 @@
 
 $:.unshift "lib"
 
+require 'test/unit'
+require 'tests/testber'
+require 'tests/testldif'
+require 'tests/testldap'
+
 require 'net/ldap'
 require 'net/ldif'
 
@@ -48,6 +53,16 @@ class TestLdif < Test::Unit::TestCase
     File.open( TestLdifFilename, "r" ) {|f|
       ds = Net::LDAP::Dataset::read_ldif( f )
       assert_equal( 13, ds.length )
+    }
+  end
+
+  # TODO, need some tests.
+  # Must test folded lines and base64-encoded lines as well as normal ones.
+  def test_to_ldif
+    File.open( TestLdifFilename, "r" ) {|f|
+      ds = Net::LDAP::Dataset::read_ldif( f )
+      ds.to_ldif
+      assert_equal( true, false ) # REMOVE WHEN WE HAVE SOME TESTS HERE.
     }
   end
 
