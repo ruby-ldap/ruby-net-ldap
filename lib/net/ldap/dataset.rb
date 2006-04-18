@@ -26,7 +26,6 @@
 #
 
 
-require 'base64'
 
 
 module Net
@@ -61,7 +60,8 @@ class Dataset < Hash
           # $1 is the attribute name
           # $2 is a colon iff the attr-value is base-64 encoded
           # $' is the attr-value
-          attrvalue = ($2 == ":") ? Base64.decode64($') : $'
+          #attrvalue = ($2 == ":") ? Base64.decode64($') : $'
+          attrvalue = ($2 == ":") ? $'.unpack('m').shift : $'
           ds[dn][$1.downcase.intern] << attrvalue
         end
 
