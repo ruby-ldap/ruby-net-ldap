@@ -199,22 +199,21 @@ module Net
     #
     def search args
       if @open_connection
-        result_code = @open_connection.search( args ) {|values|
+        @result = @open_connection.search( args ) {|values|
           block_given? and yield( values )
         }
-        result_code
       else
-        result_code = 0
+        @result = 0
         conn = Connection.new( :host => @host, :port => @port )
-        if (result_code = conn.bind( args[:auth] || @auth )) == 0
-          result_code = conn.search( args ) {|values|
+        if (@result = conn.bind( args[:auth] || @auth )) == 0
+          @result = conn.search( args ) {|values|
             block_given? and yield( values )
           }
         end
         conn.close
-        result_code
       end
 
+      @result == 0
     end
 
     #

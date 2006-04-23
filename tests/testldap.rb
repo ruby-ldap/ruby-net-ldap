@@ -88,10 +88,12 @@ class TestLdapClient < Test::Unit::TestCase
     ldap = Net::LDAP.new :host => @host, :port => @port, :auth => @auth
 
     search = {:base => "dc=smalldomain,dc=com"}
-    assert_equal( 32, ldap.search( search ))
+    assert_equal( false, ldap.search( search ))
+    assert_equal( 32, ldap.get_operation_result.code )
     
     search = {:base => "dc=bayshorenetworks,dc=com"}
-    assert_equal( 0, ldap.search( search ))
+    assert_equal( true, ldap.search( search ))
+    assert_equal( 0, ldap.get_operation_result.code )
     
     ldap.search( search ) {|res|
       assert_equal( res, @ldif )
@@ -118,7 +120,7 @@ class TestLdapClient < Test::Unit::TestCase
       }
     }
   
-    assert_equal( 0, ldap.search( search ))
+    assert_equal( true, ldap.search( search ))
     ldap.search( search ) {|res|
       res_keys = res.keys.sort
       ldif_keys = ldif.keys.sort
@@ -164,7 +166,7 @@ class TestLdapClient < Test::Unit::TestCase
     ldap.open {|ldap|
       10.times {
         rc = ldap.search( :base => "dc=bayshorenetworks,dc=com" )
-        assert_equal( 0, rc )
+        assert_equal( true, rc )
       }
     }
   end
@@ -174,7 +176,7 @@ class TestLdapClient < Test::Unit::TestCase
     Net::LDAP.open( :host => @host, :port => @port, :auth => @auth ) {|ldap|
       10.times {
         rc = ldap.search( :base => "dc=bayshorenetworks,dc=com" )
-        assert_equal( 0, rc )
+        assert_equal( true, rc )
       }
     }
   end
