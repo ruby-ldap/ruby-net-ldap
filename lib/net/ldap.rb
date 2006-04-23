@@ -256,16 +256,16 @@ module Net
     #
     def add args
       if @open_connection
-          @open_connection.add( args )
+          @result = @open_connection.add( args )
       else
-        result_code = 0
+        @result = 0
         conn = Connection.new( :host => @host, :port => @port )
-        if (result_code = conn.bind( args[:auth] || @auth )) == 0
-          result_code = conn.add( args )
+        if (@result = conn.bind( args[:auth] || @auth )) == 0
+          @result = conn.add( args )
         end
         conn.close
-        result_code
       end
+      @result == 0
     end
 
 
@@ -275,16 +275,16 @@ module Net
     #
     def modify args
       if @open_connection
-          @open_connection.modify( args )
+          @result = @open_connection.modify( args )
       else
-        result_code = 0
+        @result = 0
         conn = Connection.new( :host => @host, :port => @port )
-        if (result_code = conn.bind( args[:auth] || @auth )) == 0
-          result_code = conn.modify( args )
+        if (@result = conn.bind( args[:auth] || @auth )) == 0
+          @result = conn.modify( args )
         end
         conn.close
-        result_code
       end
+      @result == 0
     end
 
     #
@@ -293,16 +293,16 @@ module Net
     #
     def rename args
       if @open_connection
-          @open_connection.rename( args )
+          @result = @open_connection.rename( args )
       else
-        result_code = 0
+        @result = 0
         conn = Connection.new( :host => @host, :port => @port )
-        if (result_code = conn.bind( args[:auth] || @auth )) == 0
-          result_code = conn.rename( args )
+        if (@result = conn.bind( args[:auth] || @auth )) == 0
+          @result = conn.rename( args )
         end
         conn.close
-        result_code
       end
+      @result == 0
     end
 
   end # class LDAP
