@@ -41,6 +41,7 @@
 
 
 require 'socket'
+require 'ostruct'
 require 'net/ber'
 require 'net/ldap/pdu'
 require 'net/ldap/filter'
@@ -141,6 +142,27 @@ module Net
       ldap.open {|ldap1| yield ldap1 }
     end
 
+    # This method will return a meaningful result any time after
+    # a protocol operation (bind, search, add, modify, rename, delete)
+    # has completed.
+    # It returns an OpenStruct containing an LDAP result code (0 means success),
+    # and a human-readable string.
+    #  unless ldap.bind
+    #    puts "Result: #{ldap.get_operation_result.code}"
+    #    puts "Message: #{ldap.get_operation_result.message}"
+    #  end
+    #
+    def get_operation_result
+      os = OpenStruct.new
+      if @result
+        os.code = @result
+      else
+        os.code = 0
+      end
+      os.message = LDAP.result2string( os.code )
+      os
+    end
+
 
     # This method opens a network connection to the server and then
     # passes self to the caller-supplied block. The connection is
@@ -206,13 +228,14 @@ module Net
     #
     def bind
       if @open_connection
-        @open_connection.bind @auth
+        @result = @open_connection.bind @auth
       else
         conn = Connection.new( :host => @host, :port => @port )
-        result = conn.bind @auth
+        @result = conn.bind @auth
         conn.close
-        result
       end
+
+      @result == 0
     end
 
     #
