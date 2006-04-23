@@ -39,6 +39,36 @@ module Net
   # the LDAP protocol itself, and thus presenting as Ruby-like
   # a programming interface as possible.
   # 
+  # === Quick-start for the Impatient
+  #  require 'rubygems'
+  #  require 'net/ldap'
+  #  
+  #  ldap = Net::LDAP.new :host => server_ip_address,
+  #       :port => 389,
+  #       :auth => {
+  #             :method => :simple,
+  #             :username => "cn=manager,dc=example,dc=com",
+  #             :password => "opensesame"
+  #       }
+  #
+  #  filter = Net::LDAP::Filter.eq?( "cn", "George*" )
+  #  treebase = "dc=example,dc=com"
+  #  
+  #  ldap.search( :base => treebase, :filter => filter ) do |result|
+  #    result.each do |dn, attrs|
+  #      puts "DN: #{dn}"
+  #      attrs.each do |attr, values|
+  #        puts "***Attr: #{attr}"
+  #        values.each do |value|
+  #          puts "      #{value}"
+  #        end
+  #      end
+  #    end
+  #  end
+  #  
+  #  p ldap.get_operation_result
+  #  
+  #
   # == Quick introduction to LDAP
   #
   # We're going to provide a quick and highly informal introduction to LDAP
