@@ -3,41 +3,17 @@
 # Net::LDAP for Ruby
 #
 #
-#
 # Copyright (C) 2006 by Francis Cianfrocca. All Rights Reserved.
 #
-# Gmail: garbagecat10
+# Written and maintained by Francis Cianfrocca, gmail: garbagecat10.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+# This program is free software.
+# You may re-distribute and/or modify this program under the same terms
+# as Ruby itself: Ruby Distribution License or GNU General Public License.
 #
 #
-# == Miscellaneous
+# See Net::LDAP for documentation and usage samples.
 #
-# For reasons relating to the source-code layout, this file doesn't
-# require all the outboard stuff it actually needs, like netber.
-# Until we figure out how to do that without damaging the directory
-# structure, we're reliant on user programs to explicitly require
-# everything, and in the correct order too!
-#
-# == BUGS:
-#
-# Try querying the objectGUID attribute from an A/D. It's a binary value
-# which we're reading correctly, but we need to make sure it gets base64-encoded
-# if we're going to put it out to an LDIF.
-#
-
 
 
 require 'socket'
@@ -51,9 +27,176 @@ require 'net/ldap/dataset'
 module Net
 
 
+  # == Net::LDAP
   #
-  # class LDAP
+  # This library provides a pure-Ruby implementation of the
+  # LDAP client protocol, per RFC-1777.
+  # It can be used to access any server which implements the
+  # LDAP protocol.
   #
+  # Net::LDAP is intended to provide full LDAP functionality
+  # while hiding the more arcane aspects
+  # the LDAP protocol itself, and thus presenting as Ruby-like
+  # a programming interface as possible.
+  # 
+  # == Quick introduction to LDAP
+  #
+  # We're going to provide a quick and highly informal introduction to LDAP
+  # terminology and
+  # typical operations. If you're comfortable with this material, skip
+  # ahead to "How to use Net::LDAP." If you want a more rigorous treatment
+  # of this material, we recommend you start with the various IETF and ITU
+  # standards that control LDAP.
+  #
+  # === Entities
+  # LDAP is an Internet-standard protocol used to access directory servers.
+  # The basic search unit is the <i>entity,</i> which corresponds to
+  # a person or other domain-specific object.
+  # A directory service which supports the LDAP protocol typically
+  # stores information about a number of entities.
+  #
+  # === Principals
+  # LDAP servers are typically used to access information about people,
+  # but also very often about such items as printers, computers, and other
+  # resources. To reflect this, LDAP uses the term <i>entity,</i> or less
+  # commonly, <i>principal,</i> to denote its basic data-storage unit.
+  # 
+  #
+  # === Distinguished Names
+  # In LDAP's view of the world,
+  # an entity is uniquely identified by a globally-unique text string
+  # called a <i>Distinguished Name,</i> originally defined in the X.400
+  # standards from which LDAP is ultimately derived.
+  # Much like a DNS hostname, a DN is a "flattened" text representation
+  # of a string of tree nodes. Also like DNS (and unlike Java package
+  # names), a DN expresses a chain of tree-nodes written from left to right
+  # in order from the most-resolved node to the most-general one.
+  #
+  # If you know the DN of a person or other entity, then you can query
+  # an LDAP-enabled directory for information (attributes) about the entity.
+  # Alternatively, you can query the directory for a list of DNs matching
+  # a set of criteria that you supply.
+  #
+  # === Attributes
+  #
+  # In the LDAP view of the world, a DN uniquely identifies an entity.
+  # Information about the entity is stored as a set of <i>Attributes.</i>
+  # An attribute is a text string which is associated with zero or more
+  # values. Most LDAP-enabled directories store a well-standardized
+  # range of attributes, and constrain their values according to standard
+  # rules.
+  #
+  # A good example of an attribute is <tt>cn,</tt> which stands for "Common Name."
+  # In many directories, this attribute is used to store a string consisting of
+  # a person's first and last names. Most directories enforce the convention that
+  # an entity's <tt>cn</tt> attribute have <i>exactly one</i> value. In LDAP
+  # jargon, that means that <tt>cn</tt> must be <i>present</i> and
+  # <i>single-valued.</i>
+  #
+  # Another attribute is <tt>mail,</tt> which is used to store email addresses.
+  # (No, there is no attribute called "email," perhaps because X.400 terminology
+  # predates the invention of the term <i>email.</i>) <tt>mail</tt> differs
+  # from <tt>cn</tt> in that most directories permit any number of values for the
+  # <tt>mail</tt> attribute, including zero.
+  #
+  #
+  # === Tree-Base
+  # We said above that X.400 Distinguished Names are <i>globally unique.</i>
+  # In a manner reminiscent of DNS, LDAP supposes that each directory server
+  # contains authoritative attribute data for a set of DNs corresponding
+  # to a specific sub-tree of the (notional) global directory tree.
+  # This subtree is generally configured into a directory server when it is
+  # created. It matters for this discussion because most servers will not
+  # allow you to query them unless you specify a correct tree-base.
+  #
+  # Let's say you work for the engineering department of Big Company, Inc.,
+  # whose internet domain is bigcompany.com. You may find that your departmental
+  # directory is stored in a server with a defined tree-base of
+  #  ou=engineering,dc=bigcompany,dc=com
+  # You will need to supply this string as the <i>tree-base</i> when querying this
+  # directory. (Ou is a very old X.400 term meaning "organizational unit."
+  # Dc is a more recent term meaning "domain component.")
+  #
+  # === LDAP Versions
+  # (stub, discuss v2 and v3)
+  #
+  # === LDAP Operations
+  # The essential operations are: <i>bind, search, add, modify, delete, and rename.</i>
+  # ==== Bind
+  # Bind supplies a user's authentication credentials to a server, which in turn verifies
+  # or rejects them. There is a range of possibilities for credentials, but most directories
+  # support a simple username and password authentication.
+  #
+  # Taken by itself, the bind operation can be used to authenticate a user against information
+  # stored in a directory, for example to permit or deny access to some other resource.
+  # In terms of the other LDAP operations, most directories require a successful bind to
+  # be performed before the other operations will be permitted. Some servers permit certain
+  # operations to be performed with an "anonymous" binding, meaning that no credentials are
+  # presented by the user. (We're glossing over a lot of platform-specific detail here.)
+  #
+  # ==== Search
+  # Searching the directory involves specifying a treebase, a set of <i>search filters,</i>
+  # and a list of attribute values.
+  # The filters specify ranges of possible values for particular attributes. Multiple
+  # filters can be joined together with AND, OR, and NOT operators.
+  # A server will respond to a search by returning a list of matching DNs together with a
+  # set of attribute values for each entity, depending on what attributes the search requested.
+  # 
+  # ==== Add
+  # An add operation specifies a new DN and an initial set of attribute values. If the operation
+  # succeeds, a new entity with the corresponding DN and attributes is added to the directory.
+  #
+  # ==== Modify
+  # Modify specifies an entity DN, and a list of attribute operations. Modify is used to change
+  # the attribute values stored in the directory for a particular entity.
+  # Modify may add or delete attributes (which are lists of values) or it change attributes by
+  # adding to or deleting from their values.
+  #
+  # ==== Delete
+  # The delete operation specifies an entity DN. If it succeeds, the entity and all its attributes
+  # is removed from the directory.
+  #
+  # ==== Rename (or Modify RDN)
+  # Rename (or Modify RDN) is an operation added to version 3 of the LDAP protocol. It responds to
+  # the often-arising need to change the DN of an entity without discarding its attribute values.
+  # In earlier LDAP versions, the only way to do this was to delete the whole entity and add it
+  # again with a different DN.
+  #
+  # Rename works by taking an "old" DN (the one to change) and a "new RDN," which is the left-most
+  # part of the DN string. If successful, rename changes the entity DN so that its left-most
+  # node corresponds to the new RDN given in the request. (RDN, or "relative distinguished name,"
+  # denotes a single tree-node as expressed in a DN, which is a chain of tree nodes.)
+  #
+  # == How to use Net::LDAP
+  #
+  # This is how to access Net::LDAP functionality in your Ruby programs
+  # (note that at present, Net::LDAP is provided as a gem):
+  #
+  #  require 'rubygems'
+  #  require 'net/ldap'
+  #
+  # Most operations with Net::LDAP start by instantiating a Net::LDAP object.
+  # The constructor for this object takes arguments specifying the network location
+  # (address and port) of the LDAP server, and also the binding (authentication)
+  # credentials, typically a username and password.
+  # Given an object of class Net:LDAP, you can then perform LDAP operations by calling
+  # instance methods on the object. These are documented with usage examples below.
+  #
+  # The Net::LDAP library is designed to be very disciplined about how it makes network
+  # connections to servers. This is different from many of the standard native-code
+  # libraries that are provided on most platforms, and that share bloodlines with the
+  # original Netscape/Michigan LDAP client implementations. These libraries sought to
+  # insulate user code from the workings of the network. This is a good idea of course,
+  # but the practical effect has been confusing and many difficult bugs have been caused
+  # by the opacity of the native libraries, and their variable behavior across platforms.
+  #
+  # In general, Net::LDAP instance methods which invoke server operations make a connection
+  # to the server when the method is called. They execute the operation (typically binding first)
+  # and then disconnect from the server. The exception is Net::LDAP#open, which makes a connection
+  # to the server and then keeps it open while it executes a user-supplied block. Net::LDAP#open
+  # closes the connection on completion of the block.
+  #
+
   class LDAP
 
     class LdapError < Exception; end
