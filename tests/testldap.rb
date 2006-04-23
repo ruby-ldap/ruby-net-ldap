@@ -65,15 +65,21 @@ class TestLdapClient < Test::Unit::TestCase
   # TODO, use constants for the LDAP result codes, rather than hardcoding them.
   def test_bind
     ldap = Net::LDAP.new :host => @host, :port => @port, :auth => @auth
-    assert_equal( 0, ldap.bind )
+    assert_equal( true, ldap.bind )
+    assert_equal( 0, ldap.get_operation_result.code )
+    assert_equal( "Success", ldap.get_operation_result.message )
 
     bad_username = @auth.merge( {:username => "cn=badguy,dc=imposters,dc=com"} )
     ldap = Net::LDAP.new :host => @host, :port => @port, :auth => bad_username
-    assert_equal( 48, ldap.bind )
+    assert_equal( false, ldap.bind )
+    assert_equal( 48, ldap.get_operation_result.code )
+    assert_equal( "Inappropriate Authentication", ldap.get_operation_result.message )
 
     bad_password = @auth.merge( {:password => "cornhusk"} )
     ldap = Net::LDAP.new :host => @host, :port => @port, :auth => bad_password
-    assert_equal( 49, ldap.bind )
+    assert_equal( false, ldap.bind )
+    assert_equal( 49, ldap.get_operation_result.code )
+    assert_equal( "Invalid Credentials", ldap.get_operation_result.message )
   end
 
 
@@ -98,7 +104,7 @@ class TestLdapClient < Test::Unit::TestCase
   # This is a helper routine for test_search_attributes.
   def internal_test_search_attributes attrs_to_search
     ldap = Net::LDAP.new :host => @host, :port => @port, :auth => @auth
-    assert_equal( 0, ldap.bind )
+    assert( ldap.bind )
 
     search = {
       :base => "dc=bayshorenetworks,dc=com",
