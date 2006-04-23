@@ -305,6 +305,11 @@ module Net
       @result == 0
     end
 
+    # modify_rdn is an alias for rename.
+    def modify_rdn args
+      rename args
+    end
+
   end # class LDAP
 
 
