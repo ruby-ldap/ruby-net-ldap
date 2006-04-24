@@ -22,6 +22,7 @@ require 'net/ber'
 require 'net/ldap/pdu'
 require 'net/ldap/filter'
 require 'net/ldap/dataset'
+require 'net/ldap/psw'
 
 
 module Net
