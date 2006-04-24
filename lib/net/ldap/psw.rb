@@ -34,6 +34,8 @@ class Password
   class << self
 
   # Generate a password-hash suitable for inclusion in an LDAP attribute.
+  # Pass a hash type (currently supported: :md5 and :sha) and a plaintext
+  # password. This function will return a hashed representation.
   # STUB: This is here to fulfill the requirements of an RFC, which one?
   # TODO, gotta do salted-sha and (maybe) salted-md5.
   # Should we provide sha1 as a synonym for sha1? I vote no because then
