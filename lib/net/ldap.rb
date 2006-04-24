@@ -282,6 +282,7 @@ module Net
       51 => "Busy",
       52 => "Unavailable",
       53 => "Unwilling to perform",
+      65 => "Object Class Violation",
       68 => "Entry Already Exists"
     }
 
