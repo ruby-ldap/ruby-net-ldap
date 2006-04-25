@@ -53,17 +53,15 @@ module Net
   #             :password => "opensesame"
   #       }
   #
-  #  filter = Net::LDAP::Filter.eq?( "cn", "George*" )
+  #  filter = Net::LDAP::Filter.eq( "cn", "George*" )
   #  treebase = "dc=example,dc=com"
   #  
-  #  ldap.search( :base => treebase, :filter => filter ) do |result|
-  #    result.each do |dn, attrs|
-  #      puts "DN: #{dn}"
-  #      attrs.each do |attr, values|
-  #        puts "***Attr: #{attr}"
-  #        values.each do |value|
-  #          puts "      #{value}"
-  #        end
+  #  ldap.search( :base => treebase, :filter => filter ) do |entry|
+  #    puts "DN: #{entry.dn}"
+  #    entry.each do |attribute, values|
+  #      puts "   #{attribute}:"
+  #      values.each do |value|
+  #        puts "      --->#{value}"
   #      end
   #    end
   #  end
@@ -425,7 +423,7 @@ module Net
         conn = Connection.new( :host => @host, :port => @port )
         if (@result = conn.bind( args[:auth] || @auth )) == 0
           @result = conn.search( args ) {|entry|
-            result_set[entry.dn] = entry if result_set
+            (result_set[entry.dn] = entry) if result_set
             yield( entry ) if block_given?
           }
         end

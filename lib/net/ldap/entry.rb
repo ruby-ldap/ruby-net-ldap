@@ -37,7 +37,7 @@ class LDAP
 
     def initialize dn = nil
       @myhash = Hash.new {|k,v| k[v] = [] }
-      self[:dn] = [dn]
+      @myhash[:dn] = [dn]
     end
 
 
@@ -47,20 +47,27 @@ class LDAP
     end
 
     def [] name
-      unless name.is_a?(Symbol)
-        name = name.to_s.downcase.intern
-      end
+      #unless name.is_a?(Symbol)
+      #  name = name.to_s.downcase.intern
+      #end
       @myhash[name]
     end
 
     def dn
-      self[:dn].shift
+      self[:dn][0]
     end
 
     def attribute_names
       @myhash.keys
     end
 
+    def each
+      if block_given?
+        attribute_names.each {|a| yield a, self[a] }
+      end
+    end
+
+    alias_method :each_attribute, :each
 
   end # class Entry
 
