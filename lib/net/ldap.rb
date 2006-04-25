@@ -23,6 +23,7 @@ require 'net/ldap/pdu'
 require 'net/ldap/filter'
 require 'net/ldap/dataset'
 require 'net/ldap/psw'
+require 'net/ldap/entry'
 
 
 module Net
@@ -372,23 +373,66 @@ module Net
     # Note that in the standalone case, we're permitting the caller
     # to modify the auth parms.
     #
-    def search args
+    def searchx args
       if @open_connection
-        @result = @open_connection.search( args ) {|values|
-          block_given? and yield( values )
+        @result = @open_connection.searchx( args ) {|values|
+          yield( values ) if block_given?
         }
       else
         @result = 0
         conn = Connection.new( :host => @host, :port => @port )
         if (@result = conn.bind( args[:auth] || @auth )) == 0
-          @result = conn.search( args ) {|values|
-            block_given? and yield( values )
+          @result = conn.searchx( args ) {|values|
+            yield( values ) if block_given?
           }
         end
         conn.close
       end
 
       @result == 0
+    end
+
+    #--
+    # This is a re-implementation of search that replaces the
+    # original one (now renamed searchx and possibly destined to go away).
+    # The difference is that we return a dataset (or nil) from the
+    # call, and pass _each entry_ as it is received from the server
+    # to the caler-supplied block. This will probably make things
+    # far faster as we can do useful work during the network latency
+    # of the search. The downside is that we have no access to the
+    # whole set while processing the blocks, so we can't do stuff
+    # like sort the DNs until after the call completes.
+    # It's also possible that this interacts badly with server timeouts.
+    # We'll have to ensure that something reasonable happens if
+    # the caller has processed half a result set when we throw a timeout
+    # error.
+    # Another important difference is that we return a result set from
+    # this method rather than a T/F indication.
+    # Since this can be very heavy-weight, we define an argument flag
+    # that the caller can set to suppress the return of a result set,
+    # if he's planning to process every entry as it comes from the server.
+    #
+    def search args
+      result_set = (args and args[:return_result] == false) ? nil : {}
+
+      if @open_connection
+        @result = @open_connection.search( args ) {|entry|
+          result_set[entry.dn] = entry if result_set
+          yield( entry ) if block_given?
+        }
+      else
+        @result = 0
+        conn = Connection.new( :host => @host, :port => @port )
+        if (@result = conn.bind( args[:auth] || @auth )) == 0
+          @result = conn.search( args ) {|entry|
+            result_set[entry.dn] = entry if result_set
+            yield( entry ) if block_given?
+          }
+        end
+        conn.close
+      end
+
+      @result == 0 and result_set
     end
 
     #
@@ -505,7 +549,7 @@ module Net
         raise LdapError.new( "no connection to server" )
       end
 
-      block_given? and yield self
+      yield self if block_given?
     end
 
 
@@ -552,12 +596,63 @@ module Net
 
     #
     # search
+    # Alternate implementation, this yields each search entry to the caller
+    # as it are received.
     # TODO, certain search parameters are hardcoded.
     # TODO, if we mis-parse the server results or the results are wrong, we can block
     # forever. That's because we keep reading results until we get a type-5 packet,
     # which might never come. We need to support the time-limit in the protocol.
+    #--
+    # WARNING: this code substantially recapitulates the searchx method.
     #
     def search args
+      search_filter = (args && args[:filter]) || Filter.eq( "objectclass", "*" )
+      search_base = (args && args[:base]) || "dc=example,dc=com"
+      search_attributes = ((args && args[:attributes]) || []).map {|attr| attr.to_s.to_ber}
+
+      request = [
+        search_base.to_ber,
+        2.to_ber_enumerated,
+        0.to_ber_enumerated,
+        0.to_ber,
+        0.to_ber,
+        false.to_ber,
+        search_filter.to_ber,
+        search_attributes.to_ber_sequence
+      ].to_ber_appsequence(3)
+      pkt = [next_msgid.to_ber, request].to_ber_sequence
+      @conn.write pkt
+
+      result_code = 0
+
+      while (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be ))
+        case pdu.app_tag
+        when 4 # search-data
+          yield( pdu.search_entry ) if block_given?
+        when 5 # search-result
+          result_code = pdu.result_code
+          break
+        else
+          raise LdapError.new( "invalid response-type in search: #{pdu.app_tag}" )
+        end
+      end
+
+      result_code
+    end
+
+
+    #
+    # searchx
+    # Original implementation, this doesn't return until all data have been
+    # received from the server.
+    # TODO, certain search parameters are hardcoded.
+    # TODO, if we mis-parse the server results or the results are wrong, we can block
+    # forever. That's because we keep reading results until we get a type-5 packet,
+    # which might never come. We need to support the time-limit in the protocol.
+    #--
+    # WARNING: this code substantially recapitulates the search method.
+    #
+    def searchx args
       search_filter = (args && args[:filter]) || Filter.eq( "objectclass", "*" )
       search_base = (args && args[:base]) || "dc=example,dc=com"
       search_attributes = ((args && args[:attributes]) || []).map {|attr| attr.to_s.to_ber}
@@ -663,15 +758,5 @@ module Net
 
 
 end # module Net
-
-
-#------------------------------------------------------
-
-if __FILE__ == $0
-  puts "No default action"
-end
-
-
-
 
 

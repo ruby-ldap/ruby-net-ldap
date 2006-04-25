@@ -44,7 +44,7 @@ class LdapPdu
   ModifyRDNResponse = 13
 
   attr_reader :msg_id, :app_tag
-  attr_reader :search_dn, :search_attributes
+  attr_reader :search_dn, :search_attributes, :search_entry
 
   #
   # initialize
@@ -129,12 +129,17 @@ class LdapPdu
   # NOW OBSERVE CAREFULLY: WE ARE DOWNCASING THE RETURNED ATTRIBUTE NAMES.
   # This is to make them more predictable for user programs, but it
   # may not be a good idea. Maybe this should be configurable.
+  # ALTERNATE IMPLEMENTATION: In addition to @search_dn and @search_attributes,
+  # we also return @search_entry, which is an LDAP::Entry object.
+  # If that works out well, then we'll remove the first two.
   #
   def parse_search_return sequence
     sequence.length >= 2 or raise LdapPduError
+    @search_entry = LDAP::Entry.new( sequence[0] )
     @search_dn = sequence[0]
     @search_attributes = {}
     sequence[1].each {|seq|
+      @search_entry[seq[0]] = seq[1]
       @search_attributes[seq[0].downcase.intern] = seq[1]
     }
   end
