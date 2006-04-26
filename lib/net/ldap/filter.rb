@@ -277,9 +277,3 @@ end # class Net::LDAP
 end # module Net
 
 
-#-----------------------------------
-
-if __FILE__ == $0
-  puts "No default action"
-end
-

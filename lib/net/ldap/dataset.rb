@@ -106,11 +106,3 @@ end # LDAP
 end # Net
 
 
-#-----------------------------------
-
-if __FILE__ == $0
-  puts "No default action"
-end
-
-
-
