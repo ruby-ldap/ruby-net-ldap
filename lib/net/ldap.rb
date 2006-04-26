@@ -467,7 +467,7 @@ module Net
     # original one (now renamed searchx and possibly destined to go away).
     # The difference is that we return a dataset (or nil) from the
     # call, and pass _each entry_ as it is received from the server
-    # to the caler-supplied block. This will probably make things
+    # to the caller-supplied block. This will probably make things
     # far faster as we can do useful work during the network latency
     # of the search. The downside is that we have no access to the
     # whole set while processing the blocks, so we can't do stuff
