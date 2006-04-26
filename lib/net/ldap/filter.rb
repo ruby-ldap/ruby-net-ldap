@@ -83,13 +83,35 @@ class Filter
   def Filter::ge attribute, value; Filter.new :ge, attribute, value; end
   def Filter::le attribute, value; Filter.new :le, attribute, value; end
 
+  # #pres( attribute ) is a synonym for #eq( attribute, "*" )
+  #
+  def Filter::pres attribute; Filter.eq attribute, "*"; end
+
+  # operator & ("AND") is used to conjoin two or more filters.
+  # This expression will select only entries that have an <tt>objectclass</tt>
+  # attribute AND have a <tt>mail</tt> attribute that begins with "George":
+  #  f = Net::LDAP::Filter.pres( "objectclass" ) & Net::LDAP::Filter.eq( "mail", "George*" )
+  #
   def & filter; Filter.new :and, self, filter; end
+
+  # operator | ("OR") is used to disjoin two or more filters.
+  # This expression will select entries that have either an <tt>objectclass</tt>
+  # attribute OR a <tt>mail</tt> attribute that begins with "George":
+  #  f = Net::LDAP::Filter.pres( "objectclass" ) | Net::LDAP::Filter.eq( "mail", "George*" )
+  #
   def | filter; Filter.new :or, self, filter; end
 
+
+  #
+  # operator ~ ("NOT") is used to negate a filter.
+  # This expression will select only entries that <i>do not</i> have an <tt>objectclass</tt>
+  # attribute:
+  #  f = ~ Net::LDAP::Filter.pres( "objectclass" )
   #
   #--
   # This operator can't be !, evidently. Try it.
   def ~@; Filter.new :not, self, nil; end
+
 
   def to_s
     case @op
