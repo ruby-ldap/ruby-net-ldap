@@ -151,49 +151,49 @@ module Net
   # (stub, discuss v2 and v3)
   #
   # === LDAP Operations
-  # The essential operations are: <i>bind, search, add, modify, delete, and rename.</i>
+  # The essential operations are: #bind, #search, #add, #modify, #delete, and #rename.
   # ==== Bind
-  # Bind supplies a user's authentication credentials to a server, which in turn verifies
+  # #bind supplies a user's authentication credentials to a server, which in turn verifies
   # or rejects them. There is a range of possibilities for credentials, but most directories
   # support a simple username and password authentication.
   #
-  # Taken by itself, the bind operation can be used to authenticate a user against information
+  # Taken by itself, #bind can be used to authenticate a user against information
   # stored in a directory, for example to permit or deny access to some other resource.
-  # In terms of the other LDAP operations, most directories require a successful bind to
+  # In terms of the other LDAP operations, most directories require a successful #bind to
   # be performed before the other operations will be permitted. Some servers permit certain
   # operations to be performed with an "anonymous" binding, meaning that no credentials are
   # presented by the user. (We're glossing over a lot of platform-specific detail here.)
   #
   # ==== Search
-  # Searching the directory involves specifying a treebase, a set of <i>search filters,</i>
+  # Calling #search against the directory involves specifying a treebase, a set of <i>search filters,</i>
   # and a list of attribute values.
   # The filters specify ranges of possible values for particular attributes. Multiple
   # filters can be joined together with AND, OR, and NOT operators.
-  # A server will respond to a search by returning a list of matching DNs together with a
+  # A server will respond to a #search by returning a list of matching DNs together with a
   # set of attribute values for each entity, depending on what attributes the search requested.
   # 
   # ==== Add
-  # An add operation specifies a new DN and an initial set of attribute values. If the operation
+  # #add operation specifies a new DN and an initial set of attribute values. If the operation
   # succeeds, a new entity with the corresponding DN and attributes is added to the directory.
   #
   # ==== Modify
-  # Modify specifies an entity DN, and a list of attribute operations. Modify is used to change
+  # #modify specifies an entity DN, and a list of attribute operations. #modify is used to change
   # the attribute values stored in the directory for a particular entity.
-  # Modify may add or delete attributes (which are lists of values) or it change attributes by
+  # #modify may add or delete attributes (which are lists of values) or it change attributes by
   # adding to or deleting from their values.
   #
   # ==== Delete
-  # The delete operation specifies an entity DN. If it succeeds, the entity and all its attributes
+  # #delete operation specifies an entity DN. If it succeeds, the entity and all its attributes
   # is removed from the directory.
   #
   # ==== Rename (or Modify RDN)
-  # Rename (or Modify RDN) is an operation added to version 3 of the LDAP protocol. It responds to
+  # #rename (or #modify_rdn) is an operation added to version 3 of the LDAP protocol. It responds to
   # the often-arising need to change the DN of an entity without discarding its attribute values.
   # In earlier LDAP versions, the only way to do this was to delete the whole entity and add it
   # again with a different DN.
   #
-  # Rename works by taking an "old" DN (the one to change) and a "new RDN," which is the left-most
-  # part of the DN string. If successful, rename changes the entity DN so that its left-most
+  # #rename works by taking an "old" DN (the one to change) and a "new RDN," which is the left-most
+  # part of the DN string. If successful, #rename changes the entity DN so that its left-most
   # node corresponds to the new RDN given in the request. (RDN, or "relative distinguished name,"
   # denotes a single tree-node as expressed in a DN, which is a chain of tree nodes.)
   #
@@ -293,10 +293,20 @@ module Net
       ResultStrings[code] || "unknown result (#{code})"
     end 
 
+    # Instantiate an object of type Net::LDAP to perform directory operations.
+    # This constructor takes a hash containing arguments. The following arguments
+    # are supported:
+    # * :host => the LDAP server's IP-address (default 127.0.0.1)
+    # * :port => the LDAP server's TCP port (default 389)
+    # * :auth => a hash containing authorization parameters. Currently supported values include:
+    #   {:method => :anonymous} and
+    #   {:method => :simple, :username => your_user_name, :password => your_password }
     #
-    # initialize
+    # Instantiating a Net::LDAP object does <i>not</i> result in network traffic to
+    # the LDAP server. It simply stores the connection and binding parameters in the
+    # object.
     #
-    def initialize args
+    def initialize args = {}
       @host = args[:host] || DefaultHost
       @port = args[:port] || DefaultPort
       @verbose = false # Make this configurable with a switch on the class.
@@ -308,18 +318,29 @@ module Net
       @open_connection = nil
     end
 
+    # #open takes the same parameters as #new. #open makes a network connection to the
+    # LDAP server and then passes a newly-created Net::LDAP object to the caller-supplied block.
+    # Within the block, you can call any of the instance methods of Net::LDAP to
+    # perform operations against the LDAP directory. #open will perform all the
+    # operations in the user-supplied block on the same network connection, which
+    # will be closed automatically when the block finishes.
     #
-    # open
+    #  auth = {:method => :simple, :username => username, :password => password}
+    #  Net::LDAP.open( :host => ipaddress, :port => 389, :auth => auth ) do |ldap|
+    #    ldap.search( ... )
+    #    ldap.add( ... )
+    #    ldap.modify( ... )
+    #  end
     #
     def LDAP::open args
-      ldap = LDAP.new args
-      ldap.open {|ldap1| yield ldap1 }
+      ldap1 = LDAP.new args
+      ldap1.open {|ldap| yield ldap }
     end
 
-    # This method will return a meaningful result any time after
-    # a protocol operation (bind, search, add, modify, rename, delete)
+    # Returns a meaningful result any time after
+    # a protocol operation (#bind, #search, #add, #modify, #rename, #delete)
     # has completed.
-    # It returns an OpenStruct containing an LDAP result code (0 means success),
+    # It returns an #OpenStruct containing an LDAP result code (0 means success),
     # and a human-readable string.
     #  unless ldap.bind
     #    puts "Result: #{ldap.get_operation_result.code}"
@@ -338,11 +359,22 @@ module Net
     end
 
 
-    # This method opens a network connection to the server and then
-    # passes self to the caller-supplied block. The connection is
-    # closed when the block completes. It's for executing multiple
+    # Opens a network connection to the server and then
+    # passes <tt>self</tt> to the caller-supplied block. The connection is
+    # closed when the block completes. Used for executing multiple
     # LDAP operations without requiring a separate network connection
     # (and authentication) for each one.
+    # <i>Note:</i> You do not need to log-in or "bind" to the server. This will
+    # be done for you automatically.
+    # For an even simpler approach, see the class method Net::LDAP#open.
+    #
+    #  auth = {:method => :simple, :username => username, :password => password}
+    #  ldap = Net::LDAP.new( :host => ipaddress, :port => 389, :auth => auth )
+    #  ldap.open do |ldap|
+    #    ldap.search( ... )
+    #    ldap.add( ... )
+    #    ldap.modify( ... )
+    #  end
     #--
     # First we make a connection and then a binding, but we don't
     # do anything with the bind results.
@@ -358,8 +390,8 @@ module Net
     end
 
 
-    #
-    # search
+    # <i>DEPRECATED.</i> Performs an LDAP search, waits for the operation to complete, and
+    # passes a result set to the caller-supplied block.
     #--
     # If an open call is in progress (@open_connection will be non-nil),
     # then ASSUME a bind has been performed and accepted, and just
@@ -390,6 +422,46 @@ module Net
       @result == 0
     end
 
+    # Searches the LDAP directory for directory entries.
+    # Takes a hash argument with parameters. Supported parameters include:
+    # * :base (a string specifying the tree-base for the search);
+    # * :filter (an object of type Net::LDAP::Filter, defaults to objectclass=*);
+    # * :attributes (a string or array of strings specifying the LDAP attributes to return from the server);
+    # * :return_result (a boolean specifying whether to return a result set).
+    #
+    # #search queries the LDAP server and passes <i>each entry</i> to the
+    # caller-supplied block, as an object of type Net::LDAP::Entry.
+    # If the search returns 1000 entries, the block will
+    # be called 1000 times. If the search returns no entries, the block will
+    # not be called.
+    #
+    # #search returns either a result-set or a boolean, depending on the
+    # value of the <tt>:return_result</tt> argument. The default behavior is to return
+    # a result set, which is a hash. Each key in the hash is a string specifying
+    # the DN of an entry. The corresponding value for each key is a Net::LDAP::Entry object.
+    # If you request a result set and #search fails with an error, it will return nil.
+    # Call #get_operation_result to get the error information returned by
+    # the LDAP server.
+    #
+    # When <tt>:return_result => false,</tt> #search will
+    # return only a Boolean, to indicate whether the operation succeeded. This can improve performance
+    # with very large result sets, because the library can discard each entry from memory after
+    # your block processes it.
+    #
+    #
+    #  treebase = "dc=example,dc=com"
+    #  filter = Net::LDAP::Filter.eq( "mail", "a*.com" )
+    #  attrs = ["mail", "cn", "sn", "objectclass"]
+    #  ldap.search( :base => treebase, :filter => filter, :attributes => attrs, :return_result => false ) do |entry|
+    #    puts "DN: #{entry.dn}"
+    #    entry.each do |attr, values|
+    #      puts ".......#{attr}:"
+    #      values.each do |value|
+    #        puts "          #{value}"
+    #      end
+    #    end
+    #  end
+    #
     #--
     # This is a re-implementation of search that replaces the
     # original one (now renamed searchx and possibly destined to go away).
@@ -433,10 +505,12 @@ module Net
       @result == 0 and result_set
     end
 
-    #
-    # bind
-    # Bind and unbind.
-    # Can serve as a connectivity test as well as an auth test.
+    # #bind connects to the LDAP server and requests authentication
+    # based on the <tt>:auth</tt> parameter passed to #open or #new.
+    # It takes no parameters.
+    # User code generally will not call #bind. It will be called
+    # implicitly by the library whenever an LDAP operation is
+    # requested. #bind can be useful to test authentication.
     #--
     # If there is an @open_connection, then perform the bind
     # on it. Otherwise, connect, bind, and disconnect.
@@ -455,14 +529,15 @@ module Net
     end
 
     #
-    # bind_as
-    # This is for testing authentication credentials.
+    # #bind_as is for testing authentication credentials.
     # Most likely a "standard" name (like a CN or an email
     # address) will be presented along with a password.
     # We'll bind with the main credential given in the
     # constructor, query the full DN of the user given
     # to us as a parameter, then unbind and rebind as the
     # new user.
+    #
+    # <i>This method is currently an unimplemented stub.</i>
     #
     def bind_as
     end
@@ -532,12 +607,13 @@ module Net
 
 
   class LDAP
+  # This is a private class used internally by the library. It should not be called by user code.
   class Connection
 
     LdapVersion = 3
 
 
-    #
+    #--
     # initialize
     #
     def initialize server
@@ -551,7 +627,7 @@ module Net
     end
 
 
-    #
+    #--
     # close
     # This is provided as a convenience method to make
     # sure a connection object gets closed without waiting
@@ -562,7 +638,7 @@ module Net
       @conn = nil
     end
 
-    #
+    #--
     # next_msgid
     #
     def next_msgid
@@ -571,7 +647,7 @@ module Net
     end
 
 
-    #
+    #--
     # bind
     #
     def bind auth
@@ -592,7 +668,7 @@ module Net
       pdu.result_code
     end
 
-    #
+    #--
     # search
     # Alternate implementation, this yields each search entry to the caller
     # as it are received.
@@ -639,7 +715,7 @@ module Net
     end
 
 
-    #
+    #--
     # searchx
     # Original implementation, this doesn't return until all data have been
     # received from the server.
@@ -686,7 +762,7 @@ module Net
       result_code
     end
 
-    #
+    #--
     # modify
     # TODO, need to support a time limit, in case the server fails to respond.
     # TODO!!! We're throwing an exception here on empty DN.
@@ -713,7 +789,7 @@ module Net
     end
 
 
-    #
+    #--
     # add
     # TODO, need to support a time limit, in case the server fails to respond.
     #
@@ -733,7 +809,7 @@ module Net
     end
 
 
-    #
+    #--
     # rename
     # TODO, need to support a time limit, in case the server fails to respond.
     #

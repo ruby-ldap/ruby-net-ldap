@@ -29,6 +29,23 @@
 module Net
 class LDAP
 
+
+# Class Net::LDAP::Filter is used to constrain
+# LDAP searches. An object of this class is
+# passed to Net::LDAP#search in the parameter :filter.
+#
+# Net::LDAP::Filter supports the complete set of search filters
+# available in LDAP, including conjunction, disjunction and negation
+# (AND, OR, and NOT). This class supplants the (infamous) RFC-2254
+# standard notation for specifying LDAP search filters.
+#
+# Here's how to code the familiar "objectclass is present" filter:
+#  f = Net::LDAP::Filter.pres( "objectclass" )
+# The object returned by this code can be passed directly to
+# the <tt>:filter</tt> parameter of Net::LDAP#search.
+#
+# See the individual class and instance methods below for more examples.
+#
 class Filter
 
   def initialize op, a, b
@@ -37,16 +54,40 @@ class Filter
     @right = b
   end
 
-  def Filter::eq a, b; Filter.new :eq, a, b; end
-  def Filter::ne a, b; Filter.new :ne, a, b; end
-  def Filter::gt a, b; Filter.new :gt, a, b; end
-  def Filter::lt a, b; Filter.new :lt, a, b; end
-  def Filter::ge a, b; Filter.new :ge, a, b; end
-  def Filter::le a, b; Filter.new :le, a, b; end
+  # #eq creates a filter object indicating that the value of
+  # a paticular attribute must be either <i>present</i> or must
+  # match a particular string.
+  #
+  # To specify that an attribute is "present" means that only
+  # directory entries which contain a value for the particular
+  # attribute will be selected by the filter. This is useful
+  # in case of optional attributes such as <tt>mail.</tt>
+  # Presence is indicated by giving the value "*" in the second
+  # parameter to #eq. This example selects only entries that have
+  # one or more values for <tt>sAMAccountName:</tt>
+  #  f = Net::LDAP::Filter.eq( "sAMAccountName", "*" )
+  #
+  # To match a particular range of values, pass a string as the
+  # second parameter to #eq. The string may contain one or more
+  # "*" characters as wildcards: these match zero or more occurrences
+  # of any character. Full regular-expressions are <i>not</i> supported
+  # due to limitations in the underlying LDAP protocol.
+  # This example selects any entry with a <tt>mail</tt> value containing
+  # the substring "anderson":
+  #  f = Net::LDAP::Filter.eq( "mail", "*anderson*" )
+  #
+  def Filter::eq attribute, value; Filter.new :eq, attribute, value; end
+  def Filter::ne attribute, value; Filter.new :ne, attribute, value; end
+  def Filter::gt attribute, value; Filter.new :gt, attribute, value; end
+  def Filter::lt attribute, value; Filter.new :lt, attribute, value; end
+  def Filter::ge attribute, value; Filter.new :ge, attribute, value; end
+  def Filter::le attribute, value; Filter.new :le, attribute, value; end
 
-  def & a; Filter.new :and, self, a; end
-  def | a; Filter.new :or, self, a; end
+  def & filter; Filter.new :and, self, filter; end
+  def | filter; Filter.new :or, self, filter; end
 
+  #
+  #--
   # This operator can't be !, evidently. Try it.
   def ~@; Filter.new :not, self, nil; end
 
@@ -76,7 +117,7 @@ class Filter
   end
 
 
-  #
+  #--
   # to_ber
   # Filter ::=
   #     CHOICE {
@@ -154,7 +195,7 @@ class Filter
     end
   end
 
-  #
+  #--
   # coalesce
   # This is a private helper method for dealing with chains of ANDs and ORs
   # that are longer than two. If BOTH of our branches are of the specified
@@ -172,6 +213,7 @@ class Filter
 
 
 
+  #--
   # We get a Ruby object which comes from parsing an RFC-1777 "Filter"
   # object. Convert it to a Net::LDAP::Filter.
   # TODO, we're hardcoding the RFC-1777 BER-encodings of the various
@@ -189,6 +231,7 @@ class Filter
   end
 
 
+  #--
   # We got a hash of attribute values.
   # Do we match the attributes?
   # Return T/F, and call match recursively as necessary.
