@@ -1,0 +1,15 @@
+= Net::LDAP Changelong
+
+== Net::LDAP 0.0.1: April 30, 2006
+
+#--
+# Net::LDAP for Ruby.
+#   http://rubyforge.org/projects/net-ldap/
+#   Copyright 2006 Francis Cianfrocca
+#
+#   Available under the same terms as Ruby. See LICENCE in the main
+#   distribution for full licensing information.
+#
+# $Id: ChangeLog,v 1.17.2.4 2005/09/09 12:36:42 austin Exp $
+#++
+# vim: sts=2 sw=2 ts=4 et ai tw=77

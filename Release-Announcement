@@ -1,0 +1,33 @@
+It is with great excitement that I announce the first release of the pure
+Ruby LDAP library, Net::LDAP.
+
+= What is Net::LDAP for Ruby?
+[...]
+
+Homepage::  http://ruby-pdf.rubyforge.org/net-ldap/
+Download::  http://rubyforge.org/frs/?****
+Copyright:: 2006 Francis Cianfrocca
+
+This software is based on RFC***, describing the Lightweight Directory
+Access Protocol.
+
+== LICENCE NOTES
+[...]
+
+== Requirements and Installation
+Net::LDAP requires Ruby 1.8.2 or better.
+
+Net::LDAP can be installed with:
+
+ % ruby setup.rb
+
+Alternatively, you can use the RubyGems version of Net::LDAP available
+as ruby-net-ldap-0.0.1.gem from the usual sources.
+
+== Whet your appetite:
+[...]
+
+== Net::LDAP 0.0.1: April 30, 2006
+[...]
+
+[signature here]
