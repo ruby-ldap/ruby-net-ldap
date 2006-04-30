@@ -3,7 +3,10 @@ Net::LDAP is an LDAP support library written in pure Ruby. It supports all
 LDAP client features, and a subset of server features as well.
 
 Homepage::  http://rubyforge.org/projects/net-ldap/
-Copyright:: 2006, Francis Cianfrocca
+Copyright:: 2006 by Francis Cianfrocca
+
+Original developer: Francis Cianfrocca
+Contributions by Austin Ziegler gratefully acknowledged.
 
 == LICENCE NOTES
 Please read the file LICENCE for licensing restrictions on this library. In
@@ -11,12 +14,12 @@ it simplest terms, this library is available under the same terms as Ruby
 itself.
 
 == Requirements
-PDF::Writer requires Ruby 1.8.2 or better.
+Net::LDAP requires Ruby 1.8.2 or better.
 
 #--
 # Net::LDAP for Ruby.
 #   http://rubyforge.org/projects/net-ldap/
-#   Copyright 2006 Francis Cianfrocca
+#   Copyright (C) 2006 by Francis Cianfrocca
 #
 #   Available under the same terms as Ruby. See LICENCE in the main
 #   distribution for full licensing information.
