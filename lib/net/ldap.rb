@@ -236,6 +236,9 @@ module Net
 
     class LdapError < Exception; end
 
+    VERSION = "0.0.1"
+
+
     SearchScope_BaseObject = 0
     SearchScope_SingleLevel = 1
     SearchScope_WholeSubtree = 2
