@@ -85,7 +85,7 @@ if $can_minitar
     Dir.chdir("..") do
       begin
         files = %W(bin/**/* lib/**/* tests/**/* ChangeLog README LICENCE
-                 COPYING Rakefile net-ldap.gemspec setup.rb pre-setup.rb)
+                 Rakefile net-ldap.gemspec setup.rb pre-setup.rb)
         files = FileList[files.map { |file| File.join(current, file) }].to_a
         files.map! do |dd|
           ddnew = dd.gsub(/^#{current}/, $distdir)
