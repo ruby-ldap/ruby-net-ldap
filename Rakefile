@@ -129,7 +129,7 @@ desc "Build the RDoc documentation for #$name."
 task :docs do
   require 'rdoc/rdoc'
   rdoc_options = %W(--title #$name --main README --line-numbers)
-  files = FileList[*%w(README LICENCE ChangeLog COPYING LICENCE bin/**/*.rb lib/**/*.rb)]
+  files = FileList[*%w(README LICENCE ChangeLog LICENCE bin/**/*.rb lib/**/*.rb)]
   rdoc_options += files.to_a
   RDoc::RDoc.new.document(rdoc_options)
 end
