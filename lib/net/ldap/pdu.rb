@@ -41,6 +41,7 @@ class LdapPdu
   SearchResult = 5
   ModifyResponse = 7
   AddResponse = 9
+  DeleteResponse = 11
   ModifyRDNResponse = 13
 
   attr_reader :msg_id, :app_tag
@@ -80,6 +81,8 @@ class LdapPdu
     when ModifyResponse
       parse_ldap_result ber_object[1]
     when AddResponse
+      parse_ldap_result ber_object[1]
+    when DeleteResponse
       parse_ldap_result ber_object[1]
     when ModifyRDNResponse
       parse_ldap_result ber_object[1]

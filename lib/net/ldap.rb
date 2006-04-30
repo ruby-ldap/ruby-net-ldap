@@ -256,6 +256,7 @@ module Net
           14 => :array,             # CompareRequest
           15 => :array,             # CompareResponse
           16 => :array,             # AbandonRequest
+          24 => :array,             # Unsolicited Notification
         }
       },
       :context_specific => {
@@ -275,6 +276,7 @@ module Net
     ResultStrings = {
       0 => "Success",
       1 => "Operations Error",
+      2 => "Protocol Error",
       16 => "No Such Attribute",
       17 => "Undefined Attribute Type",
       20 => "Attribute or Value Exists",
@@ -629,6 +631,31 @@ module Net
       rename args
     end
 
+    # Delete an entry from the LDAP directory.
+    # Takes a hash of arguments.
+    # The only supported argument is :dn, which must
+    # give the complete DN of the entry to be deleted.
+    # Returns True or False to indicate whether the delete
+    # succeeded. Extended status information is available by
+    # calling #get_operation_result.
+    #
+    #  dn = "mail=deleteme@example.com,ou=people,dc=example,dc=com"
+    #  ldap.delete :dn => dn
+    #
+    def delete args
+      if @open_connection
+          @result = @open_connection.delete( args )
+      else
+        @result = 0
+        conn = Connection.new( :host => @host, :port => @port )
+        if (@result = conn.bind( args[:auth] || @auth )) == 0
+          @result = conn.delete( args )
+        end
+        conn.close
+      end
+      @result == 0
+    end
+
   end # class LDAP
 
 
@@ -850,6 +877,22 @@ module Net
       @conn.write pkt
 
       (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be )) && (pdu.app_tag == 13) or raise LdapError.new( "response missing or invalid" )
+      pdu.result_code
+    end
+
+
+    #--
+    # delete
+    # TODO, need to support a time limit, in case the server fails to respond.
+    #
+    def delete args
+      dn = args[:dn] or raise "Unable to delete empty DN"
+
+      request = dn.to_s.to_ber_application_string(10)
+      pkt = [next_msgid.to_ber, request].to_ber_sequence
+      @conn.write pkt
+
+      (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be )) && (pdu.app_tag == 11) or raise LdapError.new( "response missing or invalid" )
       pdu.result_code
     end
 
