@@ -1,7 +1,3 @@
-= Net::LDAP Changelong
-
-== Net::LDAP 0.0.1: April 30, 2006
-
 #--
 # Net::LDAP for Ruby.
 #   http://rubyforge.org/projects/net-ldap/
@@ -13,3 +9,8 @@
 # $Id: ChangeLog,v 1.17.2.4 2005/09/09 12:36:42 austin Exp $
 #++
 # vim: sts=2 sw=2 ts=4 et ai tw=77
+
+= Net::LDAP Changelong
+
+== Net::LDAP 0.0.1: April 30, 2006
+Initial release.
