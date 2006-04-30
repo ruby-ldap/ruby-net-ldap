@@ -1,6 +1,6 @@
 spec = Gem::Specification.new {|s|
 	s.name = "netldap"
-	s.version = em_version
+	s.version = "0.0.1"
 	s.author = "Francis Cianfrocca"
 	s.email = "garbagecat10@gmail.com"
 	s.homepage = "netldap@rubyforge.org"
@@ -9,5 +9,5 @@ spec = Gem::Specification.new {|s|
 	s.require_paths = ["lib"]
 	s.test_file = "tests/testem.rb"
 	s.has_rdoc = true
-	s.extra_rdoc_files = ["README", "RELEASE_NOTES", "COPYING"]
+	s.extra_rdoc_files = ["README", "ChangeLog", "LICENCE"]
 }
