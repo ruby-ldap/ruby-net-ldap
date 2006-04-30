@@ -597,9 +597,72 @@ module Net
     end
 
 
+    # Modify the attribute values of a particular entry on the LDAP directory.
+    # Takes a hash with arguments. Supported arguments are:
+    # :dn :: (the full DN of the entry whose attributes are to be modified)
+    # :operations :: (the modifications to be performed, detailed next)
     #
-    # modify
-    # Modify the attributes of an entry on the remote DIS.
+    # This method returns True or False to indicate whether the operation
+    # succeeded or failed, with extended information available by calling
+    # #get_operation_result.
+    #
+    # The LDAP protocol provides a full and well thought-out set of operations
+    # for changing the values of attributes, but they are necessarily somewhat complex
+    # and not always intuitive. If these instructions are confusing or incomplete,
+    # please send us email or create a bug report on rubyforge.
+    #
+    # The :operations parameter to #modify takes an array of operation-descriptors.
+    # Each individual operation is specified in one element of the array, and
+    # most LDAP servers will attempt to perform the operations in order.
+    #
+    # Each of the operations appearing in the Array must itself be an Array
+    # with exactly three elements:
+    # an operator:: must be :add, :replace, or :delete
+    # an attribute name:: the attribute name (string or symbol) to modify
+    # a value:: either a string or an array of strings.
+    #
+    # The :add operator will, unsurprisingly, add the specified values to
+    # the specified attribute. If the attribute does not already exist,
+    # :add will create it. Most LDAP servers will generate an error if you
+    # to add a value that already exists.
+    #
+    # :replace will erase the current value(s) for the specified attribute,
+    # if there are any, and replace them with the specified value(s).
+    #
+    # :delete will remove the specified value(s) from the specified attribute.
+    # If you pass nil, an empty string, or an empty array as the value parameter
+    # to a :delete operation, the _entire_ _attribute_ will be deleted.
+    #
+    # For example:
+    #
+    #  dn = "mail=modifyme@example.com,ou=people,dc=example,dc=com"
+    #  ops = [
+    #    [:add, :mail, "aliasaddress@example.com"],
+    #    [:replace, :mail, ["newaddress@example.com", "newalias@example.com"]],
+    #    [:delete, :sn, nil]
+    #  ]
+    #  ldap.modify :dn => dn, :operations => ops
+    #
+    # <i>(This example is contrived since you probably wouldn't add a mail
+    # value right before replacing the whole attribute, but it shows that order
+    # of execution matters. Also, many LDAP servers won't let you delete SN
+    # because it would be a schema violation.)</i>
+    #
+    # It's essential to keep in mind that if you specify more than one operation in
+    # a call to #modify, most LDAP servers will attempt to perform all of the operations
+    # in the order you gave them.
+    # This matters because you may specify operations on the
+    # same attribute which must be performed in a certain order.
+    # Most LDAP servers will _stop_ processing your modifications if one of them
+    # causes an error on the server (such as a schema-constraint violation).
+    # If this happens, you will probably get a result code from the server that
+    # reflects only the operation that failed, and you may or may not get extended
+    # information that will tell you which one failed. #modify has no notion
+    # of an atomic transaction. If you specify a chain of modifications in one
+    # call to #modify, and one of them fails, the preceding ones will usually
+    # not be "rolled back," resulting in a partial update. This is a limitation
+    # of the LDAP protocol, not of Net::LDAP.
+    #
     #
     def modify args
       if @open_connection
@@ -615,9 +678,8 @@ module Net
       @result == 0
     end
 
-    #
-    # rename
     # Rename an entry on the remote DIS by changing the last RDN of its DN.
+    # _Documentation_ _stub_
     #
     def rename args
       if @open_connection
