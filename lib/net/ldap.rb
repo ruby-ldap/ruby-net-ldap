@@ -236,6 +236,11 @@ module Net
 
     class LdapError < Exception; end
 
+    SearchScope_BaseObject = 0
+    SearchScope_SingleLevel = 1
+    SearchScope_WholeSubtree = 2
+    SearchScopes = [SearchScope_BaseObject, SearchScope_SingleLevel, SearchScope_WholeSubtree]
+
     AsnSyntax = {
       :application => {
         :constructed => {
@@ -437,6 +442,8 @@ module Net
     # * :filter (an object of type Net::LDAP::Filter, defaults to objectclass=*);
     # * :attributes (a string or array of strings specifying the LDAP attributes to return from the server);
     # * :return_result (a boolean specifying whether to return a result set).
+    # * :attributes_only (a boolean flag, defaults false)
+    # * :scope (one of: Net::LDAP::SearchScope_BaseObject, Net::LDAP::SearchScope_SingleLevel, Net::LDAP::SearchScope_WholeSubtree. Default is WholeSubtree.)
     #
     # #search queries the LDAP server and passes <i>each entry</i> to the
     # caller-supplied block, as an object of type Net::LDAP::Entry.
@@ -733,18 +740,22 @@ module Net
     #--
     # WARNING: this code substantially recapitulates the searchx method.
     #
-    def search args
+    def search args = {}
       search_filter = (args && args[:filter]) || Filter.eq( "objectclass", "*" )
       search_base = (args && args[:base]) || "dc=example,dc=com"
       search_attributes = ((args && args[:attributes]) || []).map {|attr| attr.to_s.to_ber}
 
+      attributes_only = (args and args[:attributes_only] == true)
+      scope = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
+      raise LdapError.new( "invalid search scope" ) unless SearchScopes.include?(scope)
+
       request = [
         search_base.to_ber,
-        2.to_ber_enumerated,
+        scope.to_ber_enumerated,
         0.to_ber_enumerated,
         0.to_ber,
         0.to_ber,
-        false.to_ber,
+        attributes_only.to_ber,
         search_filter.to_ber,
         search_attributes.to_ber_sequence
       ].to_ber_appsequence(3)
