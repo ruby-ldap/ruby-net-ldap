@@ -199,8 +199,13 @@ module Net
   #
   # == How to use Net::LDAP
   #
-  # This is how to access Net::LDAP functionality in your Ruby programs
-  # (note that at present, Net::LDAP is provided as a gem):
+  # To access Net::LDAP functionality in your Ruby programs, start by requiring
+  # the library:
+  #
+  #  require 'net/ldap'
+  #
+  # If you installed the Gem version of Net::LDAP, and depending on your version of
+  # Ruby and rubygems, you _may_ also need to require rubygems explicitly:
   #
   #  require 'rubygems'
   #  require 'net/ldap'
@@ -214,7 +219,7 @@ module Net
   #
   # The Net::LDAP library is designed to be very disciplined about how it makes network
   # connections to servers. This is different from many of the standard native-code
-  # libraries that are provided on most platforms, and that share bloodlines with the
+  # libraries that are provided on most platforms, which share bloodlines with the
   # original Netscape/Michigan LDAP client implementations. These libraries sought to
   # insulate user code from the workings of the network. This is a good idea of course,
   # but the practical effect has been confusing and many difficult bugs have been caused
@@ -294,11 +299,11 @@ module Net
     end 
 
     # Instantiate an object of type Net::LDAP to perform directory operations.
-    # This constructor takes a hash containing arguments. The following arguments
+    # This constructor takes a Hash containing arguments. The following arguments
     # are supported:
     # * :host => the LDAP server's IP-address (default 127.0.0.1)
     # * :port => the LDAP server's TCP port (default 389)
-    # * :auth => a hash containing authorization parameters. Currently supported values include:
+    # * :auth => a Hash containing authorization parameters. Currently supported values include:
     #   {:method => :anonymous} and
     #   {:method => :simple, :username => your_user_name, :password => your_password }
     #
@@ -325,6 +330,7 @@ module Net
     # operations in the user-supplied block on the same network connection, which
     # will be closed automatically when the block finishes.
     #
+    #  # (PSEUDOCODE)
     #  auth = {:method => :simple, :username => username, :password => password}
     #  Net::LDAP.open( :host => ipaddress, :port => 389, :auth => auth ) do |ldap|
     #    ldap.search( ... )
@@ -368,6 +374,7 @@ module Net
     # be done for you automatically.
     # For an even simpler approach, see the class method Net::LDAP#open.
     #
+    #  # (PSEUDOCODE)
     #  auth = {:method => :simple, :username => username, :password => password}
     #  ldap = Net::LDAP.new( :host => ipaddress, :port => 389, :auth => auth )
     #  ldap.open do |ldap|
@@ -542,9 +549,29 @@ module Net
     def bind_as
     end
 
+    # Adds a new entry to the remote LDAP server.
+    # Supported arguments:
+    # :dn :: Full DN of the new entry
+    # :attributes :: Attributes of the new entry.
     #
-    # add
-    # Add a full RDN to the remote DIS.
+    # The attributes argument is supplied as a Hash keyed by Strings or Symbols
+    # giving the attribute name, and mapping to Strings or Arrays of Strings
+    # giving the actual attribute values. Observe that most LDAP directories
+    # enforce schema constraints on the attributes contained in entries.
+    # #add will fail with a server-generated error if your attributes violate
+    # the server-specific constraints.
+    # Here's an example:
+    #
+    #  dn = "cn=George Smith,ou=people,dc=example,dc=com"
+    #  attr = {
+    #    :cn => "George Smith",
+    #    :objectclass => ["top", "inetorgperson"],
+    #    :sn => "Smith",
+    #    :mail => "gsmith@example.com"
+    #  }
+    #  Net::LDAP.open (:host => host) do |ldap|
+    #    ldap.add( :dn => dn, :attributes => attr )
+    #  end
     #
     def add args
       if @open_connection
@@ -597,7 +624,7 @@ module Net
       @result == 0
     end
 
-    # modify_rdn is an alias for rename.
+    # modify_rdn is an alias for #rename.
     def modify_rdn args
       rename args
     end
@@ -608,7 +635,7 @@ module Net
 
   class LDAP
   # This is a private class used internally by the library. It should not be called by user code.
-  class Connection
+  class Connection # :nodoc:
 
     LdapVersion = 3
 
