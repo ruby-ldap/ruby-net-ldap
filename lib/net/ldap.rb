@@ -181,6 +181,8 @@ module Net
   # the attribute values stored in the directory for a particular entity.
   # #modify may add or delete attributes (which are lists of values) or it change attributes by
   # adding to or deleting from their values.
+  # There are three easier methods to modify an entry's attribute values:
+  # #add_attribute, #replace_attribute, and #delete_attribute.
   #
   # ==== Delete
   # #delete operation specifies an entity DN. If it succeeds, the entity and all its attributes
@@ -600,7 +602,9 @@ module Net
     end
 
 
-    # Modify the attribute values of a particular entry on the LDAP directory.
+    # _DEPRECATED_ - Please use #add_attribute, #replace_attribute, or #delete_attribute.
+    #
+    # Modifies the attribute values of a particular entry on the LDAP directory.
     # Takes a hash with arguments. Supported arguments are:
     # :dn :: (the full DN of the entry whose attributes are to be modified)
     # :operations :: (the modifications to be performed, detailed next)
@@ -680,6 +684,61 @@ module Net
       end
       @result == 0
     end
+
+
+    # Add a value to an attribute.
+    # Takes the full DN of the entry to modify,
+    # the name (Symbol or String) of the attribute, and the value (String or
+    # Array). If the attribute does not exist (and there are no schema violations),
+    # #add_attribute will create it with the caller-specified values.
+    # If the attribute already exists (and there are no schema violations), the
+    # caller-specified values will be _added_ to the values already present.
+    #
+    # Returns True or False to indicate whether the operation
+    # succeeded or failed, with extended information available by calling
+    # #get_operation_result. See also #replace_attribute and #delete_attribute.
+    #
+    #  dn = "cn=modifyme,dc=example,dc=com"
+    #  ldap.add_attribute dn, :mail, "newmailaddress@example.com"
+    #
+    def add_attribute dn, attribute, value
+      modify :dn => dn, :operations => [[:add, attribute, value]]
+    end
+
+    # Replace the value of an attribute.
+    # #replace_attribute can be thought of as equivalent to calling #delete_attribute
+    # followed by #add_attribute. It takes the full DN of the entry to modify,
+    # the name (Symbol or String) of the attribute, and the value (String or
+    # Array). If the attribute does not exist, it will be created with the
+    # caller-specified value(s). If the attribute does exist, its values will be
+    # _discarded_ and replaced with the caller-specified values.
+    #
+    # Returns True or False to indicate whether the operation
+    # succeeded or failed, with extended information available by calling
+    # #get_operation_result. See also #add_attribute and #delete_attribute.
+    #
+    #  dn = "cn=modifyme,dc=example,dc=com"
+    #  ldap.replace_attribute dn, :mail, "newmailaddress@example.com"
+    #
+    def replace_attribute dn, attribute, value
+      modify :dn => dn, :operations => [[:replace, attribute, value]]
+    end
+
+    # Delete an attribute and all its values.
+    # Takes the full DN of the entry to modify, and the
+    # name (Symbol or String) of the attribute to delete.
+    #
+    # Returns True or False to indicate whether the operation
+    # succeeded or failed, with extended information available by calling
+    # #get_operation_result. See also #add_attribute and #replace_attribute.
+    #
+    #  dn = "cn=modifyme,dc=example,dc=com"
+    #  ldap.delete_attribute dn, :mail
+    #
+    def delete_attribute dn, attribute
+      modify :dn => dn, :operations => [[:delete, attribute, nil]]
+    end
+
 
     # Rename an entry on the remote DIS by changing the last RDN of its DN.
     # _Documentation_ _stub_
