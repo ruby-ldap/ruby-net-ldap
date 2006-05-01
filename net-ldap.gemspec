@@ -1,7 +1,7 @@
 #--
 # Net::LDAP for Ruby.
 #   http://rubyforge.org/projects/net-ldap/
-#   Copyright 2006 Francis Cianfrocca
+#   Copyright (C) 2006 by Francis Cianfrocca
 #
 #   Available under the same terms as Ruby. See LICENCE in the main
 #   distribution for full licensing information.
