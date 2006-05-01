@@ -222,6 +222,8 @@ class String
   # A universal octet-string is tag number 4,
   # but others are possible depending on the context, so we
   # let the caller give us one.
+  # The preferred way to do this in user code is via to_ber_application_sring
+  # and to_ber_contextspecific.
   #
   def to_ber code = 4
     [code].pack('C') + length.to_ber_length_encoding + self
