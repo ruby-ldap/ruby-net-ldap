@@ -43,4 +43,4 @@ ri    = %w(--ri-site --merge)
 dox   = %w(README ChangeLog lib)
 build_rdoc rdoc + dox
 build_ri ri + dox
-run_tests Dir["tests/**/*"]
+# run_tests Dir["tests/**/*"]
