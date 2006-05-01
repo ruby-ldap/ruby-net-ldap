@@ -166,7 +166,7 @@ task :release_files => [ :verify_rubyforge, :gem ] do
     release.password      = ENV['RUBYFORGE_PASSWORD']
     release.files         = release_files.to_a
     release.release_name  = "#$name #$version"
-    release.package_name  = "mime-types"
+    release.package_name  = "ruby-net-ldap"
 
     notes = []
     File.open("README") do |file|
