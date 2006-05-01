@@ -46,10 +46,14 @@ class LDAP
       @myhash[sym] = value
     end
 
+
+    #--
+    # We have to deal with this one as we do []=
+    # because this one and not the other one gets called
+    # in formulations like entry["CN"] << cn.
+    #
     def [] name
-      #unless name.is_a?(Symbol)
-      #  name = name.to_s.downcase.intern
-      #end
+      name = name.to_s.downcase.intern unless name.is_a?(Symbol)
       @myhash[name]
     end
 
