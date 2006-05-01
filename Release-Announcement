@@ -3,7 +3,7 @@ pure-Ruby LDAP library. Net::LDAP intends to be a feature-complete
 LDAP client which can access as much as possible of the functionality
 of the most-used LDAP server implementations. This library does
 not wrap any existing native-code LDAP libraries, creates no
-Ruby extensions, and has dependencies external to Ruby.
+Ruby extensions, and has no dependencies external to Ruby.
 
 Net::LDAP includes a full implementation of the LDAP wire-line
 protocol so it can also be used in LDAP server implementations.
