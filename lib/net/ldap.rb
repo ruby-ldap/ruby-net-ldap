@@ -116,17 +116,17 @@ module Net
   # range of attributes, and constrain their values according to standard
   # rules.
   #
-  # A good example of an attribute is <tt>cn,</tt> which stands for "Common Name."
-  # In many directories, this attribute is used to store a string consisting of
-  # a person's first and last names. Most directories enforce the convention that
-  # an entity's <tt>cn</tt> attribute have <i>exactly one</i> value. In LDAP
-  # jargon, that means that <tt>cn</tt> must be <i>present</i> and
+  # A good example of an attribute is <tt>sn,</tt> which stands for "Surname."
+  # This attribute is generally used to store a person's surname, or last name.
+  # Most directories enforce the standard convention that
+  # an entity's <tt>sn</tt> attribute have <i>exactly one</i> value. In LDAP
+  # jargon, that means that <tt>sn</tt> must be <i>present</i> and
   # <i>single-valued.</i>
   #
   # Another attribute is <tt>mail,</tt> which is used to store email addresses.
   # (No, there is no attribute called "email," perhaps because X.400 terminology
   # predates the invention of the term <i>email.</i>) <tt>mail</tt> differs
-  # from <tt>cn</tt> in that most directories permit any number of values for the
+  # from <tt>sn</tt> in that most directories permit any number of values for the
   # <tt>mail</tt> attribute, including zero.
   #
   #
@@ -173,7 +173,7 @@ module Net
   # set of attribute values for each entity, depending on what attributes the search requested.
   # 
   # ==== Add
-  # #add operation specifies a new DN and an initial set of attribute values. If the operation
+  # #add specifies a new DN and an initial set of attribute values. If the operation
   # succeeds, a new entity with the corresponding DN and attributes is added to the directory.
   #
   # ==== Modify
