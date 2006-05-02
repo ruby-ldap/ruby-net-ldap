@@ -292,6 +292,7 @@ module Net
       2 => "Protocol Error",
       3 => "Time Limit Exceeded",
       4 => "Size Limit Exceeded",
+      12 => "Unavailable crtical extension",
       16 => "No Such Attribute",
       17 => "Undefined Attribute Type",
       20 => "Attribute or Value Exists",
@@ -307,6 +308,12 @@ module Net
       65 => "Object Class Violation",
       68 => "Entry Already Exists"
     }
+
+
+    module LdapControls
+      PagedResults = "1.2.840.113556.1.4.319" # Microsoft evil from RFC 2696
+    end
+
 
     #
     # LDAP::result2string
@@ -869,6 +876,13 @@ module Net
     #--
     # WARNING: this code substantially recapitulates the searchx method.
     #
+    # 02May06: Well, I added support for RFC-2696-style paged searches.
+    # This is used on all queries because the extension is marked non-critical.
+    # As far as I know, only A/D uses this, but it's required for A/D. Otherwise
+    # you won't get more than 1000 results back from a query.
+    # This implementation is kindof clunky and should probably be refactored.
+    # Also, is it my imagination, or are A/Ds the slowest directory servers ever???
+    #
     def search args = {}
       search_filter = (args && args[:filter]) || Filter.eq( "objectclass", "*" )
       search_base = (args && args[:base]) || "dc=example,dc=com"
@@ -878,47 +892,73 @@ module Net
       scope = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
       raise LdapError.new( "invalid search scope" ) unless SearchScopes.include?(scope)
 
-      request = [
-        search_base.to_ber,
-        scope.to_ber_enumerated,
-        0.to_ber_enumerated,
-        0.to_ber,
-        0.to_ber,
-        attributes_only.to_ber,
-        search_filter.to_ber,
-        search_attributes.to_ber_sequence
-      ].to_ber_appsequence(3)
-
-=begin
-      controls = [
-        [
-        "1.2.840.113556.1.4.319".to_ber,
-        false.to_ber,
-
-        [10.to_ber, "".to_ber].to_ber_sequence.to_s.to_ber
-        ].to_ber_sequence
-
-      ].to_ber_contextspecific(0)
-
-      pkt = [next_msgid.to_ber, request, controls].to_ber_sequence
-=end
-      pkt = [next_msgid.to_ber, request].to_ber_sequence
-      @conn.write pkt
-
+      rfc2696_cookie = [739, ""] # size-limit is a funky number so we can distinguish it from errors.
       result_code = 0
 
-      while (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be ))
-#p be
-        case pdu.app_tag
-        when 4 # search-data
-          yield( pdu.search_entry ) if block_given?
-        when 5 # search-result
-          result_code = pdu.result_code
-          break
-        else
-          raise LdapError.new( "invalid response-type in search: #{pdu.app_tag}" )
+      loop {
+        # should collect this into a private helper to clarify the structure
+
+        request = [
+          search_base.to_ber,
+          scope.to_ber_enumerated,
+          0.to_ber_enumerated,
+          0.to_ber,
+          0.to_ber,
+          attributes_only.to_ber,
+          search_filter.to_ber,
+          search_attributes.to_ber_sequence
+        ].to_ber_appsequence(3)
+  
+        controls = [
+          [
+          LdapControls::PagedResults.to_ber,
+          false.to_ber, # criticality MUST be false to interoperate with normal LDAPs.
+          rfc2696_cookie.map{|v| v.to_ber}.to_ber_sequence.to_s.to_ber
+          ].to_ber_sequence
+        ].to_ber_contextspecific(0)
+
+        pkt = [next_msgid.to_ber, request, controls].to_ber_sequence
+        @conn.write pkt
+
+        result_code = 0
+        controls = []
+
+        while (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be ))
+          case pdu.app_tag
+          when 4 # search-data
+            yield( pdu.search_entry ) if block_given?
+          when 5 # search-result
+            result_code = pdu.result_code
+            controls = pdu.result_controls
+            break
+          else
+            raise LdapError.new( "invalid response-type in search: #{pdu.app_tag}" )
+          end
         end
-      end
+
+        # When we get here, we have seen a type-5 response.
+        # If there is no error AND there is an RFC-2696 cookie,
+        # then query again for the next page of results.
+        # If not, we're done.
+        # Don't screw this up or we'll break every search we do.
+        more_pages = false
+        if result_code == 0 and controls
+          controls.each do |c|
+            if c.oid == LdapControls::PagedResults
+              more_pages = false # just in case some bogus server sends us >1 of these.
+              if c.value and c.value.length > 0
+                cookie = c.value.read_ber[1]
+                if cookie and cookie.length > 0
+                  rfc2696_cookie[1] = cookie
+                  more_pages = true
+                end
+              end
+            end
+          end
+        end
+
+        break unless more_pages
+      } # loop
 
       result_code
     end

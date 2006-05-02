@@ -109,6 +109,11 @@ class LdapPdu
     @ldap_result and @ldap_result[code]
   end
 
+  # Return RFC-2251 Controls if any.
+  # Messy. Does this functionality belong somewhere else?
+  def result_controls
+    @ldap_controls || []
+  end
 
 
   #
