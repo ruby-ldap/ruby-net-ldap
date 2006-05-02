@@ -238,7 +238,7 @@ module Net
 
     class LdapError < Exception; end
 
-    VERSION = "0.0.1"
+    VERSION = "0.0.2"
 
 
     SearchScope_BaseObject = 0
@@ -287,6 +287,8 @@ module Net
       0 => "Success",
       1 => "Operations Error",
       2 => "Protocol Error",
+      3 => "Time Limit Exceeded",
+      4 => "Size Limit Exceeded",
       16 => "No Such Attribute",
       17 => "Undefined Attribute Type",
       20 => "Attribute or Value Exists",
@@ -306,7 +308,7 @@ module Net
     #
     # LDAP::result2string
     #
-    def LDAP::result2string code
+    def LDAP::result2string code # :nodoc:
       ResultStrings[code] || "unknown result (#{code})"
     end 
 
