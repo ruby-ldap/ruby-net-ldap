@@ -181,11 +181,11 @@ module Net
   # the attribute values stored in the directory for a particular entity.
   # #modify may add or delete attributes (which are lists of values) or it change attributes by
   # adding to or deleting from their values.
-  # There are three easier methods to modify an entry's attribute values:
+  # Net::LDAP provides three easier methods to modify an entry's attribute values:
   # #add_attribute, #replace_attribute, and #delete_attribute.
   #
   # ==== Delete
-  # #delete operation specifies an entity DN. If it succeeds, the entity and all its attributes
+  # #delete specifies an entity DN. If it succeeds, the entity and all its attributes
   # is removed from the directory.
   #
   # ==== Rename (or Modify RDN)
