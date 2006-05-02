@@ -274,6 +274,9 @@ module Net
           0 => :string,             # password
           1 => :string,             # Kerberos v4
           2 => :string,             # Kerberos v5
+        },
+        :constructed => {
+          0 => :array,              # RFC-2251 Control
         }
       }
     }
@@ -885,12 +888,27 @@ module Net
         search_filter.to_ber,
         search_attributes.to_ber_sequence
       ].to_ber_appsequence(3)
+
+=begin
+      controls = [
+        [
+        "1.2.840.113556.1.4.319".to_ber,
+        false.to_ber,
+
+        [10.to_ber, "".to_ber].to_ber_sequence.to_s.to_ber
+        ].to_ber_sequence
+
+      ].to_ber_contextspecific(0)
+
+      pkt = [next_msgid.to_ber, request, controls].to_ber_sequence
+=end
       pkt = [next_msgid.to_ber, request].to_ber_sequence
       @conn.write pkt
 
       result_code = 0
 
       while (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be ))
+#p be
         case pdu.app_tag
         when 4 # search-data
           yield( pdu.search_entry ) if block_given?
