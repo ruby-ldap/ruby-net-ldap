@@ -50,8 +50,11 @@ class LdapPdu
   #
   # initialize
   # An LDAP PDU always looks like a BerSequence with
-  # two elements: an integer (message-id number), and
+  # at least two elements: an integer (message-id number), and
   # an application-specific sequence.
+  # Some LDAPv3 packets also include an optional
+  # third element, which is a sequence of "controls"
+  # (See RFC 2251, section 4.1.12).
   # The application-specific tag in the sequence tells
   # us what kind of packet it is, and each kind has its
   # own format, defined in RFC-1777.
@@ -61,6 +64,10 @@ class LdapPdu
   # does interpret the RFC strictly in this regard, and
   # it remains to be seen whether there are servers out
   # there that will not work well with our approach.
+  #
+  # Added a controls-processor to SearchResult.
+  # Didn't add it everywhere because it just _feels_
+  # like it will need to be refactored.
   #
   def initialize ber_object
     begin
@@ -78,6 +85,7 @@ class LdapPdu
       parse_search_return ber_object[1]
     when SearchResult
       parse_ldap_result ber_object[1]
+      parse_controls(ber_object[2]) if ber_object[2]
     when ModifyResponse
       parse_ldap_result ber_object[1]
     when AddResponse
@@ -102,7 +110,6 @@ class LdapPdu
   end
 
 
-  private
 
   #
   # parse_ldap_result
@@ -146,6 +153,28 @@ class LdapPdu
       @search_attributes[seq[0].downcase.intern] = seq[1]
     }
   end
+  private :parse_ldap_result
+
+
+  # Per RFC 2251, an LDAP "control" is a sequence of tuples, each consisting
+  # of an OID, a boolean criticality flag defaulting FALSE, and an OPTIONAL
+  # Octet String. If only two fields are given, the second one may be
+  # either criticality or data, since criticality has a default value.
+  # Someday we may want to come back here and add support for some of
+  # more-widely used controls. RFC-2696 is a good example.
+  #
+  def parse_controls sequence
+    @ldap_controls = sequence.map do |control|
+      o = OpenStruct.new
+      o.oid,o.criticality,o.value = control[0],control[1],control[2]
+      if o.criticality and o.criticality.is_a?(String)
+        o.value = o.criticality
+        o.criticality = false
+      end
+      o
+    end
+  end
+  private :parse_controls
 
 
 end
