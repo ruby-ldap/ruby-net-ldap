@@ -11,7 +11,7 @@ rescue Exception => e
 end
 
 def build_ri(files)
-  RDoc::RDoc.new(["--ri-site", "--merge"] + files)
+  RDoc::RDoc.new.document(["--ri-site", "--merge"] + files)
 rescue RDoc::RDocError => e
   $stderr.puts e.message
 rescue Exception => e
