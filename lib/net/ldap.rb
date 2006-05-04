@@ -284,6 +284,7 @@ module Net
     DefaultHost = "127.0.0.1"
     DefaultPort = 389
     DefaultAuth = {:method => :anonymous}
+    DefaultTreebase = "dc=com"
 
 
     ResultStrings = {
@@ -322,6 +323,10 @@ module Net
       ResultStrings[code] || "unknown result (#{code})"
     end 
 
+
+    attr_accessor :host, :port, :base
+
+
     # Instantiate an object of type Net::LDAP to perform directory operations.
     # This constructor takes a Hash containing arguments. The following arguments
     # are supported:
@@ -340,12 +345,29 @@ module Net
       @port = args[:port] || DefaultPort
       @verbose = false # Make this configurable with a switch on the class.
       @auth = args[:auth] || DefaultAuth
+      @base = args[:base] || DefaultTreebase
 
       # This variable is only set when we are created with LDAP::open.
       # All of our internal methods will connect using it, or else
       # they will create their own.
       @open_connection = nil
     end
+
+    # Convenient method to specify your authentication to the LDAP
+    # server. Currently supports simple authentication requiring
+    # a username and password. Observe that on most LDAP servers,
+    # including A/D, the username is a complete DN.
+    #  require 'net/ldap'
+    #  
+    #  ldap = Net::LDAP.new
+    #  ldap.host = server_ip_address
+    #  ldap.authenticate "cn=Your Username,cn=Users,dc=example,dc=com", "your_psw"
+    #
+    def authenticate username, password
+      @auth = {:method => :simple, :username => username, :password => password}
+    end
+
+    alias_method :auth, :authenticate
 
     # #open takes the same parameters as #new. #open makes a network connection to the
     # LDAP server and then passes a newly-created Net::LDAP object to the caller-supplied block.
@@ -515,7 +537,8 @@ module Net
     # that the caller can set to suppress the return of a result set,
     # if he's planning to process every entry as it comes from the server.
     #
-    def search args
+    def search args = {}
+      args[:base] ||= @base
       result_set = (args and args[:return_result] == false) ? nil : {}
 
       if @open_connection
