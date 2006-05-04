@@ -148,14 +148,16 @@ class LdapPdu
   # we also return @search_entry, which is an LDAP::Entry object.
   # If that works out well, then we'll remove the first two.
   #
+  # Provisionally removed obsolete search_attributes and search_dn, 04May06.
+  #
   def parse_search_return sequence
     sequence.length >= 2 or raise LdapPduError
     @search_entry = LDAP::Entry.new( sequence[0] )
-    @search_dn = sequence[0]
-    @search_attributes = {}
+    #@search_dn = sequence[0]
+    #@search_attributes = {}
     sequence[1].each {|seq|
       @search_entry[seq[0]] = seq[1]
-      @search_attributes[seq[0].downcase.intern] = seq[1]
+      #@search_attributes[seq[0].downcase.intern] = seq[1]
     }
   end
   private :parse_ldap_result
