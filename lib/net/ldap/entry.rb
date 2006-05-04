@@ -118,8 +118,19 @@ class LDAP
     alias_method :each_attribute, :each
 
 
+    #--
+    # Convenience method to convert unknown method names
+    # to attribute references. Of course the method name
+    # comes to us as a symbol, so let's save a little time
+    # and not bother with the to_s.downcase two-step.
+    # Of course that means that a method name like mAIL
+    # won't work, but we shouldn't be encouraging that
+    # kind of bad behavior in the first place.
+    # Maybe we should thow something if the caller sends
+    # arguments or a block...
+    #
     def method_missing *args, &block # :nodoc:
-      s = args[0].to_s.downcase.intern
+      s = args[0]
       if attribute_names.include?(s)
         self[s]
       else
