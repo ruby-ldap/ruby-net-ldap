@@ -60,6 +60,11 @@ class LDAP
   # Class Net::LDAP::Entry provides convenience methods for dealing
   # with LDAP entries.
   #
+  #--
+  # Ugly problem to fix someday: We key off the internal hash with
+  # a canonical form of the attribute name: convert to a string,
+  # downcase, then take the symbol. Unfortunately we do this in
+  # at least three places. Should do it in ONE place.
   class Entry
 
     # This constructor is not generally called by user code.
@@ -76,7 +81,7 @@ class LDAP
 
 
     #--
-    # We have to deal with this one as we do []=
+    # We have to deal with this one as we do with []=
     # because this one and not the other one gets called
     # in formulations like entry["CN"] << cn.
     #
@@ -111,6 +116,16 @@ class LDAP
     end
 
     alias_method :each_attribute, :each
+
+
+    def method_missing *args, &block # :nodoc:
+      s = args[0].to_s.downcase.intern
+      if attribute_names.include?(s)
+        self[s]
+      else
+        raise NoMethodError.new( "undefined method '#{s}'" )
+      end
+    end
 
   end # class Entry
 
