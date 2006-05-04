@@ -492,10 +492,19 @@ module Net
     # be called 1000 times. If the search returns no entries, the block will
     # not be called.
     #
+    #--
+    # ORIGINAL TEXT, replaced 04May06.
     # #search returns either a result-set or a boolean, depending on the
     # value of the <tt>:return_result</tt> argument. The default behavior is to return
     # a result set, which is a hash. Each key in the hash is a string specifying
     # the DN of an entry. The corresponding value for each key is a Net::LDAP::Entry object.
+    # If you request a result set and #search fails with an error, it will return nil.
+    # Call #get_operation_result to get the error information returned by
+    # the LDAP server.
+    #++
+    # #search returns either a result-set or a boolean, depending on the
+    # value of the <tt>:return_result</tt> argument. The default behavior is to return
+    # a result set, which is an Array of objects of class Net::LDAP::Entry.
     # If you request a result set and #search fails with an error, it will return nil.
     # Call #get_operation_result to get the error information returned by
     # the LDAP server.
@@ -539,13 +548,20 @@ module Net
     # that the caller can set to suppress the return of a result set,
     # if he's planning to process every entry as it comes from the server.
     #
+    # REINTERPRETED the result set, 04May06. Originally this was a hash
+    # of entries keyed by DNs. But let's get away from making users
+    # handle DNs. Change it to a plain array. Eventually we may
+    # want to return a Dataset object that delegates to an internal
+    # array, so we can provide sort methods and what-not.
+    #
     def search args = {}
       args[:base] ||= @base
-      result_set = (args and args[:return_result] == false) ? nil : {}
+      result_set = (args and args[:return_result] == false) ? nil : []
 
       if @open_connection
         @result = @open_connection.search( args ) {|entry|
-          result_set[entry.dn] = entry if result_set
+          #result_set[entry.dn] = entry if result_set
+          result_set << entry if result_set
           yield( entry ) if block_given?
         }
       else
@@ -553,7 +569,8 @@ module Net
         conn = Connection.new( :host => @host, :port => @port )
         if (@result = conn.bind( args[:auth] || @auth )) == 0
           @result = conn.search( args ) {|entry|
-            (result_set[entry.dn] = entry) if result_set
+            #(result_set[entry.dn] = entry) if result_set
+            result_set << entry if result_set
             yield( entry ) if block_given?
           }
         end
