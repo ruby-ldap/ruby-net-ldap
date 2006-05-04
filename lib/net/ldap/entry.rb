@@ -59,6 +59,16 @@ class LDAP
   #
   # Class Net::LDAP::Entry provides convenience methods for dealing
   # with LDAP entries.
+  # In addition to the methods documented below, you may access individual
+  # attributes of an entry simply by giving the attribute name as
+  # the name of a method call. For example:
+  #  ldap.search( ... ) do |entry|
+  #    puts "Common name: #{entry.cn}"
+  #    puts "Email addresses:"
+  #      entry.mail.each {|ma| puts ma}
+  #  end
+  # If you use this technique to access an attribute that is not present
+  # in a particular Entry object, a NoMethodError exception will be raised.
   #
   #--
   # Ugly problem to fix someday: We key off the internal hash with
