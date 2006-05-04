@@ -456,6 +456,7 @@ module Net
     # Note that in the standalone case, we're permitting the caller
     # to modify the auth parms.
     #
+=begin
     def searchx args
       if @open_connection
         @result = @open_connection.searchx( args ) {|values|
@@ -474,6 +475,7 @@ module Net
 
       @result == 0
     end
+=end
 
     # Searches the LDAP directory for directory entries.
     # Takes a hash argument with parameters. Supported parameters include:
@@ -998,6 +1000,7 @@ module Net
     #--
     # WARNING: this code substantially recapitulates the search method.
     #
+=begin
     def searchx args
       search_filter = (args && args[:filter]) || Filter.eq( "objectclass", "*" )
       search_base = (args && args[:base]) || "dc=example,dc=com"
@@ -1033,6 +1036,8 @@ module Net
 
       result_code
     end
+=end
+
 
     #--
     # modify
