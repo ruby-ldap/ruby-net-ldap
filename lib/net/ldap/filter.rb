@@ -180,7 +180,7 @@ class Filter
     case @op
     when :eq
       if @right == "*"          # present
-        @left.to_ber_contextspecific 7
+        @left.to_s.to_ber_contextspecific 7
       elsif @right =~ /[\*]/    #substring
         ary = @right.split( /[\*]+/ )
         final_star = @right =~ /[\*]$/
@@ -198,9 +198,9 @@ class Filter
         unless final_star
           seq << ary.shift.to_ber_contextspecific(2)
         end
-        [@left.to_ber, seq.to_ber].to_ber_contextspecific 4
+        [@left.to_s.to_ber, seq.to_ber].to_ber_contextspecific 4
       else                      #equality
-        [@left.to_ber, @right.to_ber].to_ber_contextspecific 3
+        [@left.to_s.to_ber, @right.to_ber].to_ber_contextspecific 3
       end
     when :and
       ary = [@left.coalesce(:and), @right.coalesce(:and)].flatten
