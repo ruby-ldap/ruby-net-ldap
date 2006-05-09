@@ -335,6 +335,7 @@ module Net
     # * :auth => a Hash containing authorization parameters. Currently supported values include:
     #   {:method => :anonymous} and
     #   {:method => :simple, :username => your_user_name, :password => your_password }
+    #   The password parameter may be a Proc that returns a String.
     #
     # Instantiating a Net::LDAP object does <i>not</i> result in network traffic to
     # the LDAP server. It simply stores the connection and binding parameters in the
@@ -347,6 +348,10 @@ module Net
       @auth = args[:auth] || DefaultAuth
       @base = args[:base] || DefaultTreebase
 
+      if pr = @auth[:password] and pr.respond_to?(:call)
+        @auth[:password] = pr.call
+      end
+
       # This variable is only set when we are created with LDAP::open.
       # All of our internal methods will connect using it, or else
       # they will create their own.
@@ -357,6 +362,7 @@ module Net
     # server. Currently supports simple authentication requiring
     # a username and password. Observe that on most LDAP servers,
     # including A/D, the username is a complete DN.
+    # The password argument may be a Proc that returns a string.
     #  require 'net/ldap'
     #  
     #  ldap = Net::LDAP.new
@@ -364,6 +370,7 @@ module Net
     #  ldap.authenticate "cn=Your Username,cn=Users,dc=example,dc=com", "your_psw"
     #
     def authenticate username, password
+      password = password.call if password.respond_to?(:call)
       @auth = {:method => :simple, :username => username, :password => password}
     end
 
