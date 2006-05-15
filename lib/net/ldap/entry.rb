@@ -143,9 +143,17 @@ class LDAP
       s = args[0]
       if attribute_names.include?(s)
         self[s]
+      elsif s.to_s[-1] == 61 and s.to_s.length > 1
+        value = args[1] or raise RuntimeError.new( "unable to set value" )
+        value = [value] unless value.is_a?(Array)
+        name = s.to_s[0..-2].intern
+        self[name] = value
       else
         raise NoMethodError.new( "undefined method '#{s}'" )
       end
+    end
+
+    def write
     end
 
   end # class Entry
