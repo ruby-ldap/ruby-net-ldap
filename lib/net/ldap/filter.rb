@@ -270,8 +270,99 @@ class Filter
     end
   end
 
+  # Converts an LDAP filter-string (in the prefix syntax specified in RFC-2254)
+  # to a Net::LDAP::Filter.
+  def self.from_rfc2254 str
+    FilterParser.new(str).filter
+  end
 
 end # class Net::LDAP::Filter
+
+
+class FilterParser #:nodoc:
+
+  attr_reader :filter
+
+  def initialize str
+    require 'strscan'
+    @filter = parse( StringScanner.new( str )) or raise Net::LDAP::LdapError.new( "invalid filter syntax" )
+  end
+
+  def parse scanner
+    parse_filter_branch(scanner) or parse_paren_expression(scanner)
+  end
+
+  def parse_paren_expression scanner
+    if scanner.scan /\s*\(\s*/
+      b = if scanner.scan /\s*\&\s*/
+        a = nil
+        branches = []
+        while br = parse_paren_expression(scanner)
+          branches << br
+        end
+        if branches.length >= 2
+          a = branches.shift
+          while branches.length > 0
+            a = a & branches.shift
+          end
+          a
+        end
+      elsif scanner.scan /\s*\|\s*/
+        # TODO: DRY!
+        a = nil
+        branches = []
+        while br = parse_paren_expression(scanner)
+          branches << br
+        end
+        if branches.length >= 2
+          a = branches.shift
+          while branches.length > 0
+            a = a | branches.shift
+          end
+          a
+        end
+      elsif scanner.scan /\s*\!\s*/
+        br = parse_paren_expression(scanner)
+        if br
+          ~ br
+        end
+      else
+        parse_filter_branch( scanner )
+      end
+
+      if b and scanner.scan( /\s*\)\s*/ )
+        b
+      end
+    end
+  end
+
+  def parse_filter_branch scanner
+    scanner.scan /\s*/
+    if token = scanner.scan( /[\w\-_]+/ )
+      scanner.scan /\s*/
+      if op = scanner.scan( /\=|\<\=|\<|\>\=|\>|\!\=/ )
+        scanner.scan /\s*/
+        if value = scanner.scan( /[\w\*]+/ )
+          case op
+          when "="
+            Filter.eq( token, value )
+          when "!="
+            Filter.ne( token, value )
+          when "<"
+            Filter.lt( token, value )
+          when "<="
+            Filter.le( token, value )
+          when ">"
+            Filter.gt( token, value )
+          when ">="
+            Filter.ge( token, value )
+          end
+        end
+      end
+    end
+  end
+
+end # class Net::LDAP::FilterParser
 
 end # class Net::LDAP
 end # module Net

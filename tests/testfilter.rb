@@ -19,6 +19,17 @@ class TestFilter < Test::Unit::TestCase
   end
 
   def test_rfc_2254
+    p Net::LDAP::Filter.from_rfc2254( " ( uid=george*   ) " )
+    p Net::LDAP::Filter.from_rfc2254( "uid!=george*" )
+    p Net::LDAP::Filter.from_rfc2254( "uid<george*" )
+    p Net::LDAP::Filter.from_rfc2254( "uid <= george*" )
+    p Net::LDAP::Filter.from_rfc2254( "uid>george*" )
+    p Net::LDAP::Filter.from_rfc2254( "uid>=george*" )
+    p Net::LDAP::Filter.from_rfc2254( "uid!=george*" )
+
+    p Net::LDAP::Filter.from_rfc2254( "(& (uid!=george* ) (mail=*))" )
+    p Net::LDAP::Filter.from_rfc2254( "(| (uid!=george* ) (mail=*))" )
+    p Net::LDAP::Filter.from_rfc2254( "(! (mail=*))" )
   end
 
 
