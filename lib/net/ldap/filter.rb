@@ -272,8 +272,14 @@ class Filter
 
   # Converts an LDAP filter-string (in the prefix syntax specified in RFC-2254)
   # to a Net::LDAP::Filter.
-  def self.from_rfc2254 str
-    FilterParser.new(str).filter
+  def self.construct ldap_filter_string
+    FilterParser.new(ldap_filter_string).filter
+  end
+
+  # Synonym for #construct.
+  # to a Net::LDAP::Filter.
+  def self.from_rfc2254 ldap_filter_string
+    construct ldap_filter_string
   end
 
 end # class Net::LDAP::Filter

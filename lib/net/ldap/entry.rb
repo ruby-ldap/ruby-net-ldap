@@ -50,7 +50,7 @@ class LDAP
   # restrict the range of characters allowed in attribute names.
   # To simplify handling attribute names, Net::LDAP::Entry
   # internally converts them to a standard format. Therefore, the
-  # methods which take attribute names can take Strings or Synmbols,
+  # methods which take attribute names can take Strings or Symbols,
   # and work correctly regardless of case or capitalization.
   #
   # An attribute consists of zero or more data items called
@@ -140,7 +140,7 @@ class LDAP
     # arguments or a block...
     #
     def method_missing *args, &block # :nodoc:
-      s = args[0]
+      s = args[0].to_s.downcase.intern
       if attribute_names.include?(s)
         self[s]
       elsif s.to_s[-1] == 61 and s.to_s.length > 1
