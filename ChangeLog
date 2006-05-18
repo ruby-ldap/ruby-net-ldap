@@ -4,6 +4,9 @@
 * Fixed malformation in distro tarball and gem.
 * Improved documentation.
 * Supported "paged search control."
+* Added a range of API improvements.
+* Thanks to Andre Nathan, andre@digirati.com.br, for valuable
+  suggestions.
 
 == Net::LDAP 0.0.1: May 1, 2006
 * Initial release.
