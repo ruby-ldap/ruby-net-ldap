@@ -348,7 +348,7 @@ class FilterParser #:nodoc:
       scanner.scan /\s*/
       if op = scanner.scan( /\=|\<\=|\<|\>\=|\>|\!\=/ )
         scanner.scan /\s*/
-        if value = scanner.scan( /[\w\*]+/ )
+        if value = scanner.scan( /[\w\*\.]+/ )
           case op
           when "="
             Filter.eq( token, value )
