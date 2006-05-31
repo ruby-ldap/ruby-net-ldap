@@ -43,9 +43,11 @@ class LdapPdu
   AddResponse = 9
   DeleteResponse = 11
   ModifyRDNResponse = 13
+  SearchResultReferral = 19
 
   attr_reader :msg_id, :app_tag
   attr_reader :search_dn, :search_attributes, :search_entry
+  attr_reader :search_referrals
 
   #
   # initialize
@@ -83,6 +85,8 @@ class LdapPdu
       parse_ldap_result ber_object[1]
     when SearchReturnedData
       parse_search_return ber_object[1]
+    when SearchResultReferral
+      parse_search_referral ber_object[1]
     when SearchResult
       parse_ldap_result ber_object[1]
       parse_controls(ber_object[2]) if ber_object[2]
@@ -123,6 +127,7 @@ class LdapPdu
     sequence.length >= 3 or raise LdapPduError
     @ldap_result = {:resultCode => sequence[0], :matchedDN => sequence[1], :errorMessage => sequence[2]}
   end
+  private :parse_ldap_result
 
   #
   # parse_search_return
@@ -160,7 +165,16 @@ class LdapPdu
       #@search_attributes[seq[0].downcase.intern] = seq[1]
     }
   end
-  private :parse_ldap_result
+
+  #
+  # A search referral is a sequence of one or more LDAP URIs.
+  # Any number of search-referral replies can be returned by the server, interspersed
+  # with normal replies in any order.
+  # Until I can think of a better way to do this, we'll return the referrals as an array.
+  # It'll be up to higher-level handlers to expose something reasonable to the client.
+  def parse_search_referral uris
+    @search_referrals = uris
+  end
 
 
   # Per RFC 2251, an LDAP "control" is a sequence of tuples, each consisting

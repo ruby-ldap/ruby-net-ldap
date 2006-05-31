@@ -266,6 +266,7 @@ module Net
           14 => :array,             # CompareRequest
           15 => :array,             # CompareResponse
           16 => :array,             # AbandonRequest
+          19 => :array,             # SearchResultReferral
           24 => :array,             # Unsolicited Notification
         }
       },
@@ -450,40 +451,6 @@ module Net
     end
 
 
-    # <i>DEPRECATED.</i> Performs an LDAP search, waits for the operation to complete, and
-    # passes a result set to the caller-supplied block.
-    #--
-    # If an open call is in progress (@open_connection will be non-nil),
-    # then ASSUME a bind has been performed and accepted, and just
-    # execute the search.
-    # If @open_connection is nil, then we have to connect, bind,
-    # search, and then disconnect. (The disconnect is not strictly
-    # necessary but it's friendlier to the network to do it here
-    # rather than waiting for Ruby's GC.)
-    # Note that in the standalone case, we're permitting the caller
-    # to modify the auth parms.
-    #
-=begin
-    def searchx args
-      if @open_connection
-        @result = @open_connection.searchx( args ) {|values|
-          yield( values ) if block_given?
-        }
-      else
-        @result = 0
-        conn = Connection.new( :host => @host, :port => @port )
-        if (@result = conn.bind( args[:auth] || @auth )) == 0
-          @result = conn.searchx( args ) {|values|
-            yield( values ) if block_given?
-          }
-        end
-        conn.close
-      end
-
-      @result == 0
-    end
-=end
-
     # Searches the LDAP directory for directory entries.
     # Takes a hash argument with parameters. Supported parameters include:
     # * :base (a string specifying the tree-base for the search);
@@ -567,7 +534,6 @@ module Net
 
       if @open_connection
         @result = @open_connection.search( args ) {|entry|
-          #result_set[entry.dn] = entry if result_set
           result_set << entry if result_set
           yield( entry ) if block_given?
         }
@@ -576,7 +542,6 @@ module Net
         conn = Connection.new( :host => @host, :port => @port )
         if (@result = conn.bind( args[:auth] || @auth )) == 0
           @result = conn.search( args ) {|entry|
-            #(result_set[entry.dn] = entry) if result_set
             result_set << entry if result_set
             yield( entry ) if block_given?
           }
@@ -936,6 +901,7 @@ module Net
       search_filter = (args && args[:filter]) || Filter.eq( "objectclass", "*" )
       search_base = (args && args[:base]) || "dc=example,dc=com"
       search_attributes = ((args && args[:attributes]) || []).map {|attr| attr.to_s.to_ber}
+      return_referrals = args && args[:return_referrals] == true
 
       attributes_only = (args and args[:attributes_only] == true)
       scope = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
@@ -976,6 +942,15 @@ module Net
           case pdu.app_tag
           when 4 # search-data
             yield( pdu.search_entry ) if block_given?
+          when 19 # search-referral
+            if return_referrals
+              if block_given?
+                se = Net::LDAP::Entry.new
+                se[:search_referrals] = (pdu.search_referrals || [])
+                yield se
+              end
+            end
+            #p pdu.referrals
           when 5 # search-result
             result_code = pdu.result_code
             controls = pdu.result_controls
@@ -1013,54 +988,6 @@ module Net
     end
 
 
-    #--
-    # searchx
-    # Original implementation, this doesn't return until all data have been
-    # received from the server.
-    # TODO, certain search parameters are hardcoded.
-    # TODO, if we mis-parse the server results or the results are wrong, we can block
-    # forever. That's because we keep reading results until we get a type-5 packet,
-    # which might never come. We need to support the time-limit in the protocol.
-    #--
-    # WARNING: this code substantially recapitulates the search method.
-    #
-=begin
-    def searchx args
-      search_filter = (args && args[:filter]) || Filter.eq( "objectclass", "*" )
-      search_base = (args && args[:base]) || "dc=example,dc=com"
-      search_attributes = ((args && args[:attributes]) || []).map {|attr| attr.to_s.to_ber}
-      request = [
-        search_base.to_ber,
-        2.to_ber_enumerated,
-        0.to_ber_enumerated,
-        0.to_ber,
-        0.to_ber,
-        false.to_ber,
-        search_filter.to_ber,
-        search_attributes.to_ber_sequence
-      ].to_ber_appsequence(3)
-      pkt = [next_msgid.to_ber, request].to_ber_sequence
-      @conn.write pkt
-
-      search_results = {}
-      result_code = 0
-
-      while (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be ))
-        case pdu.app_tag
-        when 4 # search-data
-          search_results [pdu.search_dn] = pdu.search_attributes
-        when 5 # search-result
-          result_code = pdu.result_code
-          block_given? and yield( search_results )
-          break
-        else
-          raise LdapError.new( "invalid response-type in search: #{pdu.app_tag}" )
-        end
-      end
-
-      result_code
-    end
-=end
 
 
     #--
