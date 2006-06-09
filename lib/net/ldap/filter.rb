@@ -75,11 +75,13 @@ class Filter
   # This example selects any entry with a <tt>mail</tt> value containing
   # the substring "anderson":
   #  f = Net::LDAP::Filter.eq( "mail", "*anderson*" )
+  #--
+  # Removed gt and lt. They ain't in the standard!
   #
   def Filter::eq attribute, value; Filter.new :eq, attribute, value; end
   def Filter::ne attribute, value; Filter.new :ne, attribute, value; end
-  def Filter::gt attribute, value; Filter.new :gt, attribute, value; end
-  def Filter::lt attribute, value; Filter.new :lt, attribute, value; end
+  #def Filter::gt attribute, value; Filter.new :gt, attribute, value; end
+  #def Filter::lt attribute, value; Filter.new :lt, attribute, value; end
   def Filter::ge attribute, value; Filter.new :ge, attribute, value; end
   def Filter::le attribute, value; Filter.new :le, attribute, value; end
 
@@ -110,6 +112,7 @@ class Filter
   #
   #--
   # This operator can't be !, evidently. Try it.
+  # Removed GT and LT. They're not in the RFC.
   def ~@; Filter.new :not, self, nil; end
 
 
@@ -119,10 +122,10 @@ class Filter
       "(!(#{@left}=#{@right}))"
     when :eq
       "(#{@left}=#{@right})"
-    when :gt
-      "#{@left}>#{@right}"
-    when :lt
-      "#{@left}<#{@right}"
+    #when :gt
+     # "#{@left}>#{@right}"
+    #when :lt
+     # "#{@left}<#{@right}"
     when :ge
       "#{@left}>=#{@right}"
     when :le
@@ -202,6 +205,10 @@ class Filter
       else                      #equality
         [@left.to_s.to_ber, @right.to_ber].to_ber_contextspecific 3
       end
+    when :ge
+      [@left.to_s.to_ber, @right.to_ber].to_ber_contextspecific 5
+    when :le
+      [@left.to_s.to_ber, @right.to_ber].to_ber_contextspecific 6
     when :and
       ary = [@left.coalesce(:and), @right.coalesce(:and)].flatten
       ary.map {|a| a.to_ber}.to_ber_contextspecific( 0 )
