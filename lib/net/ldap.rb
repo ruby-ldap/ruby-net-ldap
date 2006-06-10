@@ -907,7 +907,11 @@ module Net
       scope = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
       raise LdapError.new( "invalid search scope" ) unless SearchScopes.include?(scope)
 
-      rfc2696_cookie = [739, ""] # size-limit is a funky number so we can distinguish it from errors.
+      # An interesting value for the size limit would be close to A/D's built-in
+      # page limit of 1000 records, but openLDAP newer than version 2.2.0 chokes
+      # on anything bigger than 126. You get a silent error that is easily visible
+      # by running slapd in debug mode. Go figure.
+      rfc2696_cookie = [126, ""]
       result_code = 0
 
       loop {
