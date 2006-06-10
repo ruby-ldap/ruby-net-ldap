@@ -9,6 +9,9 @@
   suggestions.
 * Added support for LE and GE search filters.
 * Added support for Search referrals.
+* Fixed a regression with openldap 2.2.x and higher caused
+  by the introduction of RFC-2696 controls. Thanks to Andre
+  Nathan for reporting the problem.
 
 == Net::LDAP 0.0.1: May 1, 2006
 * Initial release.
