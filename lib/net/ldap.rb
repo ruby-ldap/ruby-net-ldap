@@ -278,6 +278,7 @@ module Net
         },
         :constructed => {
           0 => :array,              # RFC-2251 Control
+          3 => :array,              # Seach referral
         }
       }
     }
