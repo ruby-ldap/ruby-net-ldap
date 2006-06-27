@@ -194,7 +194,7 @@ class Filter
           seq << ary.shift.to_ber_contextspecific(0)
         end
         n_any_strings = ary.length - (final_star ? 0 : 1)
-        p n_any_strings
+        #p n_any_strings
         n_any_strings.times {
           seq << ary.shift.to_ber_contextspecific(1)
         }
