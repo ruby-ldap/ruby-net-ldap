@@ -1,6 +1,6 @@
 = Net::LDAP Changelog
 
-== Net::LDAP 0.0.2: May 3, 2006
+== Net::LDAP 0.0.2: July 12, 2006
 * Fixed malformation in distro tarball and gem.
 * Improved documentation.
 * Supported "paged search control."
@@ -12,6 +12,7 @@
 * Fixed a regression with openldap 2.2.x and higher caused
   by the introduction of RFC-2696 controls. Thanks to Andre
   Nathan for reporting the problem.
+* Added support for RFC-2254 filter syntax.
 
 == Net::LDAP 0.0.1: May 1, 2006
 * Initial release.
