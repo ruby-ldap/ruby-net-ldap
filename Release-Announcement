@@ -27,6 +27,8 @@ Please note that Net::LDAP is licensed under the Ruby license
 or LGPL, at your option. (I'm saying it publicly right here!)
 There are still many source files in the distro that contain
 GPL verbiage. We will clean that up in a future release.
+See the file LICENCE in the distro for details of the Ruby-like
+license.
 
 And finally we fixed the annoying problem that the 0.0.1 gem
 and tarball had trailing garbage. Thanks to Austin for helping
