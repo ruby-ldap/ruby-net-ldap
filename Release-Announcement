@@ -23,6 +23,11 @@ The goal is to make the Net::LDAP API as intuitive and Ruby-like
 as possible. We'll be adding more improvements to the API as we
 go along.
 
+Please note that Net::LDAP is licensed under the Ruby license
+or LGPL, at your option. (I'm saying it publicly right here!)
+There are still many source files in the distro that contain
+GPL verbiage. We will clean that up in a future release.
+
 And finally we fixed the annoying problem that the 0.0.1 gem
 and tarball had trailing garbage. Thanks to Austin for helping
 track that down. Thanks also to Andre Nathan and others for

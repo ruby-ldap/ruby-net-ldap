@@ -32,7 +32,7 @@ module Net
   # == Net::LDAP
   #
   # This library provides a pure-Ruby implementation of the
-  # LDAP client protocol, per RFC-1777.
+  # LDAP client protocol, per RFC-2251.
   # It can be used to access any server which implements the
   # LDAP protocol.
   #
