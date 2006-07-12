@@ -16,6 +16,9 @@ itself.
 == Requirements
 Net::LDAP requires Ruby 1.8.2 or better.
 
+== Documentation
+See Net::LDAP for documentation and usage samples.
+
 #--
 # Net::LDAP for Ruby.
 #   http://rubyforge.org/projects/net-ldap/

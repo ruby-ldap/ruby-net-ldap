@@ -41,7 +41,25 @@ module Net
   # the LDAP protocol itself, and thus presenting as Ruby-like
   # a programming interface as possible.
   # 
-  # === Quick-start for the Impatient
+  # == Quick-start for the Impatient
+  # === Quick Example of a user-authentication against an LDAP directory:
+  #
+  #  require 'rubygems'
+  #  require 'net/ldap'
+  #  
+  #  ldap = Net::LDAP.new
+  #  ldap.host = your_server_ip_address
+  #  ldap.port = 389
+  #  ldap.auth "joe_user", "opensesame"
+  #  if ldap.bind
+  #    # authentication succeeded
+  #  else
+  #    # authentication failed
+  #  end
+  #
+  #
+  # === Quick Example of a search against an LDAP directory:
+  #
   #  require 'rubygems'
   #  require 'net/ldap'
   #  
@@ -69,14 +87,14 @@ module Net
   #  p ldap.get_operation_result
   #  
   #
-  # == Quick introduction to LDAP
+  # == A Brief Introduction to LDAP
   #
-  # We're going to provide a quick and highly informal introduction to LDAP
+  # We're going to provide a quick, informal introduction to LDAP
   # terminology and
   # typical operations. If you're comfortable with this material, skip
   # ahead to "How to use Net::LDAP." If you want a more rigorous treatment
   # of this material, we recommend you start with the various IETF and ITU
-  # standards that control LDAP.
+  # standards that relate to LDAP.
   #
   # === Entities
   # LDAP is an Internet-standard protocol used to access directory servers.
@@ -360,16 +378,37 @@ module Net
       @open_connection = nil
     end
 
-    # Convenient method to specify your authentication to the LDAP
+    # Convenience method to specify authentication credentials to the LDAP
     # server. Currently supports simple authentication requiring
-    # a username and password. Observe that on most LDAP servers,
-    # including A/D, the username is a complete DN.
-    # The password argument may be a Proc that returns a string.
+    # a username and password.
+    #
+    # Observe that on most LDAP servers,
+    # the username is a complete DN. However, with A/D, it's often possible
+    # to give only a user-name rather than a complete DN. In the latter
+    # case, beware that many A/D servers are configured to permit anonymous
+    # (uncredentialled) binding, and will silently accept your binding
+    # as anonymous if you give an unrecognized username. This is not usually
+    # what you want. (See #get_operation_result.)
+    #
+    # <b>Important:</b> The password argument may be a Proc that returns a string.
+    # This makes it possible for you to write client programs that solicit
+    # passwords from users or from other data sources without showing them
+    # in your code or on command lines.
+    #
     #  require 'net/ldap'
     #  
     #  ldap = Net::LDAP.new
     #  ldap.host = server_ip_address
     #  ldap.authenticate "cn=Your Username,cn=Users,dc=example,dc=com", "your_psw"
+    #
+    # Alternatively (with a password block):
+    #
+    #  require 'net/ldap'
+    #  
+    #  ldap = Net::LDAP.new
+    #  ldap.host = server_ip_address
+    #  psw = proc { your_psw_function }
+    #  ldap.authenticate "cn=Your Username,cn=Users,dc=example,dc=com", psw
     #
     def authenticate username, password
       password = password.call if password.respond_to?(:call)
@@ -553,12 +592,46 @@ module Net
       @result == 0 and result_set
     end
 
-    # #bind connects to the LDAP server and requests authentication
+    # #bind connects to an LDAP server and requests authentication
     # based on the <tt>:auth</tt> parameter passed to #open or #new.
     # It takes no parameters.
-    # User code generally will not call #bind. It will be called
-    # implicitly by the library whenever an LDAP operation is
-    # requested. #bind can be useful to test authentication.
+    #
+    # User code does not need to call #bind directly. It will be called
+    # implicitly by the library whenever you invoke an LDAP operation,
+    # such as #search or #add.
+    #
+    # It is useful, however, to call #bind in your own code when the
+    # only operation you intend to perform against the directory is
+    # to validate a login credential. #bind returns true or false
+    # to indicate whether the binding was successful. Reasons for
+    # failure include malformed or unrecognized usernames and
+    # incorrect passwords. Use #get_operation_result to find out
+    # what happened in case of failure.
+    #
+    # Here's a typical example using #bind to authenticate a
+    # credential which was (perhaps) solicited from the user of a
+    # web site:
+    #
+    #  require 'net/ldap'
+    #  ldap = Net::LDAP.new
+    #  ldap.host = your_server_ip_address
+    #  ldap.port = 389
+    #  ldap.auth your_user_name, your_user_password
+    #  if ldap.bind
+    #    # authentication succeeded
+    #  else
+    #    # authentication failed
+    #    p ldap.get_operation_result
+    #  end
+    #
+    # You don't have to create a new instance of Net::LDAP every time
+    # you perform a binding in this way. If you prefer, you can cache the Net::LDAP object
+    # and re-use it to perform subsequent bindings, <i>provided</i> you call
+    # #auth to specify a new credential before calling #bind. Otherwise, you'll
+    # just re-authenticate the previous user! (You don't need to re-set
+    # the values of #host and #port.) As noted in the documentation for #auth,
+    # the password parameter can be a Ruby Proc instead of a String.
+    #
     #--
     # If there is an @open_connection, then perform the bind
     # on it. Otherwise, connect, bind, and disconnect.
