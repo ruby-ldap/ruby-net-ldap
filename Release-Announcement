@@ -9,9 +9,25 @@ Version 0.0.2 includes an implementation of the "paged search
 control" to enable queries of A/D result sets > 1000 entries.
 It also fills in some holes in the documentation.
 
+We fixed a handful of issues that gave strange-looking errors when
+working with A/D. The most important of these was support for search
+referrals.
+
+Net::LDAP now works with standard RFC-2254 filter strings (see
+Net::LDAP::Filter#construct). This is intended as an adjunct to
+(not a replacement for) the existing Filter API, which is considerably
+easier to use for people who are not LDAP experts.
+
+We added a range of new APIs, and deprecated some existing ones.
+The goal is to make the Net::LDAP API as intuitive and Ruby-like
+as possible. We'll be adding more improvements to the API as we
+go along.
+
 And finally we fixed the annoying problem that the 0.0.1 gem
 and tarball had trailing garbage. Thanks to Austin for helping
-track that down.
+track that down. Thanks also to Andre Nathan and others for
+several valuable suggestions and notes on your experience with
+the library.
 
 = What is Net::LDAP for Ruby?
 This library provides a pure-Ruby implementation of an LDAP client.
@@ -46,7 +62,7 @@ Net::LDAP can be installed with:
  % ruby setup.rb
 
 Alternatively, you can use the RubyGems version of Net::LDAP available
-as ruby-net-ldap-0.0.1.gem from the usual sources.
+as ruby-net-ldap-0.0.2.gem from the usual sources.
 
 == Whet your appetite:
     require 'net/ldap'
