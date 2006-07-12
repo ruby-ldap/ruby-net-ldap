@@ -11,7 +11,7 @@
 
 spec = Gem::Specification.new do |s|
   s.name              = "ruby-net-ldap"
-  s.version           = "0.0.1"
+  s.version           = "0.0.2"
   s.summary           = %q(A pure Ruby LDAP client library.)
   s.platform          = Gem::Platform::RUBY
 
