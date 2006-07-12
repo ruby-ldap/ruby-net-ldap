@@ -41,7 +41,7 @@ for users of web sites, but there has been some chatter about
 authorization as well, and a few of you are building directory-enabled
 applications.
 
-= What's next on the roadmap?
+What's next on the roadmap?
 
 Many of you have requested support for encryption. We will soon be
 adding support for STARTTLS and LDAPS to Net::LDAP, using Ruby's
