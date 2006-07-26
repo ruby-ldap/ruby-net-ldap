@@ -18,6 +18,13 @@
 
 require 'socket'
 require 'ostruct'
+
+begin
+  require 'openssl'
+  $net_ldap_openssl_available = true
+rescue LoadError
+end
+
 require 'net/ber'
 require 'net/ldap/pdu'
 require 'net/ldap/filter'
@@ -348,7 +355,7 @@ module Net
 
 
     # Instantiate an object of type Net::LDAP to perform directory operations.
-    # This constructor takes a Hash containing arguments. The following arguments
+    # This constructor takes a Hash containing arguments, all of which are either optional or may be specified later with other methods as described below. The following arguments
     # are supported:
     # * :host => the LDAP server's IP-address (default 127.0.0.1)
     # * :port => the LDAP server's TCP port (default 389)
@@ -356,6 +363,8 @@ module Net
     #   {:method => :anonymous} and
     #   {:method => :simple, :username => your_user_name, :password => your_password }
     #   The password parameter may be a Proc that returns a String.
+    # * :base => a default treebase parameter for searches performed against the LDAP server. If you don't give this value, then each call to #search must specify a treebase parameter. If you do give this value, then it will be used in subsequent calls to #search that do not specify a treebase. If you give a treebase value in any particular call to #search, that value will override any treebase value you give here.
+    # * :encryption => specifies the encryption to be used in communicating with the LDAP server. The value is either a Hash containing additional parameters, or the Symbol :simple_tls, which is equivalent to specifying the Hash {:method => :simple_tls}. There is a fairly large range of potential values that may be given for this parameter. See #encryption for details.
     #
     # Instantiating a Net::LDAP object does <i>not</i> result in network traffic to
     # the LDAP server. It simply stores the connection and binding parameters in the
@@ -367,6 +376,7 @@ module Net
       @verbose = false # Make this configurable with a switch on the class.
       @auth = args[:auth] || DefaultAuth
       @base = args[:base] || DefaultTreebase
+      encryption args[:encryption] # may be nil
 
       if pr = @auth[:password] and pr.respond_to?(:call)
         @auth[:password] = pr.call
@@ -416,6 +426,51 @@ module Net
     end
 
     alias_method :auth, :authenticate
+
+    # Convenience method to specify encryption characteristics for connections
+    # to LDAP servers. Called implicitly by #new and #open, but may also be called
+    # by user code if desired.
+    # The single argument is generally a Hash (but see below for convenience alternatives).
+    # This implementation is currently a stub, supporting only a few encryption
+    # alternatives. As additional capabilities are added, more configuration values
+    # will be added here.
+    #
+    # Currently, the only supported argument is {:method => :simple_tls}.
+    # (Equivalently, you may pass the symbol :simple_tls all by itself, without
+    # enclosing it in a Hash.)
+    #
+    # The :simple_tls encryption method encrypts <i>all</i> communications with the LDAP
+    # server.
+    # It completely establishes SSL/TLS encryption with the LDAP server 
+    # before any LDAP-protocol data is exchanged.
+    # There is no plaintext negotiation and no special encryption-request controls
+    # are sent to the server. 
+    # <i>The :simple_tls option is the simplest, easiest way to encrypt communications
+    # between Net::LDAP and LDAP servers.</i>
+    # It's intended for cases where you have an implicit level of trust in the authenticity
+    # of the LDAP server. No validation of the LDAP server's SSL certificate is
+    # performed. This means that :simple_tls will not produce errors if the LDAP
+    # server's encryption certificate is not signed by a well-known Certification
+    # Authority.
+    # If you get communications or protocol errors when using this option, check
+    # with your LDAP server administrator. Pay particular attention to the TCP port
+    # you are connecting to. It's impossible for an LDAP server to support plaintext
+    # LDAP communications and <i>simple TLS</i> connections on the same port.
+    # The standard TCP port for unencrypted LDAP connections is 389, but the standard
+    # port for simple-TLS encrypted connections is 636. Be sure you are using the
+    # correct port.
+    #
+    # <i>[Note: a future version of Net::LDAP will support the STARTTLS LDAP control,
+    # which will enable encrypted communications on the same TCP port used for
+    # unencrypted connections.]</i>
+    #
+    def encryption args
+      if args == :simple_tls
+        args = {:method => :simple_tls}
+      end
+      @encryption = args
+    end
+
 
     # #open takes the same parameters as #new. #open makes a network connection to the
     # LDAP server and then passes a newly-created Net::LDAP object to the caller-supplied block.
@@ -484,7 +539,7 @@ module Net
     # if the bind was unsuccessful.
     def open
       raise LdapError.new( "open already in progress" ) if @open_connection
-      @open_connection = Connection.new( :host => @host, :port => @port )
+      @open_connection = Connection.new( :host => @host, :port => @port, :encryption => @encryption )
       @open_connection.bind @auth
       yield self
       @open_connection.close
@@ -908,9 +963,48 @@ module Net
         raise LdapError.new( "no connection to server" )
       end
 
+      if server[:encryption]
+        setup_encryption server[:encryption]
+      end
+
       yield self if block_given?
     end
 
+
+    #--
+    # Helper method called only from new, and only after we have a successfully-opened
+    # @conn instance variable, which is a TCP connection.
+    # Depending on the received arguments, we establish SSL, potentially replacing
+    # the value of @conn accordingly.
+    # Don't generate any errors here if no encryption is requested.
+    # DO raise LdapError objects if encryption is requested and we have trouble setting
+    # it up. That includes if OpenSSL is not set up on the machine. (Question:
+    # how does the Ruby OpenSSL wrapper react in that case?)
+    # DO NOT filter exceptions raised by the OpenSSL library. Let them pass back
+    # to the user. That should make it easier for us to debug the problem reports.
+    # Presumably (hopefully?) that will also produce recognizable errors if someone
+    # tries to use this on a machine without OpenSSL.
+    #
+    # The simple_tls method is intended as the simplest, stupidest, easiest solution
+    # for people who want nothing more than encrypted comms with the LDAP server.
+    # It doesn't do any server-cert validation and requires nothing in the way
+    # of key files and root-cert files, etc etc.
+    # OBSERVE: WE REPLACE the value of @conn, which is presumed to be a connected
+    # TCPsocket object.
+    #
+    def setup_encryption args
+      case args[:method]
+      when :simple_tls
+        raise LdapError.new("openssl unavailable") unless $net_ldap_openssl_available
+        ctx = OpenSSL::SSL::SSLContext.new
+        @conn = OpenSSL::SSL::SSLSocket.new(@conn, ctx)
+        @conn.connect
+        @conn.sync_close = true
+      # additional branches requiring server validation and peer certs, etc. go here.
+      else
+        raise LdapError.new( "unsupported encryption method #{args[:method]}" )
+      end
+    end
 
     #--
     # close

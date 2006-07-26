@@ -1,5 +1,9 @@
 = Net::LDAP Changelog
 
+== Net::LDAP 0.0.3: July xx, 2006
+* Added simple TLS encryption.
+  Thanks to Garett Shulman for suggestions and for helping test.
+
 == Net::LDAP 0.0.2: July 12, 2006
 * Fixed malformation in distro tarball and gem.
 * Improved documentation.

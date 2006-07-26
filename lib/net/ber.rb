@@ -139,6 +139,22 @@ class StringIO
   include Net::BER::BERParser
 end
 
+begin
+  require 'openssl'
+  class OpenSSL::SSL::SSLSocket
+    include Net::BER::BERParser
+  end
+rescue LoadError
+# Ignore LoadError.
+# DON'T ignore NameError, which means the SSLSocket class
+# is somehow unavailable on this implementation of Ruby's openssl.
+# This may be WRONG, however, because we don't yet know how Ruby's
+# openssl behaves on machines with no OpenSSL library. I suppose
+# it's possible they do not fail to require 'openssl' but do not
+# create the classes. So this code is provisional.
+# Also, you might think that OpenSSL::SSL::SSLSocket inherits from
+# IO so we'd pick it up above. But you'd be wrong.
+end
 
 class String
   def read_ber syntax=nil
