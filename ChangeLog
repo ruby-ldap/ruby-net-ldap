@@ -1,6 +1,6 @@
 = Net::LDAP Changelog
 
-== Net::LDAP 0.0.3: July xx, 2006
+== Net::LDAP 0.0.3: July 26, 2006
 * Added simple TLS encryption.
   Thanks to Garett Shulman for suggestions and for helping test.
 
