@@ -1,70 +1,42 @@
-We're pleased to announce version 0.0.2 of Net::LDAP, the first
+We're pleased to announce version 0.0.3 of Net::LDAP, the first
 pure-Ruby LDAP library. Net::LDAP intends to be a feature-complete
 LDAP client which can access as much as possible of the functionality
 of the most-used LDAP server implementations. This library does
 not wrap any existing native-code LDAP libraries, creates no
 Ruby extensions, and has no dependencies external to Ruby.
 
-Version 0.0.2 includes an implementation of the "paged search
-control" to enable queries of A/D result sets > 1000 entries.
-It also fills in some holes in the documentation.
+Version 0.0.3 adds support for encrypted communications to LDAP servers.
+There is a new optional parameter for Net::LDAP#new and Net::LDAP#open
+that allows you to specify encryption characteristics. Here's a quick
+example:
 
-We fixed a handful of issues that gave strange-looking errors when
-working with A/D. The most important of these was support for search
-referrals.
+    require 'net/ldap'
+    ldap = Net::LDAP.new(
+      :host => "an_ip_address",
+      :port => 636,
+      :auth => {:method => :simple, :username => "mickey", :password => "mouse" },
+      :encryption => {:method => :simple_tls}
+    )
+    ldap.bind or raise "bind failed"
+    ldap.search( ... )
+    # etc, etc.
 
-Net::LDAP now works with standard RFC-2254 filter strings (see
-Net::LDAP::Filter#construct). This is intended as an adjunct to
-(not a replacement for) the existing Filter API, which is considerably
-easier to use for people who are not LDAP experts.
+This release supports simple TLS encryption with no client or server
+validation. Future versions will add support for the STARTTLS control,
+and for certificate validation. Additional parameters will appear to
+support these options.
 
-We added a range of new APIs, and deprecated some existing ones.
-The goal is to make the Net::LDAP API as intuitive and Ruby-like
-as possible. We'll be adding more improvements to the API as we
-go along.
+Net::LDAP encryption requires Ruby's openssl library. We're not
+quite sure what happens when this library is present but the underlying
+OpenSSL libraries are missing or not configured appropriately,
+especially on back versions of Ruby. If anyone encounters problems
+using encryption in Net::LDAP, please let us know and give us the
+details of your platform and Ruby build info.
 
-Please note that Net::LDAP is licensed under the Ruby license
-or LGPL, at your option. (I'm saying it publicly right here!)
-There are still many source files in the distro that contain
-GPL verbiage. We will clean that up in a future release.
-See the file LICENCE in the distro for details of the Ruby-like
-license.
-
-And finally we fixed the annoying problem that the 0.0.1 gem
-and tarball had trailing garbage. Thanks to Austin for helping
-track that down. Thanks also to Andre Nathan and others for
-several valuable suggestions and notes on your experience with
-the library.
-
-Progress so far: Net::LDAP is now in use on a variety of production
-sites. Stability has been excellent, and performance is quite good.
-We've found by far that the most popular application is authentication
-for users of web sites, but there has been some chatter about
-authorization as well, and a few of you are building directory-enabled
-applications.
-
-What's next on the roadmap?
-
-Many of you have requested support for encryption. We will soon be
-adding support for STARTTLS and LDAPS to Net::LDAP, using Ruby's
-built-in OpenSSL library.
-
-We'd like to improve the API so it presents a more search-like interface
-and further masks the archaic (and arcane) native LDAP vocabulary.
-
-We have a project going ("Peregrine") to provide a full-featured
-LDAP server in Ruby, based on the EventMachine fast network-IO library,
-that you can use with your own Ruby classes. This will allow you
-to serve LDAP clients (such as mailers, IM, and calendaring apps) with data
-that you generate dynamically from your own code.
-
-Finally, we've started thinking about an authentication generator or
-plugin for Rails that will work against LDAP servers. It would be even
-more interesting to augment it with fine-grained authorization at the
-controller level.
+Thanks to Garett Shulman for helping to test the new code.
 
 If anyone wants to contribute suggestions, insights or (especially)
-code, please email me at garbagecat10@gmail.com.
+code, please email me at garbagecat10 .. .. gmail.com.
 
 = What is Net::LDAP for Ruby?
 This library provides a pure-Ruby implementation of an LDAP client.
