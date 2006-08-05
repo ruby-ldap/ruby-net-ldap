@@ -757,8 +757,6 @@ module Net
     end
 
 
-    # _DEPRECATED_ - Please use #add_attribute, #replace_attribute, or #delete_attribute.
-    #
     # Modifies the attribute values of a particular entry on the LDAP directory.
     # Takes a hash with arguments. Supported arguments are:
     # :dn :: (the full DN of the entry whose attributes are to be modified)
@@ -767,6 +765,9 @@ module Net
     # This method returns True or False to indicate whether the operation
     # succeeded or failed, with extended information available by calling
     # #get_operation_result.
+    #
+    # Also see #add_attribute, #replace_attribute, or #delete_attribute, which
+    # provide simpler interfaces to this functionality.
     #
     # The LDAP protocol provides a full and well thought-out set of operations
     # for changing the values of attributes, but they are necessarily somewhat complex
@@ -786,14 +787,15 @@ module Net
     # The :add operator will, unsurprisingly, add the specified values to
     # the specified attribute. If the attribute does not already exist,
     # :add will create it. Most LDAP servers will generate an error if you
-    # to add a value that already exists.
+    # try to add a value that already exists.
     #
     # :replace will erase the current value(s) for the specified attribute,
     # if there are any, and replace them with the specified value(s).
     #
     # :delete will remove the specified value(s) from the specified attribute.
     # If you pass nil, an empty string, or an empty array as the value parameter
-    # to a :delete operation, the _entire_ _attribute_ will be deleted.
+    # to a :delete operation, the _entire_ _attribute_ will be deleted, along
+    # with all of its values.
     #
     # For example:
     #
@@ -808,13 +810,14 @@ module Net
     # <i>(This example is contrived since you probably wouldn't add a mail
     # value right before replacing the whole attribute, but it shows that order
     # of execution matters. Also, many LDAP servers won't let you delete SN
-    # because it would be a schema violation.)</i>
+    # because that would be a schema violation.)</i>
     #
     # It's essential to keep in mind that if you specify more than one operation in
     # a call to #modify, most LDAP servers will attempt to perform all of the operations
     # in the order you gave them.
     # This matters because you may specify operations on the
     # same attribute which must be performed in a certain order.
+    #
     # Most LDAP servers will _stop_ processing your modifications if one of them
     # causes an error on the server (such as a schema-constraint violation).
     # If this happens, you will probably get a result code from the server that
@@ -825,6 +828,14 @@ module Net
     # not be "rolled back," resulting in a partial update. This is a limitation
     # of the LDAP protocol, not of Net::LDAP.
     #
+    # The lack of transactional atomicity in LDAP means that you're usually
+    # better off using the convenience methods #add_attribute, #replace_attribute,
+    # and #delete_attribute, which are are wrappers over #modify. However, certain
+    # LDAP servers may provide concurrency semantics, in which the several operations
+    # contained in a single #modify call are not interleaved with other
+    # modification-requests received simultaneously by the server.
+    # It bears repeating that this concurrency does _not_ imply transactional
+    # atomicity, which LDAP does not provide.
     #
     def modify args
       if @open_connection

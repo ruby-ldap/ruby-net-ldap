@@ -1,39 +1,15 @@
-We're pleased to announce version 0.0.3 of Net::LDAP, the first
-pure-Ruby LDAP library. Net::LDAP intends to be a feature-complete
-LDAP client which can access as much as possible of the functionality
-of the most-used LDAP server implementations. This library does
-not wrap any existing native-code LDAP libraries, creates no
+We're pleased to announce version 0.0.4 of Net::LDAP, the first
+pure-Ruby LDAP library.
+
+This version un-deprecates Net::LDAP#modify, which can be useful with
+LDAP servers that observe non-standard transactional and concurrency
+semantics in LDAP Modify operations. Note: this is a documentation change,
+not a code change.
+
+Net::LDAP is a feature-complete LDAP client which can access as much as
+possible of the functionality of the most-used LDAP server implementations.
+This library does not wrap any existing native-code LDAP libraries, creates no
 Ruby extensions, and has no dependencies external to Ruby.
-
-Version 0.0.3 adds support for encrypted communications to LDAP servers.
-There is a new optional parameter for Net::LDAP#new and Net::LDAP#open
-that allows you to specify encryption characteristics. Here's a quick
-example:
-
-    require 'net/ldap'
-    ldap = Net::LDAP.new(
-      :host => "an_ip_address",
-      :port => 636,
-      :auth => {:method => :simple, :username => "mickey", :password => "mouse" },
-      :encryption => {:method => :simple_tls}
-    )
-    ldap.bind or raise "bind failed"
-    ldap.search( ... )
-    # etc, etc.
-
-This release supports simple TLS encryption with no client or server
-validation. Future versions will add support for the STARTTLS control,
-and for certificate validation. Additional parameters will appear to
-support these options.
-
-Net::LDAP encryption requires Ruby's openssl library. We're not
-quite sure what happens when this library is present but the underlying
-OpenSSL libraries are missing or not configured appropriately,
-especially on back versions of Ruby. If anyone encounters problems
-using encryption in Net::LDAP, please let us know and give us the
-details of your platform and Ruby build info.
-
-Thanks to Garett Shulman for helping to test the new code.
 
 If anyone wants to contribute suggestions, insights or (especially)
 code, please email me at garbagecat10 .. .. gmail.com.
