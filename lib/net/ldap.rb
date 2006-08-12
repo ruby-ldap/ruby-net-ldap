@@ -692,9 +692,9 @@ module Net
     # on it. Otherwise, connect, bind, and disconnect.
     # The latter operation is obviously useful only as an auth check.
     #
-    def bind
+    def bind auth=@auth
       if @open_connection
-        @result = @open_connection.bind @auth
+        @result = @open_connection.bind auth
       else
         conn = Connection.new( :host => @host, :port => @port , :encryption => @encryption)
         @result = conn.bind @auth
@@ -715,7 +715,15 @@ module Net
     #
     # <i>This method is currently an unimplemented stub.</i>
     #
-    def bind_as
+    def bind_as args={}
+      result = false
+      open {|me|
+        rs = search args
+        if rs and rs.first and dn = rs.first.dn
+          result = bind :method => :simple, :username => dn, :password => args[:password]
+        end
+      }
+      result
     end
 
     # Adds a new entry to the remote LDAP server.
