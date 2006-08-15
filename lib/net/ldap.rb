@@ -263,7 +263,7 @@ module Net
 
     class LdapError < Exception; end
 
-    VERSION = "0.0.3"
+    VERSION = "0.0.4"
 
 
     SearchScope_BaseObject = 0
@@ -720,11 +720,14 @@ module Net
       open {|me|
         rs = search args
         if rs and rs.first and dn = rs.first.dn
-          result = bind :method => :simple, :username => dn, :password => args[:password]
+          password = args[:password]
+          password = password.call if password.respond_to?(:call)
+          result = rs if bind :method => :simple, :username => dn, :password => password
         end
       }
       result
     end
+
 
     # Adds a new entry to the remote LDAP server.
     # Supported arguments:
@@ -1086,6 +1089,7 @@ module Net
     #
     def search args = {}
       search_filter = (args && args[:filter]) || Filter.eq( "objectclass", "*" )
+      #search_filter = Filter.construct(search_filter) if search_filter.is_a?(String)
       search_base = (args && args[:base]) || "dc=example,dc=com"
       search_attributes = ((args && args[:attributes]) || []).map {|attr| attr.to_s.to_ber}
       return_referrals = args && args[:return_referrals] == true
