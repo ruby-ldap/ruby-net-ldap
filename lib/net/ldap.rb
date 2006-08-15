@@ -1089,7 +1089,7 @@ module Net
     #
     def search args = {}
       search_filter = (args && args[:filter]) || Filter.eq( "objectclass", "*" )
-      #search_filter = Filter.construct(search_filter) if search_filter.is_a?(String)
+      search_filter = Filter.construct(search_filter) if search_filter.is_a?(String)
       search_base = (args && args[:base]) || "dc=example,dc=com"
       search_attributes = ((args && args[:attributes]) || []).map {|attr| attr.to_s.to_ber}
       return_referrals = args && args[:return_referrals] == true
