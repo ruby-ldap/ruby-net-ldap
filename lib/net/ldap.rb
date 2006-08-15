@@ -543,6 +543,7 @@ module Net
       @open_connection.bind @auth
       yield self
       @open_connection.close
+      @open_connection = nil
     end
 
 
