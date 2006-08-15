@@ -292,6 +292,7 @@ class Filter
 end # class Net::LDAP::Filter
 
 
+
 class FilterParser #:nodoc:
 
   attr_reader :filter
@@ -349,13 +350,16 @@ class FilterParser #:nodoc:
     end
   end
 
+  # Added a greatly-augmented filter contributed by Andre Nathan
+  # for detecting special characters in values. (15Aug06)
   def parse_filter_branch scanner
     scanner.scan /\s*/
     if token = scanner.scan( /[\w\-_]+/ )
       scanner.scan /\s*/
       if op = scanner.scan( /\=|\<\=|\<|\>\=|\>|\!\=/ )
         scanner.scan /\s*/
-        if value = scanner.scan( /[\w\*\.]+/ )
+        #if value = scanner.scan( /[\w\*\.]+/ ) (ORG)
+        if value = scanner.scan( /[\w\*\.\+\-@=#\$%&!]+/ )
           case op
           when "="
             Filter.eq( token, value )
