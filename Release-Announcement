@@ -1,10 +1,23 @@
-We're pleased to announce version 0.0.4 of Net::LDAP, the first
-pure-Ruby LDAP library.
+We're pleased to announce version 0.0.4 of Net::LDAP, the pure-Ruby LDAP library.
 
-This version un-deprecates Net::LDAP#modify, which can be useful with
+This version adds an implementation of Net::LDAP#bind_as, which allows
+you to authenticate users who log into your applications using simple
+identifiers like email addresses and simple usernames. Thanks to Simon Claret
+for suggesting the original implementation in his page on the Rails-Wiki,
+and for valuable comments and help with testing.
+
+We have un-deprecated Net::LDAP#modify, which can be useful with
 LDAP servers that observe non-standard transactional and concurrency
 semantics in LDAP Modify operations. Note: this is a documentation change,
-not a code change.
+not a code change. Thanks to Justin Forder for providing the rationale
+for this change.
+
+We added a larger set of special characters which may appear in RFC-2254
+standard search filters. Thanks to Andre Nathan for this patch.
+
+We fixed a bug that was preventing Net::LDAP#open from being called more
+than once on the same object.
+
 
 Net::LDAP is a feature-complete LDAP client which can access as much as
 possible of the functionality of the most-used LDAP server implementations.
