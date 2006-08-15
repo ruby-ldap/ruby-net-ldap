@@ -707,15 +707,50 @@ module Net
 
     #
     # #bind_as is for testing authentication credentials.
-    # Most likely a "standard" name (like a CN or an email
-    # address) will be presented along with a password.
-    # We'll bind with the main credential given in the
-    # constructor, query the full DN of the user given
-    # to us as a parameter, then unbind and rebind as the
-    # new user.
     #
-    # <i>This method is currently an unimplemented stub.</i>
+    # As described under #bind, most LDAP servers require that you supply a complete DN
+    # as a binding-credential, along with an authenticator such as a password.
+    # But for many applications (such as authenticating users to a Rails application),
+    # you often don't have a full DN to identify the user. You usually get a simple
+    # identifier like a username or an email address, along with a password.
+    # #bind_as allows you to authenticate these user-identifiers.
     #
+    # #bind_as is a combination of a search and an LDAP binding. First, it connects and
+    # binds to the directory as normal. Then it searches the directory for an entry
+    # corresponding to the email address, username, or other string that you supply.
+    # If the entry exists, then #bind_as will <b>re-bind</b> as that user with the
+    # password (or other authenticator) that you supply.
+    #
+    # #bind_as takes the same parameters as #search, <i>with the addition of an
+    # authenticator.</i> Currently, this authenticator must be <tt>:password</tt>.
+    # Its value may be either a String, or a +proc+ that returns a String.
+    # #bind_as returns +false+ on failure. On success, it returns a result set,
+    # just as #search does. This result set is an Array of objects of
+    # type Net::LDAP::Entry. It contains the directory attributes corresponding to
+    # the user. (Just test whether the return value is logically true, if you don't
+    # need this additional information.)
+    #
+    # Here's how you would use #bind_as to authenticate an email address and password:
+    #
+    #  require 'net/ldap'
+    #  
+    #  user,psw = "joe_user@yourcompany.com", "joes_psw"
+    #  
+    #  ldap = Net::LDAP.new
+    #  ldap.host = "192.168.0.100"
+    #  ldap.port = 389
+    #  ldap.auth "cn=manager,dc=yourcompany,dc=com", "topsecret"
+    #  
+    #  result = ldap.bind_as(
+    #    :base => "dc=yourcompany,dc=com",
+    #    :filter => "(mail=#{user})",
+    #    :password => psw
+    #  )
+    #  if result
+    #    puts "Authenticated #{result.first.dn}"
+    #  else
+    #    puts "Authentication FAILED."
+    #  end
     def bind_as args={}
       result = false
       open {|me|
