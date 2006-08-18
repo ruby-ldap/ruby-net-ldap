@@ -3,6 +3,7 @@
 == Net::LDAP 0.0.5: August xx, 2006
 * Silenced some annoying warnings in filter.rb. Thanks to "barjunk"
   for pointing this out.
+* Added Net::LDAP::Entry#to_ldif
 
 == Net::LDAP 0.0.4: August 15, 2006
 * Undeprecated Net::LDAP#modify. Thanks to Justin Forder for
