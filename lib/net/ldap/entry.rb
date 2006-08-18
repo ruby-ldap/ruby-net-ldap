@@ -128,6 +128,22 @@ class LDAP
     alias_method :each_attribute, :each
 
 
+
+    # Converts the Entry to a String, representing the
+    # Entry's attributes in LDIF format.
+    def to_ldif
+      ary = []
+      ary << "dn: #{dn}\n"
+      each_attribute do |k,v|
+        v.each {|v1|
+          ary << "#{k}: #{v1}\n" unless k == :dn
+        }
+      end
+      ary << "\n"
+      ary.join
+    end
+
+
     #--
     # Convenience method to convert unknown method names
     # to attribute references. Of course the method name
