@@ -51,7 +51,7 @@ task :test do |t|
 
   $LOAD_PATH.unshift('tests')
   $stderr.puts "Checking for test cases:" if t.verbose
-  Dir['tests/tc_*.rb'].each do |testcase|
+  Dir['tests/test*.rb'].each do |testcase|
     $stderr.puts "\t#{testcase}" if t.verbose
     load testcase
   end
