@@ -4,6 +4,8 @@
 * Silenced some annoying warnings in filter.rb. Thanks to "barjunk"
   for pointing this out.
 * Added Net::LDAP::Entry#to_ldif
+* Patched Rakefile so it actually runs the test suite. Thanks to
+  Daniel Berger for submitting his patch.
 
 == Net::LDAP 0.0.4: August 15, 2006
 * Undeprecated Net::LDAP#modify. Thanks to Justin Forder for
