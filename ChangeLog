@@ -6,6 +6,9 @@
 * Added Net::LDAP::Entry#to_ldif
 * Patched Rakefile so it actually runs the test suite. Thanks to
   Daniel Berger for submitting his patch.
+* Changed Net::LDAP::Entry so it can be marshalled and unmarshalled.
+  Thanks to an anonymous feature requester who only left the name
+  "Jammy."
 
 == Net::LDAP 0.0.4: August 15, 2006
 * Undeprecated Net::LDAP#modify. Thanks to Justin Forder for
