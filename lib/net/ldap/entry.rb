@@ -77,15 +77,35 @@ class LDAP
   # at least three places. Should do it in ONE place.
   class Entry
 
+
     # This constructor is not generally called by user code.
+    #--
+    # Originally, myhash took a block so we wouldn't have to
+    # make sure its elements returned empty arrays when necessary.
+    # Got rid of that to enable marshalling of Entry objects,
+    # but that doesn't work anyway, because Entry objects have
+    # singleton methods. So we define a custom dump and load.
     def initialize dn = nil # :nodoc:
-      @myhash = Hash.new {|k,v| k[v] = [] }
+      @myhash = {} # originally: Hash.new {|k,v| k[v] = [] }
       @myhash[:dn] = [dn]
     end
 
+    def _dump depth
+      to_ldif
+    end
 
+    class << self
+      def _load entry
+        from_single_ldif_string entry
+      end
+    end
+
+    #--
+    # Discovered bug, 26Aug06: I noticed that we're not converting the
+    # incoming value to an array if it isn't already one.
     def []= name, value # :nodoc:
       sym = name.to_s.downcase.intern
+      value = [value] unless value.is_a?(Array)
       @myhash[sym] = value
     end
 
@@ -97,12 +117,12 @@ class LDAP
     #
     def [] name # :nodoc:
       name = name.to_s.downcase.intern unless name.is_a?(Symbol)
-      @myhash[name]
+      @myhash[name] || []
     end
 
     # Returns the dn of the Entry as a String.
     def dn
-      self[:dn][0]
+      self[:dn][0].to_s
     end
 
     # Returns an array of the attribute names present in the Entry.
@@ -131,6 +151,9 @@ class LDAP
 
     # Converts the Entry to a String, representing the
     # Entry's attributes in LDIF format.
+    #--
+    # TODO, this doesn't support binary representations,
+    # nor does it break overlength lines.
     def to_ldif
       ary = []
       ary << "dn: #{dn}\n"
@@ -143,6 +166,30 @@ class LDAP
       ary.join
     end
 
+    #--
+    # TODO, doesn't support binary representations yet (:: notation),
+    # and it doesn't handle broken lines.
+    # It generates a SINGLE Entry object from an incoming LDIF stream
+    # which is of course useless for big LDIF streams that encode
+    # many objects.
+    # DO NOT DOCUMENT THIS METHOD UNTIL THESE RESTRICTIONS ARE LIFTED.
+    # As it is, it's useful for unmarshalling objects that we create,
+    # but not for reading arbitrary LDIF files.
+    # Eventually, we should have a class method that parses large LDIF
+    # streams into individual LDIF blocks (delimited by blank lines)
+    # and passes them here.
+    class << self
+      def from_single_ldif_string ldif
+        entry = Entry.new
+        ldif.split(/\r?\n/m).each {|line|
+          break if line.length == 0
+          if line =~ /\A([\w]+)::?[\s]*/
+            entry[$1] = $'
+          end
+        }
+        entry.dn ? entry : nil
+      end
+    end
 
     #--
     # Convenience method to convert unknown method names
