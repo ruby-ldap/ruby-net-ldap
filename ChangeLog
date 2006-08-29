@@ -9,6 +9,8 @@
 * Changed Net::LDAP::Entry so it can be marshalled and unmarshalled.
   Thanks to an anonymous feature requester who only left the name
   "Jammy."
+* Added support for binary values in Net::LDAP::Entry LDIF conversions
+  and marshalling.
 
 == Net::LDAP 0.0.4: August 15, 2006
 * Undeprecated Net::LDAP#modify. Thanks to Justin Forder for

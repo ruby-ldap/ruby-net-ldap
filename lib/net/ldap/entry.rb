@@ -27,6 +27,7 @@
 #
 
 
+require 'base64'
 
 
 module Net
@@ -157,18 +158,25 @@ class LDAP
     def to_ldif
       ary = []
       ary << "dn: #{dn}\n"
+      v2 = "" # temp value, save on GC
       each_attribute do |k,v|
-        v.each {|v1|
-          ary << "#{k}: #{v1}\n" unless k == :dn
-        }
+        unless k == :dn
+          v.each {|v1|
+            v2 = if (k == :userpassword) || is_attribute_value_binary?(v1)
+              ": #{Base64.encode64(v1).chomp}"
+            else
+              " #{v1}"
+            end
+            ary << "#{k}:#{v2}\n"
+          }
+        end
       end
       ary << "\n"
       ary.join
     end
 
     #--
-    # TODO, doesn't support binary representations yet (:: notation),
-    # and it doesn't handle broken lines.
+    # TODO, doesn't support broken lines.
     # It generates a SINGLE Entry object from an incoming LDIF stream
     # which is of course useless for big LDIF streams that encode
     # many objects.
@@ -183,8 +191,12 @@ class LDAP
         entry = Entry.new
         ldif.split(/\r?\n/m).each {|line|
           break if line.length == 0
-          if line =~ /\A([\w]+)::?[\s]*/
-            entry[$1] = $'
+          if line =~ /\A([\w]+):(:?)[\s]*/
+            entry[$1] <<= if $2 == ':'
+              Base64.decode64($')
+            else
+              $'
+            end
           end
         }
         entry.dn ? entry : nil
@@ -218,6 +230,26 @@ class LDAP
 
     def write
     end
+
+
+    #--
+    # Internal convenience method. It seems like the standard
+    # approach in most LDAP tools to base64 encode an attribute
+    # value if its first or last byte is nonprintable, or if
+    # it's a password.
+    def is_attribute_value_binary? value
+      v = value.to_s
+      [v[0],v[-1]].each {|byt|
+        if byt.is_a?(Fixnum) and (byt < 33 or byt > 126)
+          return true
+        end
+      }
+      if v[0..0] == ':' or v[0..0] == '<'
+        return true
+      end
+      false
+    end
+    private :is_attribute_value_binary?
 
   end # class Entry
 
