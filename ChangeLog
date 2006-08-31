@@ -1,6 +1,7 @@
 = Net::LDAP Changelog
 
-== Net::LDAP 0.0.5: August xx, 2006
+== Net::LDAP 0.1.0: August xx, 2006
+* Bumped version up to 0.1.0, reflecting both code and API stability.
 * Silenced some annoying warnings in filter.rb. Thanks to "barjunk"
   for pointing this out.
 * Added Net::LDAP::Entry#to_ldif
@@ -12,6 +13,7 @@
 * Added support for binary values in Net::LDAP::Entry LDIF conversions
   and marshalling.
 * Supported rootDSE searches with a new API.
+* Minor bug fixes here and there
 
 == Net::LDAP 0.0.4: August 15, 2006
 * Undeprecated Net::LDAP#modify. Thanks to Justin Forder for
