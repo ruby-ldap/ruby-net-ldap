@@ -163,7 +163,7 @@ class LDAP
         unless k == :dn
           v.each {|v1|
             v2 = if (k == :userpassword) || is_attribute_value_binary?(v1)
-              ": #{Base64.encode64(v1).chomp}"
+              ": #{Base64.encode64(v1).chomp.gsub(/\n/m,"\n ")}"
             else
               " #{v1}"
             end
