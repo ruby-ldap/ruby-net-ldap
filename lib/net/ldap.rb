@@ -1000,6 +1000,26 @@ module Net
       @result == 0
     end
 
+
+    # (Experimental, subject to change).
+    # Return the rootDSE record from the LDAP server as a Net::LDAP::Entry, or an
+    # empty Entry if the server doesn't return the record.
+    #--
+    # cf. RFC4512 graf 5.1.
+    # Note that the rootDSE record we return on success has an empty DN, which is correct.
+    # On failure, the empty Entry will have a nil DN. There's no real reason for that,
+    # so it can be changed if desired.
+    # The funky number-disagreements in the set of attribute names is correct per the RFC.
+    #
+    def search_root_dse
+      rs = search(
+        :base=>"",
+        :scope=>SearchScope_BaseObject,
+        :attributes=>[:namingContexts,:supportedLdapVersion,:altServer,:supportedControl,:supportedExtension,:supportedFeatures,:supportedSASLMechanisms]
+      )
+      (rs and rs.first) or Entry.new
+    end
+
   end # class LDAP
 
 
@@ -1122,6 +1142,7 @@ module Net
     # you won't get more than 1000 results back from a query.
     # This implementation is kindof clunky and should probably be refactored.
     # Also, is it my imagination, or are A/Ds the slowest directory servers ever???
+    # OpenLDAP newer than version 2.2.0 supports paged searches.
     #
     def search args = {}
       search_filter = (args && args[:filter]) || Filter.eq( "objectclass", "*" )
