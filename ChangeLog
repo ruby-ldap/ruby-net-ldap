@@ -11,6 +11,7 @@
   "Jammy."
 * Added support for binary values in Net::LDAP::Entry LDIF conversions
   and marshalling.
+* Supported rootDSE searches with a new API.
 
 == Net::LDAP 0.0.4: August 15, 2006
 * Undeprecated Net::LDAP#modify. Thanks to Justin Forder for
