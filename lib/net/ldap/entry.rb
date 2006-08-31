@@ -236,13 +236,13 @@ class LDAP
     # Internal convenience method. It seems like the standard
     # approach in most LDAP tools to base64 encode an attribute
     # value if its first or last byte is nonprintable, or if
-    # it's a password.
+    # it's a password. But that turns out to be not nearly good
+    # enough. There are plenty of A/D attributes that are binary
+    # in the middle. This is probably a nasty performance killer.
     def is_attribute_value_binary? value
       v = value.to_s
-      [v[0],v[-1]].each {|byt|
-        if byt.is_a?(Fixnum) and (byt < 33 or byt > 126)
-          return true
-        end
+      v.each_byte {|byt|
+        return true if (byt < 33) || (byt > 126)
       }
       if v[0..0] == ':' or v[0..0] == '<'
         return true
