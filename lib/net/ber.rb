@@ -94,6 +94,8 @@ module Net
         end
       }
       
+=begin
+      Replaced this case with if/else because Symbol#=== profiled surprisingly hot.
       obj = case objtype
       when :boolean
         newobj != "\000"
@@ -104,6 +106,29 @@ module Net
         newobj.each_byte {|b| j = (j << 8) + b}
         j
       when :array
+        seq = []
+        sio = StringIO.new( newobj || "" )
+        # Interpret the subobject, but note how the loop
+        # is built: nil ends the loop, but false (a valid
+        # BER value) does not!
+        while (e = sio.read_ber(syntax)) != nil
+          seq << e
+        end
+        seq
+      else
+        raise BerError.new( "unsupported object type: class=#{tagclass}, encoding=#{encoding}, tag=#{tag}" )
+      end
+=end
+
+      obj = if objtype == :boolean
+        newobj != "\000"
+      elsif objtype == :string
+        (newobj || "").dup
+      elsif objtype == :integer
+        j = 0
+        newobj.each_byte {|b| j = (j << 8) + b}
+        j
+      elsif objtype == :array
         seq = []
         sio = StringIO.new( newobj || "" )
         # Interpret the subobject, but note how the loop
