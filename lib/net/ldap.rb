@@ -1217,6 +1217,14 @@ module Net
         # then query again for the next page of results.
         # If not, we're done.
         # Don't screw this up or we'll break every search we do.
+        #
+        # Noticed 02Sep06, look at the read_ber call in this loop,
+        # shouldn't that have a parameter of AsnSyntax? Does this
+        # just accidentally work? According to RFC-2696, the value
+        # expected in this position is of type OCTET STRING, covered
+        # in the default syntax supported by read_ber, so I guess
+        # we're ok.
+        #
         more_pages = false
         if result_code == 0 and controls
           controls.each do |c|
