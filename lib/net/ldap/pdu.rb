@@ -158,11 +158,8 @@ class LdapPdu
   def parse_search_return sequence
     sequence.length >= 2 or raise LdapPduError
     @search_entry = LDAP::Entry.new( sequence[0] )
-    #@search_dn = sequence[0]
-    #@search_attributes = {}
     sequence[1].each {|seq|
       @search_entry[seq[0]] = seq[1]
-      #@search_attributes[seq[0].downcase.intern] = seq[1]
     }
   end
 
