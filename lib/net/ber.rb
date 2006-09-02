@@ -82,9 +82,10 @@ module Net
     # this can throw TypeErrors and other nasties.
     #
     def read_ber syntax=nil
-      return nil if eof?
+      # don't bother with this line, since IO#getc by definition returns nil on eof.
+      #return nil if eof?
 
-      id = getc  # don't trash this value, we'll use it later
+      id = getc or return nil  # don't trash this value, we'll use it later
       tag = id & 31
       tag < 31 or raise BerError.new( "unsupported tag encoding: #{id}" )
       tagclass = TagClasses[ id >> 6 ]
@@ -97,7 +98,7 @@ module Net
         # Replaced the inject because it profiles hot.
         #j = (0...(n & 127)).inject(0) {|mem,x| mem = (mem << 8) + getc}
         j = 0
-        (n & 127).times {j = (j << 8) + getc}
+        read( n & 127 ).each_byte {|n1| j = (j << 8) + n1}
         [1 + (n & 127), j]
       end
 
