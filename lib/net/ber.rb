@@ -160,7 +160,7 @@ module Net
       end
 =end
 
-    # == is expensive so sort this if/else so the common cases are at the top.
+      # == is expensive so sort this if/else so the common cases are at the top.
       obj = if objtype == :string
         #(newobj || "").dup
         s = BerIdentifiedString.new( newobj || "" )
