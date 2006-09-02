@@ -29,8 +29,6 @@
 #
 
 
-
-
 module Net
 
   module BER
@@ -52,6 +50,26 @@ module Net
     end
   end
 
+  #--
+  # This condenses our nicely self-documenting ASN hashes down
+  # to an array for fast lookups.
+  # Scoped to be called as a module method, but not intended for
+  # user code to call.
+  #
+  def self.compile_syntax syn
+    out = [nil] * 256
+    syn.each {|tclass,tclasses|
+      tagclass = {:universal=>0, :application=>64, :context_specific=>128, :private=>192} [tclass]
+      tclasses.each {|codingtype,codings|
+        encoding = {:primitive=>0, :constructed=>32} [codingtype]
+        codings.each {|tag,objtype|
+          out[tagclass + encoding + tag] = objtype
+        }
+      }
+    }
+    out
+  end
+
   # This module is for mixing into IO and IO-like objects.
   module BERParser
 
@@ -59,7 +77,7 @@ module Net
     # Maybe this should have been a hash.
     TagClasses = [:universal, :application, :context_specific, :private]
 
-    BuiltinSyntax = {
+    BuiltinSyntax = BER.compile_syntax( {
       :universal => {
         :primitive => {
           1 => :boolean,
@@ -72,7 +90,7 @@ module Net
           17 => :array
         }
       }
-    }
+    })
 
     #
     # read_ber
@@ -86,10 +104,10 @@ module Net
       #return nil if eof?
 
       id = getc or return nil  # don't trash this value, we'll use it later
-      tag = id & 31
-      tag < 31 or raise BerError.new( "unsupported tag encoding: #{id}" )
-      tagclass = TagClasses[ id >> 6 ]
-      encoding = (id & 0x20 != 0) ? :constructed : :primitive
+      #tag = id & 31
+      #tag < 31 or raise BerError.new( "unsupported tag encoding: #{id}" )
+      #tagclass = TagClasses[ id >> 6 ]
+      #encoding = (id & 0x20 != 0) ? :constructed : :primitive
 
       n = getc
       lengthlength,contentlength = if n <= 127
@@ -105,6 +123,7 @@ module Net
       newobj = read contentlength
 
       # This exceptionally clever and clear bit of code is verrrry slow.
+=begin
       objtype = nil
       [syntax, BuiltinSyntax].each {|syn|
         if syn && (ot = syn[tagclass]) && (ot = ot[encoding]) && ot[tag]
@@ -112,7 +131,9 @@ module Net
           break
         end
       }
-      
+=end
+      objtype = (syntax && syntax[id]) || BuiltinSyntax[id]
+
 =begin
       Replaced this case with if/else because Symbol#=== profiled surprisingly hot.
       obj = case objtype
@@ -164,7 +185,8 @@ module Net
       elsif objtype == :boolean
         newobj != "\000"
       else
-        raise BerError.new( "unsupported object type: class=#{tagclass}, encoding=#{encoding}, tag=#{tag}" )
+        #raise BerError.new( "unsupported object type: class=#{tagclass}, encoding=#{encoding}, tag=#{tag}" )
+        raise BerError.new( "unsupported object type: id=#{id}" )
       end
 
       # Add the identifier bits into the object if it's a String or an Array.

@@ -271,7 +271,7 @@ module Net
     SearchScope_WholeSubtree = 2
     SearchScopes = [SearchScope_BaseObject, SearchScope_SingleLevel, SearchScope_WholeSubtree]
 
-    AsnSyntax = {
+    AsnSyntax = BER.compile_syntax({
       :application => {
         :constructed => {
           0 => :array,              # BindRequest
@@ -306,7 +306,7 @@ module Net
           3 => :array,              # Seach referral
         }
       }
-    }
+    })
 
     DefaultHost = "127.0.0.1"
     DefaultPort = 389
