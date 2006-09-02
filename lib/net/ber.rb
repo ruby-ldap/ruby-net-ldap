@@ -38,6 +38,20 @@ module Net
   class BerError < Exception; end
 
 
+  class BerIdentifiedString < String
+    attr_accessor :ber_identifier
+    def initialize args
+      super args
+    end
+  end
+
+  class BerIdentifiedArray < Array
+    attr_accessor :ber_identifier
+    def initialize
+      super
+    end
+  end
+
   # This module is for mixing into IO and IO-like objects.
   module BERParser
 
@@ -80,7 +94,10 @@ module Net
       lengthlength,contentlength = if n <= 127
         [1,n]
       else
-        j = (0...(n & 127)).inject(0) {|mem,x| mem = (mem << 8) + getc}
+        # Replaced the inject because it profiles hot.
+        #j = (0...(n & 127)).inject(0) {|mem,x| mem = (mem << 8) + getc}
+        j = 0
+        (n & 127).times {j = (j << 8) + getc}
         [1 + (n & 127), j]
       end
 
@@ -120,16 +137,20 @@ module Net
       end
 =end
 
-      obj = if objtype == :boolean
-        newobj != "\000"
-      elsif objtype == :string
-        (newobj || "").dup
+    # == is expensive so sort this if/else so the common cases are at the top.
+      obj = if objtype == :string
+        #(newobj || "").dup
+        s = BerIdentifiedString.new( newobj || "" )
+        s.ber_identifier = id
+        s
       elsif objtype == :integer
         j = 0
         newobj.each_byte {|b| j = (j << 8) + b}
         j
       elsif objtype == :array
-        seq = []
+        #seq = []
+        seq = BerIdentifiedArray.new
+        seq.ber_identifier = id
         sio = StringIO.new( newobj || "" )
         # Interpret the subobject, but note how the loop
         # is built: nil ends the loop, but false (a valid
@@ -138,13 +159,17 @@ module Net
           seq << e
         end
         seq
+      elsif objtype == :boolean
+        newobj != "\000"
       else
         raise BerError.new( "unsupported object type: class=#{tagclass}, encoding=#{encoding}, tag=#{tag}" )
       end
 
       # Add the identifier bits into the object if it's a String or an Array.
       # We can't add extra stuff to Fixnums and booleans, not that it makes much sense anyway.
-      obj and ([String,Array].include? obj.class) and obj.instance_eval "def ber_identifier; #{id}; end"
+      # Replaced this mechanism with subclasses because the instance_eval profiled too hot.
+      #obj and ([String,Array].include? obj.class) and obj.instance_eval "def ber_identifier; #{id}; end"
+      #obj.ber_identifier = id if obj.respond_to?(:ber_identifier)
       obj
 
     end
