@@ -104,6 +104,7 @@ module Net
 
       newobj = read contentlength
 
+      # This exceptionally clever and clear bit of code is verrrry slow.
       objtype = nil
       [syntax, BuiltinSyntax].each {|syn|
         if syn && (ot = syn[tagclass]) && (ot = ot[encoding]) && ot[tag]
