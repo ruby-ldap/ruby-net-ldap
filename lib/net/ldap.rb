@@ -1171,6 +1171,9 @@ module Net
       # (Because we pass zero as the sizelimit on search rounds when the remaining limit
       # is larger than our max page size of 126. In these cases, I think the caller's
       # search limit will be ignored!)
+      # CONFIRMED: This code doesn't work on LDAPs that don't support paged searches
+      # when the size limit is larger than 126. We're going to have to do a root-DSE record
+      # search and not do a paged search if the LDAP doesn't support it. Yuck.
       #
       rfc2696_cookie = [126, ""]
       result_code = 0
