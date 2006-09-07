@@ -1162,6 +1162,16 @@ module Net
       # page limit of 1000 records, but openLDAP newer than version 2.2.0 chokes
       # on anything bigger than 126. You get a silent error that is easily visible
       # by running slapd in debug mode. Go figure.
+      #
+      # Changed this around 06Sep06 to support a caller-specified search-size limit.
+      # Because we ALWAYS do paged searches, we have to work around the problem that
+      # it's not legal to specify a "normal" sizelimit (in the body of the search request)
+      # that is larger than the page size we're requesting. Unfortunately, I have the
+      # feeling that this will break with LDAP servers that don't support paged searches!!!
+      # (Because we pass zero as the sizelimit on search rounds when the remaining limit
+      # is larger than our max page size of 126. In these cases, I think the caller's
+      # search limit will be ignored!)
+      #
       rfc2696_cookie = [126, ""]
       result_code = 0
       n_results = 0
