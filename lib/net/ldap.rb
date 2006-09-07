@@ -555,6 +555,7 @@ module Net
     # * :return_result (a boolean specifying whether to return a result set).
     # * :attributes_only (a boolean flag, defaults false)
     # * :scope (one of: Net::LDAP::SearchScope_BaseObject, Net::LDAP::SearchScope_SingleLevel, Net::LDAP::SearchScope_WholeSubtree. Default is WholeSubtree.)
+    # * :size (an integer indicating the maximum number of search entries to return. Default is zero, which signifies no limit.)
     #
     # #search queries the LDAP server and passes <i>each entry</i> to the
     # caller-supplied block, as an object of type Net::LDAP::Entry.
@@ -1150,6 +1151,8 @@ module Net
       search_base = (args && args[:base]) || "dc=example,dc=com"
       search_attributes = ((args && args[:attributes]) || []).map {|attr| attr.to_s.to_ber}
       return_referrals = args && args[:return_referrals] == true
+      sizelimit = (args && args[:size].to_i) || 0
+      raise LdapError.new( "invalid search-size" ) unless sizelimit >= 0
 
       attributes_only = (args and args[:attributes_only] == true)
       scope = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
@@ -1161,15 +1164,22 @@ module Net
       # by running slapd in debug mode. Go figure.
       rfc2696_cookie = [126, ""]
       result_code = 0
+      n_results = 0
 
       loop {
         # should collect this into a private helper to clarify the structure
+
+        query_limit = if (sizelimit > 0) && ((sizelimit - n_results) < 126)
+          sizelimit - n_results
+        else
+          0
+        end
 
         request = [
           search_base.to_ber,
           scope.to_ber_enumerated,
           0.to_ber_enumerated,
-          0.to_ber,
+          query_limit.to_ber, # size limit
           0.to_ber,
           attributes_only.to_ber,
           search_filter.to_ber,
@@ -1193,6 +1203,7 @@ module Net
         while (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be ))
           case pdu.app_tag
           when 4 # search-data
+            n_results += 1
             yield( pdu.search_entry ) if block_given?
           when 19 # search-referral
             if return_referrals
