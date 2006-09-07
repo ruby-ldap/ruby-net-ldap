@@ -626,6 +626,10 @@ module Net
     # array, so we can provide sort methods and what-not.
     #
     def search args = {}
+      unless args[:ignore_server_caps]
+        args[:paged_searches_supported] = paged_searches_supported?
+      end
+
       args[:base] ||= @base
       result_set = (args and args[:return_result] == false) ? nil : []
 
@@ -1011,14 +1015,28 @@ module Net
     # On failure, the empty Entry will have a nil DN. There's no real reason for that,
     # so it can be changed if desired.
     # The funky number-disagreements in the set of attribute names is correct per the RFC.
+    # We may be called by #search itself, which may need to determine things like paged
+    # search capabilities. So to avoid an infinite regress, set :ignore_server_caps,
+    # which prevents us getting called recursively.
     #
     def search_root_dse
       rs = search(
+        :ignore_server_caps=>true,
         :base=>"",
         :scope=>SearchScope_BaseObject,
         :attributes=>[:namingContexts,:supportedLdapVersion,:altServer,:supportedControl,:supportedExtension,:supportedFeatures,:supportedSASLMechanisms]
       )
       (rs and rs.first) or Entry.new
+    end
+
+    #--
+    # Convenience method to query server capabilities.
+    # Only do this once per Net::LDAP object.
+    # Note, we call a search, and we might be called from inside a search!
+    # MUST refactor the root_dse call out.
+    def paged_searches_supported?
+      @server_caps ||= search_root_dse
+      @server_caps[:supportedcontrol].include?(LdapControls::PagedResults)
     end
 
   end # class LDAP
@@ -1153,6 +1171,7 @@ module Net
       return_referrals = args && args[:return_referrals] == true
       sizelimit = (args && args[:size].to_i) || 0
       raise LdapError.new( "invalid search-size" ) unless sizelimit >= 0
+      paged_searches_supported = (args && args[:paged_searches_supported])
 
       attributes_only = (args and args[:attributes_only] == true)
       scope = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
@@ -1182,10 +1201,13 @@ module Net
       loop {
         # should collect this into a private helper to clarify the structure
 
-        query_limit = if (sizelimit > 0) && ((sizelimit - n_results) < 126)
-          sizelimit - n_results
-        else
-          0
+        query_limit = 0
+        if sizelimit > 0
+          if paged_searches_supported
+            query_limit = (((sizelimit - n_results) < 126) ? (sizelimit - n_results) : 0)
+          else
+            query_limit = sizelimit
+          end
         end
 
         request = [
@@ -1270,7 +1292,6 @@ module Net
 
       result_code
     end
-
 
 
 
