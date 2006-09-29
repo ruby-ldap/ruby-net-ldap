@@ -153,8 +153,6 @@ class LDAP
     # Converts the Entry to a String, representing the
     # Entry's attributes in LDIF format.
     #--
-    # TODO, this doesn't support binary representations,
-    # nor does it break overlength lines.
     def to_ldif
       ary = []
       ary << "dn: #{dn}\n"
