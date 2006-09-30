@@ -184,9 +184,20 @@ class LDAP
     # Eventually, we should have a class method that parses large LDIF
     # streams into individual LDIF blocks (delimited by blank lines)
     # and passes them here.
+    #
+    # There is one oddity, noticed by Matthias Tarasiewicz: as originally
+    # written, this code would return an Entry object in which the DN
+    # attribute consisted of a two-element array, and the first element was
+    # nil. That's because Entry#initialize doesn't like to create an object
+    # without a DN attribute so it adds one: nil. The workaround here is
+    # to wipe out the nil DN after creating the Entry object, and trust the
+    # LDIF string to fill it in. If it doesn't we return a nil at the end.
+    # (30Sep06, FCianfrocca)
+    #
     class << self
       def from_single_ldif_string ldif
         entry = Entry.new
+        entry[:dn] = []
         ldif.split(/\r?\n/m).each {|line|
           break if line.length == 0
           if line =~ /\A([\w]+):(:?)[\s]*/
