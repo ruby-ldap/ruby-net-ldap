@@ -1052,6 +1052,7 @@ module Net
   class Connection # :nodoc:
 
     LdapVersion = 3
+    MaxSaslChallenges = 10
 
 
     #--
@@ -1131,21 +1132,30 @@ module Net
     # bind
     #
     def bind auth
-
       meth = auth[:method]
-      user,psw = "",""
-
-      if meth == :simple
-        user,psw = [auth[:username] || auth[:dn], auth[:password]]
+      if [:simple, :anonymous, :anon].include?( meth )
+        bind_simple auth
       elsif meth == :sasl
-        return bind_sasl( auth ) # Note the early return.
+        bind_sasl( auth )
+      elsif meth == :gss_spnego
+        bind_gss_spnego( auth )
+      else
+        raise LdapError.new( "unsupported auth method (#{meth})" )
+      end
+    end
+
+    #--
+    # bind_simple
+    # Implements a simple user/psw authentication.
+    # Accessed by calling #bind with a method of :simple or :anonymous.
+    #
+    def bind_simple auth
+      user,psw = if auth[:method] == :simple
+        [auth[:username] || auth[:dn], auth[:password]]
+      else
+        ["",""]
       end
 
-      #user,psw = if auth[:method] == :anonymous
-      #  ["",""]
-      #when :simple
-      #  [auth[:username] || auth[:dn], auth[:password]]
-      #end
       raise LdapError.new( "invalid binding information" ) unless (user && psw)
 
       msgid = next_msgid.to_ber
@@ -1159,37 +1169,71 @@ module Net
 
     #--
     # bind_sasl
+    # Required parameters: :mechanism, :initial_credential and :challenge_response
+    # Mechanism is a string value that will be passed in the SASL-packet's "mechanism" field.
+    # Initial credential is most likely a string. It's passed in the initial BindRequest
+    # that goes to the server. In some protocols, it may be empty.
+    # Challenge-response is a Ruby proc that takes a single parameter and returns an object
+    # that will typically be a string. The challenge-response block is called when the server
+    # returns a BindResponse with a result code of 14 (saslBindInProgress). The challenge-response
+    # block receives a parameter containing the data returned by the server in the saslServerCreds
+    # field of the LDAP BindResponse packet. The challenge-response block may be called multiple
+    # times during the course of a SASL authentication, and each time it must return a value
+    # that will be passed back to the server as the credential data in the next BindRequest packet.
+    #
+    def bind_sasl auth
+      mech,cred,chall = auth[:mechanism],auth[:initial_credential],auth[:challenge_response]
+      raise LdapError.new( "invalid binding information" ) unless (mech && cred && chall)
+
+      n = 0
+      loop {
+        msgid = next_msgid.to_ber
+        sasl = [mech.to_ber, cred.to_ber].to_ber_contextspecific(3)
+        request = [LdapVersion.to_ber, "".to_ber, sasl].to_ber_appsequence(0)
+        request_pkt = [msgid, request].to_ber_sequence
+        @conn.write request_pkt
+
+        (be = @conn.read_ber(AsnSyntax) and pdu = Net::LdapPdu.new( be )) or raise LdapError.new( "no bind result" )
+        return pdu.result_code unless pdu.result_code == 14 # saslBindInProgress
+        raise LdapError.new("sasl-challenge overflow") if ((n += 1) > MaxSaslChallenges)
+
+        cred = chall.call( pdu.result_server_sasl_creds )
+      }
+
+      raise LdapError.new( "why are we here?")
+    end
+    private :bind_sasl
+
+    #--
+    # bind_gss_spnego
     # PROVISIONAL, only for testing SASL implementations. DON'T USE THIS YET.
     # Uses Kohei Kajimoto's Ruby/NTLM. We have to find a clean way to integrate it without
     # introducing an external dependency.
-    # This is also wrong for another reason: we're assuming Microsoft GSSAPI negotiation.
-    # Wee need to introduce some extra parameters to select that mode.
-    def bind_sasl auth
+    # This authentication method is accessed by calling #bind with a :method parameter of
+    # :gss_spnego. It requires :username and :password attributes, just like the :simple
+    # authentication method. It performs a GSS-SPNEGO authentication with the server, which
+    # is presumed to be a Microsoft Active Directory.
+    #
+    def bind_gss_spnego auth
       require 'ntlm.rb'
+
       user,psw = [auth[:username] || auth[:dn], auth[:password]]
       raise LdapError.new( "invalid binding information" ) unless (user && psw)
-      msgid = next_msgid.to_ber
-      sasl = ["GSS-SPNEGO".to_ber, NTLM::Message::Type1.new.serialize.to_ber].to_ber_contextspecific(3)
-      request = [LdapVersion.to_ber, "".to_ber, sasl].to_ber_appsequence(0)
-      request_pkt = [msgid, request].to_ber_sequence
-      @conn.write request_pkt
 
-      (be = @conn.read_ber(AsnSyntax) and pdu = Net::LdapPdu.new( be )) or raise LdapError.new( "no bind result" )
-      return pdu.result_code unless pdu.result_code == 14 # saslBindInProgress
+      nego = proc {|challenge|
+        t2_msg = NTLM::Message.parse( challenge )
+        t3_msg = t2_msg.response( {:user => user, :password => psw}, {:ntlmv2 => true} )
+        t3_msg.serialize
+      }
 
-      t2 = NTLM::Message.parse( pdu.result_server_sasl_creds ) # WARNING, can Kajimoto's code throw nasty errors?
-      t3 = t2.response( {:user => user, :password => psw}, {:ntlmv2 => true} )
-
-      msgid = next_msgid.to_ber
-      sasl = ["GSS-SPNEGO".to_ber, t3.serialize.to_ber].to_ber_contextspecific(3)
-      request = [LdapVersion.to_ber, "".to_ber, sasl].to_ber_appsequence(0)
-      request_pkt = [msgid, request].to_ber_sequence
-      @conn.write request_pkt
-
-      (be = @conn.read_ber(AsnSyntax) and pdu = Net::LdapPdu.new( be )) or raise LdapError.new( "no bind result" )
-      pdu.result_code
+      bind_sasl( {
+        :method => :sasl,
+        :mechanism => "GSS-SPNEGO",
+        :initial_credential => NTLM::Message::Type1.new.serialize,
+        :challenge_response => nego
+      })
     end
-    private :bind_sasl
+    private :bind_gss_spnego
 
     #--
     # search
