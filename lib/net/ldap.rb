@@ -300,10 +300,12 @@ module Net
           0 => :string,             # password
           1 => :string,             # Kerberos v4
           2 => :string,             # Kerberos v5
+          7 => :string,             # serverSaslCreds
         },
         :constructed => {
           0 => :array,              # RFC-2251 Control
           3 => :array,              # Seach referral
+          7 => :array,              # serverSaslCreds
         }
       }
     })
@@ -321,6 +323,7 @@ module Net
       3 => "Time Limit Exceeded",
       4 => "Size Limit Exceeded",
       12 => "Unavailable crtical extension",
+      14 => "saslBindInProgress",
       16 => "No Such Attribute",
       17 => "Undefined Attribute Type",
       20 => "Attribute or Value Exists",
@@ -709,6 +712,7 @@ module Net
 
       @result == 0
     end
+
 
     #
     # #bind_as is for testing authentication credentials.
@@ -1127,12 +1131,21 @@ module Net
     # bind
     #
     def bind auth
-      user,psw = case auth[:method]
-      when :anonymous
-        ["",""]
-      when :simple
-        [auth[:username] || auth[:dn], auth[:password]]
+
+      meth = auth[:method]
+      user,psw = "",""
+
+      if meth == :simple
+        user,psw = [auth[:username] || auth[:dn], auth[:password]]
+      elsif meth == :sasl
+        return bind_sasl( auth ) # Note the early return.
       end
+
+      #user,psw = if auth[:method] == :anonymous
+      #  ["",""]
+      #when :simple
+      #  [auth[:username] || auth[:dn], auth[:password]]
+      #end
       raise LdapError.new( "invalid binding information" ) unless (user && psw)
 
       msgid = next_msgid.to_ber
@@ -1141,6 +1154,24 @@ module Net
       @conn.write request_pkt
 
       (be = @conn.read_ber(AsnSyntax) and pdu = Net::LdapPdu.new( be )) or raise LdapError.new( "no bind result" )
+      pdu.result_code
+    end
+
+    #--
+    # bind_sasl
+    # PROVISIONAL, only for testing SASL implementations. Will disappear, so DON'T USE THIS.
+    def bind_sasl auth
+      user = auth[:username] or raise LdapError.new( "invalid username" )
+      msgid = next_msgid.to_ber
+      sasl = ["GSS-SPNEGO".to_ber, "NTLMSSP\000\001\000\000\000\227\202\010\340\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000".to_ber].to_ber_contextspecific(3)
+      sasl = ["GSSAPI".to_ber].to_ber_contextspecific(3)
+      request = [LdapVersion.to_ber, "".to_ber, sasl].to_ber_appsequence(0)
+      request_pkt = [msgid, request].to_ber_sequence
+      @conn.write request_pkt
+p request_pkt
+
+      (be = @conn.read_ber(AsnSyntax) and pdu = Net::LdapPdu.new( be )) or raise LdapError.new( "no bind result" )
+p pdu
       pdu.result_code
     end
 
