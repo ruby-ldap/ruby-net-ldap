@@ -82,7 +82,7 @@ class LdapPdu
 
     case @app_tag
     when BindResult
-      parse_ldap_result ber_object[1]
+      parse_bind_response ber_object[1]
     when SearchReturnedData
       parse_search_return ber_object[1]
     when SearchResultReferral
@@ -128,6 +128,18 @@ class LdapPdu
     @ldap_result = {:resultCode => sequence[0], :matchedDN => sequence[1], :errorMessage => sequence[2]}
   end
   private :parse_ldap_result
+
+  #
+  # parse_bind_response
+  # A Bind Response may have an additional field, ID [7], serverSaslCreds, per RFC 2251 pgh 4.2.3.
+  #
+  def parse_bind_response sequence
+    sequence.length >= 3 or raise LdapPduError
+    @ldap_result = {:resultCode => sequence[0], :matchedDN => sequence[1], :errorMessage => sequence[2]}
+    @ldap_result[:serverSaslCreds] = sequence[3] if sequence.length >= 4
+    @ldap_result
+  end
+  private :parse_bind_response
 
   #
   # parse_search_return
