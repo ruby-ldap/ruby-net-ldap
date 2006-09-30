@@ -1159,21 +1159,37 @@ module Net
 
     #--
     # bind_sasl
-    # PROVISIONAL, only for testing SASL implementations. Will disappear, so DON'T USE THIS.
+    # PROVISIONAL, only for testing SASL implementations. DON'T USE THIS YET.
+    # Uses Kohei Kajimoto's Ruby/NTLM. We have to find a clean way to integrate it without
+    # introducing an external dependency.
+    # This is also wrong for another reason: we're assuming Microsoft GSSAPI negotiation.
+    # Wee need to introduce some extra parameters to select that mode.
     def bind_sasl auth
-      user = auth[:username] or raise LdapError.new( "invalid username" )
+      require 'ntlm.rb'
+      user,psw = [auth[:username] || auth[:dn], auth[:password]]
+      raise LdapError.new( "invalid binding information" ) unless (user && psw)
       msgid = next_msgid.to_ber
-      sasl = ["GSS-SPNEGO".to_ber, "NTLMSSP\000\001\000\000\000\227\202\010\340\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000".to_ber].to_ber_contextspecific(3)
-      sasl = ["GSSAPI".to_ber].to_ber_contextspecific(3)
+      sasl = ["GSS-SPNEGO".to_ber, NTLM::Message::Type1.new.serialize.to_ber].to_ber_contextspecific(3)
       request = [LdapVersion.to_ber, "".to_ber, sasl].to_ber_appsequence(0)
       request_pkt = [msgid, request].to_ber_sequence
       @conn.write request_pkt
-p request_pkt
 
       (be = @conn.read_ber(AsnSyntax) and pdu = Net::LdapPdu.new( be )) or raise LdapError.new( "no bind result" )
-p pdu
+      return pdu.result_code unless pdu.result_code == 14 # saslBindInProgress
+
+      t2 = NTLM::Message.parse( pdu.result_server_sasl_creds ) # WARNING, can Kajimoto's code throw nasty errors?
+      t3 = t2.response( {:user => user, :password => psw}, {:ntlmv2 => true} )
+
+      msgid = next_msgid.to_ber
+      sasl = ["GSS-SPNEGO".to_ber, t3.serialize.to_ber].to_ber_contextspecific(3)
+      request = [LdapVersion.to_ber, "".to_ber, sasl].to_ber_appsequence(0)
+      request_pkt = [msgid, request].to_ber_sequence
+      @conn.write request_pkt
+
+      (be = @conn.read_ber(AsnSyntax) and pdu = Net::LdapPdu.new( be )) or raise LdapError.new( "no bind result" )
       pdu.result_code
     end
+    private :bind_sasl
 
     #--
     # search

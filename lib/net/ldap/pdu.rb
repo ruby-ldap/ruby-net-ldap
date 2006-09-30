@@ -119,6 +119,12 @@ class LdapPdu
     @ldap_controls || []
   end
 
+  # Return serverSaslCreds, which are only present in BindResponse packets.
+  # Messy. Does this functionality belong somewhere else?
+  # We ought to refactor the accessors of this class before they get any kludgier.
+  def result_server_sasl_creds
+    @ldap_result && @ldap_result[:serverSaslCreds]
+  end
 
   #
   # parse_ldap_result
