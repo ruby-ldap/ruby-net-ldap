@@ -68,7 +68,7 @@ end
 spec = eval(File.read("net-ldap.gemspec"))
 spec.version = $version
 desc "Build the RubyGem for #$name."
-task :gem => [ :test ]
+task :gem => [] #[ :test ]
 Rake::GemPackageTask.new(spec) do |g|
   if $can_minitar
     g.need_tar    = false

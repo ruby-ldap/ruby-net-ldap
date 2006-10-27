@@ -18,6 +18,7 @@
 * Fixed a bug in Net::LDAP::Entry::from_single_ldif_string noticed by
   Matthias Tarasiewicz.
 * Added [reliminary (still undocumented) support for SASL authentication.
+* Removed an erroneous LdapError value, noticed by Kouhei Sutou.
 
 == Net::LDAP 0.0.4: August 15, 2006
 * Undeprecated Net::LDAP#modify. Thanks to Justin Forder for
