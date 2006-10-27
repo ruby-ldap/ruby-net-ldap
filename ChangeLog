@@ -19,6 +19,9 @@
   Matthias Tarasiewicz.
 * Added [reliminary (still undocumented) support for SASL authentication.
 * Removed an erroneous LdapError value, noticed by Kouhei Sutou.
+* Supported attributes containing blanks (cn=Babs Jensen) to
+  Filter#construct. Suggested by an anonymous Rubyforge user.
+
 
 == Net::LDAP 0.0.4: August 15, 2006
 * Undeprecated Net::LDAP#modify. Thanks to Justin Forder for
