@@ -329,7 +329,6 @@ module Net
       20 => "Attribute or Value Exists",
       32 => "No Such Object",
       34 => "Invalid DN Syntax",
-      48 => "Invalid DN Syntax",
       48 => "Inappropriate Authentication",
       49 => "Invalid Credentials",
       50 => "Insufficient Access Rights",
