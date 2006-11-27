@@ -50,6 +50,10 @@ module Net
     end
   end
 
+  class BerIdentifiedNull
+    attr_accessor :ber_identifier
+  end
+
   #--
   # This condenses our nicely self-documenting ASN hashes down
   # to an array for fast lookups.
@@ -78,18 +82,18 @@ module Net
     TagClasses = [:universal, :application, :context_specific, :private]
 
     BuiltinSyntax = BER.compile_syntax( {
-      :universal => {
-        :primitive => {
-          1 => :boolean,
-          2 => :integer,
-          4 => :string,
-          10 => :integer,
-        },
-        :constructed => {
-          16 => :array,
-          17 => :array
-        }
-      }
+	:universal => {
+	    :primitive => {
+		1 => :boolean,
+		2 => :integer,
+		4 => :string,
+		10 => :integer,
+	    },
+	    :constructed => {
+		16 => :array,
+		17 => :array
+	    }
+	}
     })
 
     #
@@ -184,6 +188,10 @@ module Net
         seq
       elsif objtype == :boolean
         newobj != "\000"
+      elsif objtype == :null
+	  n = BerIdentifiedNull.new
+	  n.ber_identifier = id
+	  n
       else
         #raise BerError.new( "unsupported object type: class=#{tagclass}, encoding=#{encoding}, tag=#{tag}" )
         raise BerError.new( "unsupported object type: id=#{id}" )
