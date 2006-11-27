@@ -102,6 +102,10 @@ module Net
     # packets coming from streams that don't block when
     # we ask for more data (like StringIOs). At it is,
     # this can throw TypeErrors and other nasties.
+    #--
+    # BEWARE, this violates DRY and is largely equal in functionality to
+    # read_ber_from_string. Eventually that method may subsume the functionality
+    # of this one.
     #
     def read_ber syntax=nil
       # don't bother with this line, since IO#getc by definition returns nil on eof.
@@ -127,42 +131,8 @@ module Net
       newobj = read contentlength
 
       # This exceptionally clever and clear bit of code is verrrry slow.
-=begin
-      objtype = nil
-      [syntax, BuiltinSyntax].each {|syn|
-        if syn && (ot = syn[tagclass]) && (ot = ot[encoding]) && ot[tag]
-          objtype = ot[tag]
-          break
-        end
-      }
-=end
       objtype = (syntax && syntax[id]) || BuiltinSyntax[id]
 
-=begin
-      Replaced this case with if/else because Symbol#=== profiled surprisingly hot.
-      obj = case objtype
-      when :boolean
-        newobj != "\000"
-      when :string
-        (newobj || "").dup
-      when :integer
-        j = 0
-        newobj.each_byte {|b| j = (j << 8) + b}
-        j
-      when :array
-        seq = []
-        sio = StringIO.new( newobj || "" )
-        # Interpret the subobject, but note how the loop
-        # is built: nil ends the loop, but false (a valid
-        # BER value) does not!
-        while (e = sio.read_ber(syntax)) != nil
-          seq << e
-        end
-        seq
-      else
-        raise BerError.new( "unsupported object type: class=#{tagclass}, encoding=#{encoding}, tag=#{tag}" )
-      end
-=end
 
       # == is expensive so sort this if/else so the common cases are at the top.
       obj = if objtype == :string
@@ -205,6 +175,75 @@ module Net
       obj
 
     end
+
+	    #--
+	    # Violates DRY! This replicates the functionality of #read_ber.
+	    # Eventually this method may replace that one.
+	    # This version of #read_ber behaves properly in the face of incomplete
+	    # data packets. If a full BER object is detected, we return an array containing
+	    # the detected object and the number of bytes consumed from the string.
+	    # If we don't detect a complete packet, return nil.
+	    #
+	    # Observe that weirdly we recursively call the original #read_ber in here.
+	    # That needs to be fixed if we ever obsolete the original method in favor of this one.
+	    def read_ber_from_string str, syntax=nil
+		id = str[0] or return nil
+		n = str[1] or return nil
+		n_consumed = 2
+		lengthlength,contentlength = if n <= 127
+		    [1,n]
+		else
+		    n1 = n & 127
+		    return nil unless str.length >= (n_consumed + n1)
+		    j = 0
+		    n1.times {
+			j = (j << 8) + str[n_consumed]
+			n_consumed += 1
+		    }
+		    [1 + (n1), j]
+		end
+
+		return nil unless str.length >= (n_consumed + contentlength)
+		newobj = str[n_consumed...(n_consumed + contentlength)]
+		n_consumed += contentlength
+
+		objtype = (syntax && syntax[id]) || BuiltinSyntax[id]
+
+		# == is expensive so sort this if/else so the common cases are at the top.
+		obj = if objtype == :array
+		    seq = BerIdentifiedArray.new
+		    seq.ber_identifier = id
+		    sio = StringIO.new( newobj || "" )
+		    # Interpret the subobject, but note how the loop
+		    # is built: nil ends the loop, but false (a valid
+		    # BER value) does not!
+		    # Also, we can use the standard read_ber method because
+		    # we know for sure we have enough data. (Although this
+		    # might be faster than the standard method.)
+		    while (e = sio.read_ber(syntax)) != nil
+			seq << e
+		    end
+		    seq
+		elsif objtype == :string
+		    s = BerIdentifiedString.new( newobj || "" )
+		    s.ber_identifier = id
+		    s
+		elsif objtype == :integer
+		    j = 0
+		    newobj.each_byte {|b| j = (j << 8) + b}
+		    j
+		elsif objtype == :boolean
+		    newobj != "\000"
+		elsif objtype == :null
+		    n = BerIdentifiedNull.new
+		    n.ber_identifier = id
+		    n
+		else
+		    raise BerError.new( "unsupported object type: id=#{id}" )
+		end
+
+		[obj, n_consumed]
+	    end
 
   end # module BERParser
   end # module BER
