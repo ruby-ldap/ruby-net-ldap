@@ -36,7 +36,10 @@ class LdapPduError < Exception; end
 
 class LdapPdu
 
+  BindRequest = 0
   BindResult = 1
+  UnbindRequest = 2
+  SearchRequest = 3
   SearchReturnedData = 4
   SearchResult = 5
   ModifyResponse = 7
@@ -48,6 +51,7 @@ class LdapPdu
   attr_reader :msg_id, :app_tag
   attr_reader :search_dn, :search_attributes, :search_entry
   attr_reader :search_referrals
+  attr_reader :search_parameters, :bind_parameters
 
   #
   # initialize
@@ -74,7 +78,13 @@ class LdapPdu
   def initialize ber_object
     begin
       @msg_id = ber_object[0].to_i
-      @app_tag = ber_object[1].ber_identifier - 0x60
+      # Modified 25Nov06. We want to "un-decorate" the ber-identifier
+      # of the incoming packet. Originally we did this by subtracting 0x60,
+      # which ASSUMES the identifier is a constructed app-specific value.
+      # But at least one value (UnbindRequest) is app-specific primitive.
+      # So it makes more sense just to grab the bottom five bits.
+      #@app_tag = ber_object[1].ber_identifier - 0x60
+      @app_tag = ber_object[1].ber_identifier & 31
     rescue
       # any error becomes a data-format error
       raise LdapPduError.new( "ldap-pdu format error" )
@@ -98,6 +108,12 @@ class LdapPdu
       parse_ldap_result ber_object[1]
     when ModifyRDNResponse
       parse_ldap_result ber_object[1]
+    when SearchRequest
+      parse_ldap_search_request ber_object[1]
+    when BindRequest
+      parse_bind_request ber_object[1]
+    when UnbindRequest
+      parse_unbind_request ber_object[1]
     else
       raise LdapPduError.new( "unknown pdu-type: #{@app_tag}" )
     end
@@ -212,6 +228,35 @@ class LdapPdu
   end
   private :parse_controls
 
+
+  # (provisional, must document)
+  def parse_ldap_search_request sequence
+      s = OpenStruct.new
+      s.base_object,
+	  s.scope,
+	  s.deref_aliases,
+	  s.size_limit,
+	  s.time_limit,
+	  s.types_only,
+	  s.filter,
+	  s.attributes = sequence
+      @search_parameters = s
+  end
+
+  # (provisional, must document)
+  def parse_bind_request sequence
+      s = OpenStruct.new
+      s.version,
+	  s.name,
+	  s.authentication = sequence
+      @bind_parameters = s
+  end
+
+
+  # (provisional, must document)
+  # UnbindRequest has no content so this is a no-op.
+  def parse_unbind_request sequence
+  end
 
 end
 
