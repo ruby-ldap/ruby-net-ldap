@@ -273,6 +273,9 @@ module Net
 
     AsnSyntax = BER.compile_syntax({
       :application => {
+	:primitive => {
+	  2 => :null		    # UnbindRequest body
+        },
         :constructed => {
           0 => :array,              # BindRequest
           1 => :array,              # BindResponse
