@@ -23,6 +23,7 @@
   Filter#construct. Suggested by an anonymous Rubyforge user.
 * Supported several constructs from the server side of the LDAP protocol.
 * Added a "consuming" String#read_ber! method.
+* Added missing synactic support for Filter ANDs and NOTs.
 
 
 == Net::LDAP 0.0.4: August 15, 2006
