@@ -306,7 +306,9 @@ module Net
           7 => :string,             # serverSaslCreds
         },
         :constructed => {
-          0 => :array,              # RFC-2251 Control
+          0 => :array,              # RFC-2251 Control and Filter-AND
+          1 => :array,              # SearchFilter-OR
+          2 => :array,              # SearchFilter-NOT
           3 => :array,              # Seach referral
           7 => :array,              # serverSaslCreds
         }
