@@ -310,6 +310,7 @@ module Net
           1 => :array,              # SearchFilter-OR
           2 => :array,              # SearchFilter-NOT
           3 => :array,              # Seach referral
+          4 => :array,              # unknown use in Microsoft Outlook
           7 => :array,              # serverSaslCreds
         }
       }

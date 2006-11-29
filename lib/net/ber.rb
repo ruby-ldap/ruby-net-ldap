@@ -88,6 +88,7 @@ module Net
 		2 => :integer,
 		4 => :string,
 		10 => :integer,
+		13 => :string # (OID)
 	    },
 	    :constructed => {
 		16 => :array,
