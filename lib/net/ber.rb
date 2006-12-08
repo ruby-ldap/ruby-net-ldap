@@ -466,12 +466,6 @@ class Array
   def to_ber_appsequence     id = 0; to_ber_seq_internal( 0x60 + id ); end
   def to_ber_contextspecific id = 0; to_ber_seq_internal( 0xA0 + id ); end
 
-  private
-  def to_ber_seq_internal code
-    s = self.to_s
-    [code].pack('C') + s.length.to_ber_length_encoding + s
-  end
-
   def to_ber_oid
     ary = self.dup
     first = ary.shift
@@ -481,6 +475,13 @@ class Array
     oid = ary.pack("w*")
     [6, oid.length].pack("CC") + oid
   end
+
+  private
+  def to_ber_seq_internal code
+    s = self.to_s
+    [code].pack('C') + s.length.to_ber_length_encoding + s
+  end
+
 
 end # class Array
 
