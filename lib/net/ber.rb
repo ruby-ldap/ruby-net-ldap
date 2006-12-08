@@ -252,6 +252,23 @@ module Net
 		    j = 0
 		    newobj.each_byte {|b| j = (j << 8) + b}
 		    j
+		elsif objtype == :oid
+		    # cf X.690 pgh 8.19 for an explanation of this algorithm.
+		    # Potentially not good enough. We may need a BerIdentifiedOid
+		    # as a subclass of BerIdentifiedArray, to get the ber identifier
+		    # and also a to_s method that produces the familiar dotted notation.
+		    oid = newobj.unpack("w*")
+		    f = oid.shift
+		    g = if f < 40
+			[0,f]
+		    elsif f < 80
+			[1, f-40]
+		    else
+			[2, f-80] # f-80 can easily be > 80. What a weird optimization.
+		    end
+		    oid.unshift g.last
+		    oid.unshift g.first
+		    oid
 		elsif objtype == :boolean
 		    newobj != "\000"
 		elsif objtype == :null
