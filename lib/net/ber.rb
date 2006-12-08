@@ -361,8 +361,23 @@ class Fixnum
   # to_ber
   #
   def to_ber
-    i = [self].pack('w')
-    [2, i.length].pack("CC") + i
+    # originally used pack("w") which is WRONG.
+    #i = [self].pack('w')
+
+    # PLEASE optimize this code path. It's awfully ugly and probably slow.
+    # It also doesn't understand negative numbers yet.
+    raise Net::BER::BerError.new( "range error in fixnum" ) unless self > 0
+    z = [self].pack("N")
+    zlen = if self < 0x80
+	1
+    elsif self < 0x8000
+	2
+    elsif self < 0x800000
+	3
+    else
+	4
+    end
+    [2, zlen].pack("CC") + z[0-zlen,zlen]
   end
 
   #
