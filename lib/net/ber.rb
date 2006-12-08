@@ -472,6 +472,16 @@ class Array
     [code].pack('C') + s.length.to_ber_length_encoding + s
   end
 
+  def to_ber_oid
+    ary = self.dup
+    first = ary.shift
+    raise Net::BER::BerError.new( "invalid OID" ) unless [0,1,2].include?(first)
+    first = first * 40 + ary.shift
+    ary.unshift first
+    oid = ary.pack("w*")
+    [6, oid.length].pack("CC") + oid
+  end
+
 end # class Array
 
 
