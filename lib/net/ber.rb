@@ -366,7 +366,7 @@ class Fixnum
 
     # PLEASE optimize this code path. It's awfully ugly and probably slow.
     # It also doesn't understand negative numbers yet.
-    raise Net::BER::BerError.new( "range error in fixnum" ) unless self > 0
+    raise Net::BER::BerError.new( "range error in fixnum" ) unless self >= 0
     z = [self].pack("N")
     zlen = if self < 0x80
 	1
