@@ -87,8 +87,10 @@ module Net
 		1 => :boolean,
 		2 => :integer,
 		4 => :string,
+		5 => :null,
+		6 => :string, # (OID)
 		10 => :integer,
-		13 => :string # (OID)
+		13 => :string # (relative OID)
 	    },
 	    :constructed => {
 		16 => :array,
