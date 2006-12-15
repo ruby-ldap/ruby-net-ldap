@@ -72,7 +72,7 @@ end
 
 desc "(Provisional) Run tests for SNMP"
 task :test_snmp do |t|
-  run_test_set t, ['tests/testsnmp.rb']
+  run_test_set t, ['tests/testsnmp.rb', 'tests/testber.rb']
 end
 
 spec = eval(File.read("net-ldap.gemspec"))

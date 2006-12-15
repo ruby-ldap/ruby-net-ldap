@@ -23,6 +23,28 @@ class TestBer < Test::Unit::TestCase
     assert_equal( "\002\005\222\320\227\344\000", 5000000000.to_ber )
   end
 
+  def test_ber_bignums
+      # Some of these values are Fixnums and some are Bignums. Different BER code.
+      [
+	  5,
+	  50,
+	  500,
+	  5000,
+	  50000,
+	  500000,
+	  5000000,
+	  50000000,
+	  500000000,
+	  1000000000,
+	  2000000000,
+	  3000000000,
+	  4000000000,
+	  5000000000
+      ].each {|val|
+	  assert_equal( val, val.to_ber.read_ber )
+      }
+  end
+
   def test_ber_parsing
     assert_equal( 6, "\002\001\006".read_ber( Net::LDAP::AsnSyntax ))
     assert_equal( "testing", "\004\007testing".read_ber( Net::LDAP::AsnSyntax ))
