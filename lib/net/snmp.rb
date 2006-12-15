@@ -44,7 +44,9 @@ module Net
 		:primitive => {
 		},
 		:constructed => {
-		    0 => :array		# GetRequest PDU (RFC1157 pgh 4.1.2)
+		    0 => :array,	# GetRequest PDU (RFC1157 pgh 4.1.2)
+		    1 => :array,	# GetNextRequest PDU (RFC1157 pgh 4.1.3)
+		    2 => :array		# GetResponse PDU (RFC1157 pgh 4.1.4)
 		}
 	    }
 	})
@@ -115,6 +117,10 @@ module Net
 	    when 0
 		send :pdu_type=, :get_request
 		parse_get_request data
+	    when 1
+		send :pdu_type=, :get_next_request
+		# This PDU is identical to get-request except for the type.
+		parse_get_request data
 	    else
 		raise Error.new( "unknown snmp-pdu type: #{app_tag}" )
 	    end
@@ -138,6 +144,7 @@ module Net
 	    }
 	end
 	private :parse_get_request
+
 
 	def version= ver
 	    unless [0,2].include?(ver)
@@ -165,7 +172,7 @@ module Net
 
 	#--
 	# Syntactic sugar
-	def add_variable_binding name, value
+	def add_variable_binding name, value=nil
 	    @variables ||= []
 	    @variables << [name, value]
 	end
@@ -194,6 +201,17 @@ module Net
 			}
 		    ].to_ber_sequence
 		].to_ber_contextspecific(0)
+	    when :get_next_request
+		[
+		    request_id.to_ber,
+		    error_status.to_ber,
+		    error_index.to_ber,
+		    [
+			@variables.map {|n,v|
+			    [n.to_ber_oid, Net::BER::BerIdentifiedNull.new.to_ber].to_ber_sequence
+			}
+		    ].to_ber_sequence
+		].to_ber_contextspecific(1)
 	    when :get_response
 		[
 		    request_id.to_ber,
