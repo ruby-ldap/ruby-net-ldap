@@ -164,6 +164,7 @@ module Net
 	    unless ErrorStatusCodes.has_key?(es)
 		raise Error.new("unknown error-status: #{es}")
 	    end
+	    @error_status = es
 	end
 
 	def community= c
