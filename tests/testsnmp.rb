@@ -75,6 +75,8 @@ class TestSnmp < Test::Unit::TestCase
 
   def test_malformations
       pdu = Net::SnmpPdu.new
+	pdu.version = 0
+	pdu.version = 2
       assert_raise( Net::SnmpPdu::Error ) {
 	pdu.version = 100
       }
@@ -100,6 +102,15 @@ class TestSnmp < Test::Unit::TestCase
       pdu.add_variable_binding [1,3,6,1,2,1,1,1,0], "test"
 
       assert_equal( SnmpGetResponse,  pdu.to_ber_string )
+  end
+
+  def test_make_bad_response
+      pdu = Net::SnmpPdu.new
+      assert_raise(Net::SnmpPdu::Error) {pdu.to_ber_string}
+      pdu.pdu_type = :get_response
+      pdu.request_id = 999
+      pdu.to_ber_string
+      # Not specifying variables doesn't create an error. (Maybe it should?)
   end
 
 end

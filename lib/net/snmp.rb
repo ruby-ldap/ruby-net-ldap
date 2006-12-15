@@ -88,6 +88,7 @@ module Net
 	    @pdu_type = args[:pdu_type] # leave nil unless specified; there's no reasonable default value.
 	    @error_status = args[:error_status] || 0
 	    @error_index = args[:error_index] || 0
+	    @variables = args[:variables] || []
 	end
 
 	#--
