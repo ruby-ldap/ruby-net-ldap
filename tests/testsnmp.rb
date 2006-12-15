@@ -12,6 +12,8 @@ require 'stringio'
 class TestSnmp < Test::Unit::TestCase
 
   SnmpGetRequest = "0'\002\001\000\004\006public\240\032\002\002?*\002\001\000\002\001\0000\0160\f\006\b+\006\001\002\001\001\001\000\005\000"
+  SnmpGetResponse = "0+\002\001\000\004\006public\242\036\002\002'\017\002\001\000\002\001\0000\0220\020\006\b+\006\001\002\001\001\001\000\004\004test"
+
 
   def setup
   end
@@ -46,7 +48,7 @@ class TestSnmp < Test::Unit::TestCase
 
   def test_weird_packet
       assert_raise( Net::SnmpPdu::Error ) {
-	Net::SnmpPdu.new("aaaaaaaaaaaaaa")
+	Net::SnmpPdu.parse("aaaaaaaaaaaaaa")
       }
   end
 
@@ -56,11 +58,50 @@ class TestSnmp < Test::Unit::TestCase
       assert pkt.is_a?(Net::BER::BerIdentifiedArray)
       assert_equal( 48, pkt.ber_identifier) # Constructed [0], signifies GetRequest
 
-      pdu = Net::SnmpPdu.new(pkt)
+      pdu = Net::SnmpPdu.parse(pkt)
       assert_equal(:get_request, pdu.pdu_type )
       assert_equal(16170, pdu.request_id ) # whatever was in the test data. 16170 is not magic.
-      assert_equal( [[1,3,6,1,2,1,1,1,0]], pdu.variables )
+      assert_equal( [[[1,3,6,1,2,1,1,1,0],nil]], pdu.variables )
+
+      assert_equal( pdu.to_ber_string, SnmpGetRequest )
   end
+
+  def test_empty_pdu
+      pdu = Net::SnmpPdu.new
+      assert_raise( Net::SnmpPdu::Error ) {
+	pdu.to_ber_string
+      }
+  end
+
+  def test_malformations
+      pdu = Net::SnmpPdu.new
+      assert_raise( Net::SnmpPdu::Error ) {
+	pdu.version = 100
+      }
+
+      pdu.pdu_type = :get_request
+      pdu.pdu_type = :get_next_request
+      pdu.pdu_type = :get_response
+      pdu.pdu_type = :set_request
+      pdu.pdu_type = :trap
+      assert_raise( Net::SnmpPdu::Error ) {
+	pdu.pdu_type = :something_else
+      }
+  end
+
+  def test_make_response
+      pdu = Net::SnmpPdu.new
+      pdu.version = 0
+      pdu.community = "public"
+      pdu.pdu_type = :get_response
+      pdu.request_id = 9999
+      pdu.error_status = 0
+      pdu.error_index = 0
+      pdu.add_variable_binding [1,3,6,1,2,1,1,1,0], "test"
+
+      assert_equal( SnmpGetResponse,  pdu.to_ber_string )
+  end
+
 end
 
 

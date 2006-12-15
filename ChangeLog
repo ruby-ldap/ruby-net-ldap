@@ -25,6 +25,7 @@
 * Added a "consuming" String#read_ber! method.
 * Added missing synactic support for Filter ANDs, NOTs and a few other
   things.
+* Added some support for SNMP data-handling.
 
 
 == Net::LDAP 0.0.4: August 15, 2006
