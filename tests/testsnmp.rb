@@ -50,7 +50,7 @@ class TestSnmp < Test::Unit::TestCase
       }
   end
 
-  def test_packet
+  def test_get_request
       data = SnmpGetRequest.dup
       pkt = data.read_ber(Net::SNMP::AsnSyntax)
       assert pkt.is_a?(Net::BER::BerIdentifiedArray)
