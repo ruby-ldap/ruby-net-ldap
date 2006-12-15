@@ -42,17 +42,17 @@ $tardist  = "../#$distdir.tar.gz"
 $release_date = nil
 $release_date = Time.parse(ENV['RELEASE_DATE']) if ENV['RELEASE_DATE']
 
-desc "Run the tests for #$name."
-task :test do |t|
+
+def run_test_set the_task, testcases
   require 'test/unit/testsuite'
   require 'test/unit/ui/console/testrunner'
 
   runner = Test::Unit::UI::Console::TestRunner
 
   $LOAD_PATH.unshift('tests')
-  $stderr.puts "Checking for test cases:" if t.verbose
-  Dir['tests/test*.rb'].each do |testcase|
-    $stderr.puts "\t#{testcase}" if t.verbose
+  $stderr.puts "Checking for test cases:" if the_task.verbose
+  testcases.each do |testcase|
+    $stderr.puts "\t#{testcase}" if the_task.verbose
     load testcase
   end
 
@@ -63,6 +63,16 @@ task :test do |t|
   end
 
   runner.run(suite)
+end
+
+desc "Run the tests for #$name."
+task :test do |t|
+  run_test_set t, Dir['tests/test*.rb']
+end
+
+desc "(Provisional) Run tests for SNMP"
+task :test_snmp do |t|
+  run_test_set t, ['tests/test_snmp.rb']
 end
 
 spec = eval(File.read("net-ldap.gemspec"))
