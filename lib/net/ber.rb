@@ -364,31 +364,14 @@ class Fixnum
   # to_ber
   #
   def to_ber
-    # originally used pack("w") which is WRONG.
-    #i = [self].pack('w')
-
-    # PLEASE optimize this code path. It's awfully ugly and probably slow.
-    # It also doesn't understand negative numbers yet.
-    raise Net::BER::BerError.new( "range error in fixnum" ) unless self >= 0
-    z = [self].pack("N")
-    zlen = if self < 0x80
-	1
-    elsif self < 0x8000
-	2
-    elsif self < 0x800000
-	3
-    else
-	4
-    end
-    [2, zlen].pack("CC") + z[0-zlen,zlen]
+    "\002" + to_ber_internal
   end
 
   #
   # to_ber_enumerated
   #
   def to_ber_enumerated
-    i = [self].pack('w')
-    [10, i.length].pack("CC") + i
+    "\012" + to_ber_internal
   end
 
   #
@@ -403,6 +386,34 @@ class Fixnum
     end
   end
 
+  # Generate a BER-encoding for an application-defined INTEGER.
+  # Example: SNMP's Counter, Gauge, and TimeTick types.
+  #
+  def to_ber_application tag
+      [0x40 + tag].pack("C") + to_ber_internal
+  end
+
+  #--
+  # Called internally to BER-encode the length and content bytes of a Fixnum.
+  # The caller will prepend the tag byte.
+  def to_ber_internal
+    # PLEASE optimize this code path. It's awfully ugly and probably slow.
+    # It also doesn't understand negative numbers yet.
+    raise Net::BER::BerError.new( "range error in fixnum" ) unless self >= 0
+    z = [self].pack("N")
+    zlen = if self < 0x80
+	1
+    elsif self < 0x8000
+	2
+    elsif self < 0x800000
+	3
+    else
+	4
+    end
+    [zlen].pack("C") + z[0-zlen,zlen]
+  end
+  private :to_ber_internal
+
 end # class Fixnum
 
 
@@ -416,6 +427,12 @@ class Bignum
     # Ruby represents Bignums as two's-complement numbers so we may actually be
     # good as far as representing negatives goes.
     # I'm sure this implementation can be improved performance-wise if necessary.
+    # Ruby's Bignum#size returns the number of bytes in the internal representation
+    # of the number, but it can and will include leading zero bytes on at least
+    # some implementations. Evidently Ruby stores these as sets of quadbytes.
+    # It's not illegal in BER to encode all of the leading zeroes but let's strip
+    # them out anyway.
+    #
     sz = self.size
     out = "\000" * sz
     (sz*8).times {|bit|
@@ -424,7 +441,11 @@ class Bignum
 	end
     }
 
-    [2, sz].pack("CC") + out.reverse
+    while out.length > 1 and out[-1] == 0
+	out.slice!(-1,1)
+    end
+
+    [2, out.length].pack("CC") + out.reverse
   end
 
 end

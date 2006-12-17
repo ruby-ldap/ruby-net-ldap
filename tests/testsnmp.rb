@@ -113,6 +113,15 @@ class TestSnmp < Test::Unit::TestCase
       # Not specifying variables doesn't create an error. (Maybe it should?)
   end
 
+  def test_snmp_integers
+      c32 = Net::SNMP::Counter32.new(100)
+      assert_equal( "A\001d", c32.to_ber )
+      g32 = Net::SNMP::Gauge32.new(100)
+      assert_equal( "B\001d", g32.to_ber )
+      t32 = Net::SNMP::TimerTicks32.new(100)
+      assert_equal( "C\001d", t32.to_ber )
+  end
+
 end
 
 

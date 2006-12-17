@@ -18,9 +18,9 @@ class TestBer < Test::Unit::TestCase
   # 5000000000 is a Bignum, which hits different code.
   def test_ber_integers
     assert_equal( "\002\001\005", 5.to_ber )
-    assert_equal( "\002\002\203t", 500.to_ber )
-    assert_equal( "\002\003\203\206P", 50000.to_ber )
-    assert_equal( "\002\005\222\320\227\344\000", 5000000000.to_ber )
+    assert_equal( "\002\002\001\364", 500.to_ber )
+    assert_equal( "\002\003\0\303P", 50000.to_ber )
+    assert_equal( "\002\005\001*\005\362\000", 5000000000.to_ber )
   end
 
   def test_ber_bignums
