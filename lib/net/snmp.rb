@@ -163,8 +163,9 @@ module Net
 	    when 2
 		send :pdu_type=, :get_response
 		# This PDU is identical to get-request except for the type,
+		# the error_status and error_index values are meaningful,
 		# and the fact that the variable bindings will be non-null.
-		parse_get_request data
+		parse_get_response data
 	    else
 		raise Error.new( "unknown snmp-pdu type: #{app_tag}" )
 	    end
@@ -175,8 +176,10 @@ module Net
 	# Defined in RFC1157, pgh 4.1.2.
 	def parse_get_request data
 	    send :request_id=, data[0].to_i
-	    send :error_status=, data[1].to_i
-	    send :error_index=, data[2].to_i
+	    # data[1] is error_status, always zero.
+	    # data[2] is error_index, always zero.
+	    send :error_status=, 0
+	    send :error_index=, 0
 	    data[3].each {|n,v|
 		# A variable-binding, of which there may be several,
 		# consists of an OID and a BER null.
@@ -188,6 +191,21 @@ module Net
 	    }
 	end
 	private :parse_get_request
+
+	#--
+	# Defined in RFC1157, pgh 4.1.4
+	def parse_get_response data
+	    send :request_id=, data[0].to_i
+	    send :error_status=, data[1].to_i
+	    send :error_index=, data[2].to_i
+	    data[3].each {|n,v|
+		# A variable-binding, of which there may be several,
+		# consists of an OID and a BER null.
+		# We're ignoring the null, we might want to verify it instead.
+		add_variable_binding n, v
+	    }
+	end
+	private :parse_get_response
 
 
 	def version= ver
