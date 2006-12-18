@@ -160,6 +160,11 @@ module Net
 		send :pdu_type=, :get_next_request
 		# This PDU is identical to get-request except for the type.
 		parse_get_request data
+	    when 2
+		send :pdu_type=, :get_response
+		# This PDU is identical to get-request except for the type,
+		# and the fact that the variable bindings will be non-null.
+		parse_get_request data
 	    else
 		raise Error.new( "unknown snmp-pdu type: #{app_tag}" )
 	    end
