@@ -175,8 +175,8 @@ module Net
 	# Defined in RFC1157, pgh 4.1.2.
 	def parse_get_request data
 	    send :request_id=, data[0].to_i
-	    # data[1] is error-status, always 0.
-	    # data[2] is error-index, always 0.
+	    send :error_status=, data[1].to_i
+	    send :error_index=, data[2].to_i
 	    data[3].each {|n,v|
 		# A variable-binding, of which there may be several,
 		# consists of an OID and a BER null.
