@@ -14,6 +14,8 @@ class TestSnmp < Test::Unit::TestCase
   SnmpGetRequest = "0'\002\001\000\004\006public\240\032\002\002?*\002\001\000\002\001\0000\0160\f\006\b+\006\001\002\001\001\001\000\005\000"
   SnmpGetResponse = "0+\002\001\000\004\006public\242\036\002\002'\017\002\001\000\002\001\0000\0220\020\006\b+\006\001\002\001\001\001\000\004\004test"
 
+  SnmpGetRequestXXX = "0'\002\001\000\004\006xxxxxx\240\032\002\002?*\002\001\000\002\001\0000\0160\f\006\b+\006\001\002\001\001\001\000\005\000"
+
 
   def setup
   end
@@ -120,6 +122,13 @@ class TestSnmp < Test::Unit::TestCase
       assert_equal( "B\001d", g32.to_ber )
       t32 = Net::SNMP::TimerTicks32.new(100)
       assert_equal( "C\001d", t32.to_ber )
+  end
+
+  def test_community
+      data = SnmpGetRequestXXX.dup
+      ary = data.read_ber(Net::SNMP::AsnSyntax)
+      pdu = Net::SnmpPdu.parse( ary )
+      assert_equal( "xxxxxx", pdu.community )
   end
 
 end
