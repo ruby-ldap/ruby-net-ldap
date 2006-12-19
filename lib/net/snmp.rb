@@ -147,9 +147,8 @@ module Net
 	private :parse
 
 	def parse_ber_object ber_object
-	    version= ber_object[0].to_i
-
-	    community= ber_object[1].to_s
+	    send :version=, ber_object[0].to_i
+	    send :community=, ber_object[1].to_s
 
 	    data = ber_object[2]
 	    case (app_tag = data.ber_identifier & 31)
