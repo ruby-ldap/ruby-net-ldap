@@ -57,6 +57,32 @@ module Net
     end
   end
 
+  class BerIdentifiedOid
+    attr_accessor :ber_identifier
+    def initialize oid
+	if oid.is_a?(String)
+	    oid = oid.split(/\./).map {|s| s.to_i }
+	end
+	@value = oid
+    end
+    def to_ber
+	# Provisional implementation.
+	# We ASSUME that our incoming value is an array, and we
+	# use the Array#to_ber_oid method defined below.
+	# We probably should obsolete that method, actually, in
+	# and move the code here.
+	# WE ARE NOT CURRENTLY ENCODING THE BER-IDENTIFIER.
+	# This implementation currently hardcodes 6, the universal OID tag.
+	ary = @value.dup
+	first = ary.shift
+	raise Net::BER::BerError.new(" invalid OID" ) unless [0,1,2].include?(first)
+	first = first * 40 + ary.shift
+	ary.unshift first
+	oid = ary.pack("w*")
+	[6, oid.length].pack("CC") + oid
+    end
+  end
+
   #--
   # This condenses our nicely self-documenting ASN hashes down
   # to an array for fast lookups.

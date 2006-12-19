@@ -57,6 +57,12 @@ class TestBer < Test::Unit::TestCase
   end
 
 
+  def test_oid
+      oid = Net::BER::BerIdentifiedOid.new( [1,3,6,1,2,1,1,1,0] )
+      assert_equal( "\006\b+\006\001\002\001\001\001\000", oid.to_ber )
+      oid = Net::BER::BerIdentifiedOid.new( "1.3.6.1.2.1.1.1.0" )
+      assert_equal( "\006\b+\006\001\002\001\001\001\000", oid.to_ber )
+  end
 
 
 end
