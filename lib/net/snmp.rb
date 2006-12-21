@@ -82,7 +82,7 @@ module Net
 	# SNMP 32-bit timer-ticks.
 	# Defined in RFC1155 (Structure of Mangement Information), section 6.
 	# A 32-bit counter is an ASN.1 application [3] implicit unsigned integer.
-	class TimerTicks32
+	class TimeTicks32
 	    def initialize value
 		@value = value
 	    end
