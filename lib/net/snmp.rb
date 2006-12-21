@@ -36,9 +36,9 @@ module Net
 	AsnSyntax = BER.compile_syntax({
 	    :application => {
 		:primitive => {
-		    1 => :integer,	# Counter32, (RFC1155 sec 6)
-		    2 => :integer,	# Gauge32, (RFC1155 sec 6)
-		    3 => :integer	# TimeTicks32, (RFC1155 sec 6)
+		    1 => :integer,	# Counter32, (RFC2578 sec 2)
+		    2 => :integer,	# Gauge32 or Unsigned32, (RFC2578 sec 2)
+		    3 => :integer	# TimeTicks32, (RFC2578 sec 2)
 		},
 		:constructed => {
 		}
@@ -70,6 +70,7 @@ module Net
 	# SNMP 32-bit gauge.
 	# Defined in RFC1155 (Structure of Mangement Information), section 6.
 	# A 32-bit counter is an ASN.1 application [2] implicit unsigned integer.
+	# This is also indistinguishable from Unsigned32. (Need to alias them.)
 	class Gauge32
 	    def initialize value
 		@value = value
