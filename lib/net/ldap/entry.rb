@@ -251,7 +251,7 @@ class LDAP
     def is_attribute_value_binary? value
       v = value.to_s
       v.each_byte {|byt|
-        return true if (byt < 33) || (byt > 126)
+        return true if (byt < 32) || (byt > 126)
       }
       if v[0..0] == ':' or v[0..0] == '<'
         return true
