@@ -1429,7 +1429,7 @@ module Net
       @conn.write pkt
 
       (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be )) && (pdu.app_tag == 7) or raise LdapError.new( "response missing or invalid" )
-      pdu.result_code
+      pdu.result
     end
 
 
