@@ -510,9 +510,17 @@ module Net
     #    puts "Message: #{ldap.get_operation_result.message}"
     #  end
     #
+    #--
+    # Modified the implementation, 20Mar07. We might get a hash of LDAP response codes
+    # instead of a simple numeric code.
+    #
     def get_operation_result
       os = OpenStruct.new
-      if @result
+      if @result.is_a?(Hash)
+	      os.code = (@result[:resultCode] || "").to_i
+	      os.error_message = @result[:errorMessage]
+	      os.matched_dn = @result[:matchedDN]
+      elsif @result
         os.code = @result
       else
         os.code = 0
@@ -802,6 +810,9 @@ module Net
     #  Net::LDAP.open (:host => host) do |ldap|
     #    ldap.add( :dn => dn, :attributes => attr )
     #  end
+    #--
+    # Provisional modification: Connection#add returns a full hash with LDAP status values,
+    # instead of the simple result number we're used to getting.
     #
     def add args
       if @open_connection
@@ -1421,6 +1432,10 @@ module Net
     #--
     # add
     # TODO, need to support a time limit, in case the server fails to respond.
+    # Unlike other operation-methods in this class, we return a result hash rather
+    # than a simple result number. This is experimental, and eventually we'll want
+    # to do this with all the others. The point is to have access to the error message
+    # and the matched-DN returned by the server.
     #
     def add args
       add_dn = args[:dn] or raise LdapError.new("Unable to add empty DN")
@@ -1434,7 +1449,7 @@ module Net
       @conn.write pkt
 
       (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be )) && (pdu.app_tag == 9) or raise LdapError.new( "response missing or invalid" )
-      pdu.result_code
+      pdu.result
     end
 
 

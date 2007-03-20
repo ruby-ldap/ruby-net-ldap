@@ -119,6 +119,14 @@ class LdapPdu
     end
   end
 
+  # Returns a hash which (usually) defines the members :resultCode, :errorMessage, and :matchedDN.
+  # These values come directly from an LDAP response packet returned by the remote peer.
+  # See #result_code for a sugaring.
+  #
+  def result
+	  @ldap_result || {}
+  end
+
   #
   # result_code
   # This returns an LDAP result code taken from the PDU,

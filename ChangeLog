@@ -26,6 +26,8 @@
 * Added missing synactic support for Filter ANDs, NOTs and a few other
   things.
 * Added some support for SNMP data-handling.
+* Extended support for server-reported error messages. This was provisionally
+  added to Net::LDAP#add, and eventually will be added to other methods.
 
 
 == Net::LDAP 0.0.4: August 15, 2006
