@@ -510,6 +510,10 @@ module Net
     #    puts "Message: #{ldap.get_operation_result.message}"
     #  end
     #
+    # Certain operations return additional information, accessible through members
+    # of the object returned from #get_operation_result. Check #get_operation_result.error_message
+    # and #get_operation_result.matched_dn.
+    #
     #--
     # Modified the implementation, 20Mar07. We might get a hash of LDAP response codes
     # instead of a simple numeric code.
