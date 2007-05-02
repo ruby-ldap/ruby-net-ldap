@@ -124,11 +124,11 @@ module Net
 	    :constructed => {
 		16 => :array,
 		17 => :array
-	    },
-	    :context_specific => {
-			:primitive => {
-				10 => :integer
-			}
+	    }
+	},
+	:context_specific => {
+	    :primitive => {
+		10 => :integer
 	    }
 	}
     })
