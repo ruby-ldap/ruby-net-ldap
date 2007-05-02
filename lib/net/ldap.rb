@@ -1059,7 +1059,8 @@ module Net
 	# Return the root Subschema record from the LDAP server as a Net::LDAP::Entry,
 	# or an empty Entry if the server doesn't return the record. On success, the
 	# Net::LDAP::Entry returned from this call will have the attributes :dn,
-	# :objectclasses, and :attributetypes.
+	# :objectclasses, and :attributetypes. If there is an error, call #get_operation_result
+	# for more information.
 	#  
 	#  ldap = Net::LDAP.new
 	#  ldap.host = "your.ldap.host"
