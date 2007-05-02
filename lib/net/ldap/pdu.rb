@@ -47,6 +47,8 @@ class LdapPdu
   DeleteResponse = 11
   ModifyRDNResponse = 13
   SearchResultReferral = 19
+  ExtendedRequest = 23
+  ExtendedResponse = 24
 
   attr_reader :msg_id, :app_tag
   attr_reader :search_dn, :search_attributes, :search_entry
@@ -114,6 +116,8 @@ class LdapPdu
       parse_bind_request ber_object[1]
     when UnbindRequest
       parse_unbind_request ber_object[1]
+    when ExtendedResponse
+      parse_ldap_result ber_object[1]
     else
       raise LdapPduError.new( "unknown pdu-type: #{@app_tag}" )
     end

@@ -28,6 +28,8 @@
 * Added some support for SNMP data-handling.
 * Extended support for server-reported error messages. This was provisionally
   added to Net::LDAP#add, and eventually will be added to other methods.
+* Belatedly added a patch contributed by Kouhei Sutou last October.
+  The patch adds start_tls support.
 
 
 == Net::LDAP 0.0.4: August 15, 2006

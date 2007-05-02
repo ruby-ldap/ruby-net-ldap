@@ -321,6 +321,7 @@ module Net
     DefaultAuth = {:method => :anonymous}
     DefaultTreebase = "dc=com"
 
+    StartTlsOid = "1.3.6.1.4.1.1466.20037"
 
     ResultStrings = {
       0 => "Success",
@@ -473,8 +474,9 @@ module Net
     # unencrypted connections.]</i>
     #
     def encryption args
-      if args == :simple_tls
-        args = {:method => :simple_tls}
+      case args
+      when :simple_tls, :start_tls
+	      args = {:method => args}
       end
       @encryption = args
     end
@@ -1114,6 +1116,11 @@ module Net
     # OBSERVE: WE REPLACE the value of @conn, which is presumed to be a connected
     # TCPsocket object.
     #
+    # The start_tls method is supported by many servers over the standard LDAP port.
+    # It does not require an alternative port for encrypted communications, as with
+    # simple_tls.
+    # Thanks for Kouhei Sutou for generously contributing the :start_tls path.
+    #
     def setup_encryption args
       case args[:method]
       when :simple_tls
@@ -1123,6 +1130,24 @@ module Net
         @conn.connect
         @conn.sync_close = true
       # additional branches requiring server validation and peer certs, etc. go here.
+	when :start_tls
+		raise LdapError.new("openssl unavailable") unless $net_ldap_openssl_available
+		msgid = next_msgid.to_ber
+		request = [StartTlsOid.to_ber].to_ber_appsequence( Net::LdapPdu::ExtendedRequest )
+		request_pkt = [msgid, request].to_ber_sequence
+		@conn.write request_pkt
+		be = @conn.read_ber(AsnSyntax)
+		raise LdapError.new("no start_tls result") if be.nil?
+		pdu = Net::LdapPdu.new(be)
+		raise LdapError.new("no start_tls result") if pdu.nil?
+		if pdu.result_code.zero?
+			ctx = OpenSSL::SSL::SSLContext.new
+			@conn = OpenSSL::SSL::SSLSocket.new(@conn, ctx)
+			@conn.connect
+			@conn.sync_close = true
+		else
+			raise LdapError.new("start_tls failed: #{pdu.result_code}")
+		end
       else
         raise LdapError.new( "unsupported encryption method #{args[:method]}" )
       end
