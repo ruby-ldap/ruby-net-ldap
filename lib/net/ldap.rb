@@ -1060,6 +1060,19 @@ module Net
 	# or an empty Entry is the server doesn't return the record. On success, the
 	# Net::LDAP::Entry returned from this call will have the attributes :dn,
 	# :objectclasses, and :attributetypes.
+	#  
+	#  ldap = Net::LDAP.new
+	#  ldap.host = "your.ldap.host"
+	#  ldap.auth "your-user-dn", "your-psw"
+	#  subschema_entry = ldap.search_subschema_entry
+	#  
+	#  subschema_entry.attributetypes.each do |attrtype|
+	#      # your code
+	#  end
+	#  
+	#  subschema_entry.objectclasses.each do |attrtype|
+	#      # your code
+	#  end
 	#--
 	# cf. RFC4512 section 4.
 	# The :dn attribute in the returned Entry is the subschema name as returned from
