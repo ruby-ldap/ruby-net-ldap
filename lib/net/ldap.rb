@@ -1075,7 +1075,7 @@ module Net
 	#      # your code
 	#  end
 	#--
-	# cf. RFC4512 section 4.
+	# cf. RFC4512 section 4, particulary graff 4.4.
 	# The :dn attribute in the returned Entry is the subschema name as returned from
 	# the server.
 	# Set :ignore_server_caps, see the notes in search_root_dse.
@@ -1095,7 +1095,7 @@ module Net
 			    :ignore_server_caps=>true,
 			    :base=>subschema_name.first,
 			    :scope=>SearchScope_BaseObject,
-			    :filter=>"objectclass=*",
+			    :filter=>"objectclass=subschema",
 			    :attributes=>[:objectclasses, :attributetypes]
 		)
 
