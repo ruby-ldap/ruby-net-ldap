@@ -1087,12 +1087,12 @@ module Net
 			    :attributes=>[:subschemaSubentry]
 		)
 		return Entry.new unless (rs and rs.first)
-		subschema_name = rs.subschemasubentry
+		subschema_name = rs.first.subschemasubentry
 		return Entry.new unless (subschema_name and subschema_name.first)
 
 		rs = search(
 			    :ignore_server_caps=>true,
-			    :base=>subschema_name,
+			    :base=>subschema_name.first,
 			    :scope=>SearchScope_BaseObject,
 			    :filter=>"objectclass=*",
 			    :attributes=>[:objectclasses, :attributetypes]
