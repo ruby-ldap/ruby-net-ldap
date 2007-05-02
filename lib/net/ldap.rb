@@ -1055,6 +1055,40 @@ module Net
       (rs and rs.first) or Entry.new
     end
 
+
+	# Return the root Subschema record from the LDAP server as a Net::LDAP::Entry,
+	# or an empty Entry is the server doesn't return the record. On success, the
+	# Net::LDAP::Entry returned from this call will have the attributes :dn,
+	# :objectclasses, and :attributetypes.
+	#--
+	# cf. RFC4512 section 4.
+	# The :dn attribute in the returned Entry is the subschema name as returned from
+	# the server.
+	# Set :ignore_server_caps, see the notes in search_root_dse.
+	#
+	def search_subschema_entry
+		rs = search(
+			    :ignore_server_caps=>true,
+			    :base=>"",
+			    :scope=>SearchScope_BaseObject,
+			    :attributes=>[:subschemaSubentry]
+		)
+		return Entry.new unless (rs and rs.first)
+		subschema_name = rs.subschemasubentry
+		return Entry.new unless (subschema_name and subschema_name.first)
+
+		rs = search(
+			    :ignore_server_caps=>true,
+			    :base=>subschema_name,
+			    :scope=>SearchScope_BaseObject,
+			    :filter=>"objectclass=*",
+			    :attributes=>[:objectclasses, :attributetypes]
+		)
+
+		(rs and rs.first) or Entry.new
+	end
+
+
     #--
     # Convenience method to query server capabilities.
     # Only do this once per Net::LDAP object.
