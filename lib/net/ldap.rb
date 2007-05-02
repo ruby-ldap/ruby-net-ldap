@@ -1057,7 +1057,7 @@ module Net
 
 
 	# Return the root Subschema record from the LDAP server as a Net::LDAP::Entry,
-	# or an empty Entry is the server doesn't return the record. On success, the
+	# or an empty Entry if the server doesn't return the record. On success, the
 	# Net::LDAP::Entry returned from this call will have the attributes :dn,
 	# :objectclasses, and :attributetypes.
 	#  
