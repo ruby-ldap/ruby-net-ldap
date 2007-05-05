@@ -115,6 +115,11 @@ class Filter
   # Removed GT and LT. They're not in the RFC.
   def ~@; Filter.new :not, self, nil; end
 
+  	# Equality operator for filters, useful primarily for constructing unit tests.
+	def == filter
+		str = "[@op,@left,@right]"
+		self.instance_eval(str) == filter.instance_eval(str)
+	end
 
   def to_s
     case @op
@@ -224,6 +229,58 @@ class Filter
     end
   end
 
+
+	# Converts an LDAP search filter in BER format to an Net::LDAP::Filter
+	# object. The incoming BER object most likely came to us by parsing an
+	# LDAP searchRequest PDU.
+	# Cf the comments under #to_ber, including the grammar snippet from the RFC.
+	#--
+	# We're hardcoding the BER constants from the RFC. Ought to break them out
+	# into constants.
+	#
+	def Filter::parse_ber ber
+		case ber.ber_identifier
+		when 0xa0 # context-specific constructed 0, "and"
+			ber.map {|b| Filter::parse_ber(b)}.inject {|memo,obj| memo & obj}
+		when 0xa1 # context-specific constructed 1, "or"
+			ber.map {|b| Filter::parse_ber(b)}.inject {|memo,obj| memo | obj}
+		when 0xa2 # context-specific constructed 2, "not"
+			~ Filter::parse_ber( ber.first )
+		when 0xa3 # context-specific constructed 3, "equalityMatch"
+			if ber.last == "*"
+			else
+				Filter.eq( ber.first, ber.last )
+			end
+		when 0xa4 # context-specific constructed 4, "substring"
+			str = ""
+			final = false
+			ber.last.each {|b|
+				case b.ber_identifier
+				when 0x80 # context-specific primitive 0, SubstringFilter "initial"
+					raise "unrecognized substring filter, bad initial" if str.length > 0
+					str += b
+				when 0x81 # context-specific primitive 0, SubstringFilter "any"
+					str += "*#{b}"
+				when 0x82 # context-specific primitive 0, SubstringFilter "final"
+					str += "*#{b}"
+					final = true
+				end
+			}
+			str += "*" unless final
+			Filter.eq( ber.first.to_s, str )
+		when 0xa5 # context-specific constructed 5, "greaterOrEqual"
+			Filter.ge( ber.first.to_s, ber.last.to_s )
+		when 0xa6 # context-specific constructed 5, "lessOrEqual"
+			Filter.le( ber.first.to_s, ber.last.to_s )
+		when 0x87 # context-specific primitive 7, "present"
+			# call to_s to get rid of the BER-identifiedness of the incoming string.
+			Filter.pres( ber.to_s )
+		else
+			raise "invalid BER tag-value (#{ber.ber_identifier}) in search filter"
+		end
+	end
+
+
   #--
   # coalesce
   # This is a private helper method for dealing with chains of ANDs and ORs
@@ -258,6 +315,8 @@ class Filter
       raise LdapError.new( "unknown ldap search-filter type: #{obj.ber_identifier}" )
     end
   end
+
+
 
 
   #--

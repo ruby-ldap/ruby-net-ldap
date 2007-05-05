@@ -75,6 +75,11 @@ task :test_snmp do |t|
   run_test_set t, ['tests/testsnmp.rb', 'tests/testber.rb']
 end
 
+desc "(Provisional) Run tests for filters"
+task :test_filters do |t|
+  run_test_set t, ['tests/testfilter.rb']
+end
+
 spec = eval(File.read("net-ldap.gemspec"))
 spec.version = $version
 desc "Build the RubyGem for #$name."

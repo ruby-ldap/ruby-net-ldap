@@ -311,6 +311,8 @@ module Net
           2 => :array,              # SearchFilter-NOT
           3 => :array,              # Seach referral
           4 => :array,              # unknown use in Microsoft Outlook
+          5 => :array,              # SearchFilter-GE
+          6 => :array,              # SearchFilter-LE
           7 => :array,              # serverSaslCreds
         }
       }
