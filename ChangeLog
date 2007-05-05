@@ -31,6 +31,9 @@
 * Belatedly added a patch contributed by Kouhei Sutou last October.
   The patch adds start_tls support.
 * Added Net::LDAP#search_subschema_entry
+* Added Net::LDAP::Filter#parse_ber, which constructs Net::LDAP::Filter
+  objects directly from BER objects that represent search filters in
+  LDAP SearchRequest packets.
 
 
 == Net::LDAP 0.0.4: August 15, 2006
