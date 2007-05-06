@@ -34,6 +34,8 @@
 * Added Net::LDAP::Filter#parse_ber, which constructs Net::LDAP::Filter
   objects directly from BER objects that represent search filters in
   LDAP SearchRequest packets.
+* Added Net::LDAP::Filter#execute, which allows arbitrary processing
+  based on LDAP filters.
 
 
 == Net::LDAP 0.0.4: August 15, 2006
