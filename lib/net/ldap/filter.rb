@@ -281,6 +281,51 @@ class Filter
 	end
 
 
+	# Perform filter operations against a user-supplied block. This is useful when implementing
+	# an LDAP directory server. The caller's block will be called with two arguments: first, a
+	# symbol denoting the "operation" of the filter; and second, an array consisting of arguments
+	# to the operation. The user-supplied block (which is MANDATORY) should perform some desired
+	# application-defined processing, and may return a locally-meaningful object that will appear
+	# as a parameter in the :and, :or and :not operations detailed below.
+	#
+	# A typical object to return from the user-supplied block is an array of
+	# Net::LDAP::Filter objects.
+	#
+	# These are the possible values that may be passed to the user-supplied block:
+	#  :equalityMatch (the arguments will be an attribute name and a value to be matched);
+	#  :substrings (two arguments: an attribute name and a value containing one or more * characters);
+	#  :present (one argument: an attribute name);
+	#  :greaterOrEqual (two arguments: an attribute name and a value to be compared against);
+	#  :lessOrEqual (two arguments: an attribute name and a value to be compared against);
+	#  :and (two or more arguments, each of which is an object returned from a recursive call
+	#     to #execute, with the same block;
+	#  :or (two or more arguments, each of which is an object returned from a recursive call
+	#     to #execute, with the same block;
+	#  :not (one argument, which is an object returned from a recursive call to #execute with the
+	#     the same block.
+	#
+	def execute &block
+		case @op
+		when :eq
+			if @right == "*"
+				yield :present, @left
+			elsif @right.index '*'
+				yield :substrings, @left, @right
+			else
+				yield :equalityMatch, @left, @right
+			end
+		when :ge
+			yield :greaterOrEqual, @left, @right
+		when :le
+			yield :lessOrEqual, @left, @right
+		when :or, :and
+			yield @op, (@left.execute &block), (@right.execute &block)
+		when :not
+			yield @op, (@left.execute &block)
+		end || []
+	end
+
+
   #--
   # coalesce
   # This is a private helper method for dealing with chains of ANDs and ORs
