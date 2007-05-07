@@ -727,7 +727,7 @@ module Net
         @result = @open_connection.bind auth
       else
         conn = Connection.new( :host => @host, :port => @port , :encryption => @encryption)
-        @result = conn.bind @auth
+        @result = conn.bind auth
         conn.close
       end
 
