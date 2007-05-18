@@ -319,9 +319,9 @@ class Filter
 		when :le
 			yield :lessOrEqual, @left, @right
 		when :or, :and
-			yield @op, (@left.execute &block), (@right.execute &block)
+			yield @op, (@left.execute(&block)), (@right.execute(&block))
 		when :not
-			yield @op, (@left.execute &block)
+			yield @op, (@left.execute(&block))
 		end || []
 	end
 
