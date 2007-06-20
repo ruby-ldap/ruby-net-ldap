@@ -38,6 +38,8 @@
   based on LDAP filters.
 * Fixed bug in Net::LDAP#bind. We were ignoring the passed-in auth parm.
   Thanks to Kouhei Sutou for spotting it.
+* Patched filter syntax to support octal \XX codes. Thanks to Kouhei Sutou
+  for the patch.
 
 == Net::LDAP 0.0.4: August 15, 2006
 * Undeprecated Net::LDAP#modify. Thanks to Justin Forder for
