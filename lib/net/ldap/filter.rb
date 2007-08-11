@@ -208,12 +208,12 @@ class Filter
         end
         [@left.to_s.to_ber, seq.to_ber].to_ber_contextspecific 4
       else                      #equality
-        [@left.to_s.to_ber, @right.to_ber].to_ber_contextspecific 3
+        [@left.to_s.to_ber, unescape(@right).to_ber].to_ber_contextspecific 3
       end
     when :ge
-      [@left.to_s.to_ber, @right.to_ber].to_ber_contextspecific 5
+      [@left.to_s.to_ber, unescape(@right).to_ber].to_ber_contextspecific 5
     when :le
-      [@left.to_s.to_ber, @right.to_ber].to_ber_contextspecific 6
+      [@left.to_s.to_ber, unescape(@right).to_ber].to_ber_contextspecific 6
     when :and
       ary = [@left.coalesce(:and), @right.coalesce(:and)].flatten
       ary.map {|a| a.to_ber}.to_ber_contextspecific( 0 )
@@ -226,6 +226,12 @@ class Filter
       # ERROR, we'll return objectclass=* to keep things from blowing up,
       # but that ain't a good answer and we need to kick out an error of some kind.
       raise "unimplemented search filter"
+    end
+  end
+
+  def unescape(right)
+    right.gsub(/\\([a-fA-F\d]{2,2})/) do
+      [$1.hex].pack("U")
     end
   end
 
