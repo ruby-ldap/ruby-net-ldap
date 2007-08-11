@@ -40,6 +40,7 @@
   Thanks to Kouhei Sutou for spotting it.
 * Patched filter syntax to support octal \XX codes. Thanks to Kouhei Sutou
   for the patch.
+* Applied an additional patch from Kouhei.
 
 == Net::LDAP 0.0.4: August 15, 2006
 * Undeprecated Net::LDAP#modify. Thanks to Justin Forder for
