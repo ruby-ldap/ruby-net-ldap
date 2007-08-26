@@ -471,7 +471,7 @@ class FilterParser #:nodoc:
         scanner.scan(/\s*/)
         #if value = scanner.scan( /[\w\*\.]+/ ) (ORG)
         #if value = scanner.scan( /[\w\*\.\+\-@=#\$%&! ]+/ ) (ff suggested by Kouhei Sutou
-	if value = scanner.scan( /(?:[\w\*\.\+\-@=#\$%&! ]|\\[a-fA-F\d]{2,2})+/ )
+	if value = scanner.scan( /(?:[\w\*\.\+\-@=,#\$%&! ]|\\[a-fA-F\d]{2,2})+/ )
           case op
           when "="
             Filter.eq( token, value )
