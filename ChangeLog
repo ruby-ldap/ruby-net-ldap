@@ -42,6 +42,9 @@
   for the patch.
 * Applied an additional patch from Kouhei.
 * Allowed comma in filter strings, suggested by Kouhei.
+* 04Sep07, Changed four error classes to inherit from StandardError rather
+  Exception, in order to be friendlier to irb. Suggested by Kouhei.
+
 
 == Net::LDAP 0.0.4: August 15, 2006
 * Undeprecated Net::LDAP#modify. Thanks to Justin Forder for

@@ -94,7 +94,7 @@ module Net
     end
 
     class SnmpPdu
-	class Error < Exception; end
+	class Error < StandardError; end
 
 	PduTypes = [
 	    :get_request,

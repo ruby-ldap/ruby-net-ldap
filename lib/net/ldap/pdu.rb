@@ -31,7 +31,7 @@
 module Net
 
 
-class LdapPduError < Exception; end
+class LdapPduError < StandardError; end
 
 
 class LdapPdu

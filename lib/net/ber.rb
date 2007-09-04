@@ -33,7 +33,7 @@ module Net
 
   module BER
 
-  class BerError < Exception; end
+  class BerError < StandardError; end
 
 
   class BerIdentifiedString < String

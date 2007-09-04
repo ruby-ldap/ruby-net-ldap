@@ -261,7 +261,7 @@ module Net
 
   class LDAP
 
-    class LdapError < Exception; end
+    class LdapError < StandardError; end
 
     VERSION = "0.1.0"
 
