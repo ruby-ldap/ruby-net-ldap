@@ -709,6 +709,23 @@ module Net
     #    p ldap.get_operation_result
     #  end
     #
+    # Here's a more succinct example which does exactly the same thing, but
+    # collects all the required parameters into arguments:
+    #
+    #  require 'net/ldap'
+    #  ldap = Net::LDAP.new( :host=>your_server_ip_address, :port=>389 )
+    #  if ldap.bind( :method=>:simple, :username=>your_user_name, :password=>your_user_password )
+    #    # authentication succeeded
+    #  else
+    #    # authentication failed
+    #    p ldap.get_operation_result
+    #  end
+    #
+    # You don't need to pass a user-password as a String object to bind. You can
+    # also pass a Ruby Proc object which returns a string. This will cause bind to
+    # execute the Proc (which might then solicit input from a user with console display
+    # suppressed). The String value returned from the Proc is used as the password.
+    #
     # You don't have to create a new instance of Net::LDAP every time
     # you perform a binding in this way. If you prefer, you can cache the Net::LDAP object
     # and re-use it to perform subsequent bindings, <i>provided</i> you call
