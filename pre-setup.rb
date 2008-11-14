@@ -37,10 +37,9 @@ def run_tests(test_list)
   $:.shift
 end
 
-rdoc  = %w(--main README --line-numbers
-           --title MIME::Types)
+rdoc  = %w(--main README.txt --line-numbers)
 ri    = %w(--ri-site --merge)
-dox   = %w(README ChangeLog lib)
+dox   = %w(README.txt History.txt lib)
 build_rdoc rdoc + dox
 build_ri ri + dox
-# run_tests Dir["tests/**/*"]
+#run_tests Dir["test/**/*"]
