@@ -3,7 +3,7 @@
 require 'common'
 
 require 'net/ldif'
-require 'sha1'
+require 'digest/sha1'
 require 'base64'
 
 class TestLdif < Test::Unit::TestCase
@@ -24,7 +24,7 @@ class TestLdif < Test::Unit::TestCase
 
   def test_ldif_with_password
     psw = "goldbricks"
-    hashed_psw = "{SHA}" + Base64::encode64( SHA1.new(psw).digest ).chomp
+    hashed_psw = "{SHA}" + Base64::encode64(Digest::SHA1.digest(psw)).chomp
 
     ldif_encoded = Base64::encode64( hashed_psw ).chomp
     ds = Net::LDAP::Dataset::read_ldif( StringIO.new( "dn: Goldbrick\r\nuserPassword:: #{ldif_encoded}\r\n\r\n" ))
