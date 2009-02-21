@@ -1149,7 +1149,7 @@ module Net
     #
     def initialize server
       begin
-        @conn = TCPsocket.new( server[:host], server[:port] )
+        @conn = TCPSocket.new( server[:host], server[:port] )
       rescue
         raise LdapError.new( "no connection to server" )
       end
@@ -1181,7 +1181,7 @@ module Net
     # It doesn't do any server-cert validation and requires nothing in the way
     # of key files and root-cert files, etc etc.
     # OBSERVE: WE REPLACE the value of @conn, which is presumed to be a connected
-    # TCPsocket object.
+    # TCPSocket object.
     #
     # The start_tls method is supported by many servers over the standard LDAP port.
     # It does not require an alternative port for encrypted communications, as with
