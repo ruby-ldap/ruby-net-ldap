@@ -87,6 +87,7 @@ class LdapPdu
       # So it makes more sense just to grab the bottom five bits.
       #@app_tag = ber_object[1].ber_identifier - 0x60
       @app_tag = ber_object[1].ber_identifier & 31
+      @ldap_controls = []
     rescue
       # any error becomes a data-format error
       raise LdapPduError.new( "ldap-pdu format error" )
@@ -144,7 +145,7 @@ class LdapPdu
   # Return RFC-2251 Controls if any.
   # Messy. Does this functionality belong somewhere else?
   def result_controls
-    @ldap_controls || []
+    @ldap_controls
   end
 
   # Return serverSaslCreds, which are only present in BindResponse packets.
