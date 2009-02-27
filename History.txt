@@ -1,4 +1,4 @@
-=== Net::LDAP 0.0.5 / 2008-11-xx
+=== Net::LDAP 0.0.5 / 2009-03-xx
 
 * 13 minor enhancements:
   * Added Net::LDAP::Entry#to_ldif
@@ -22,7 +22,7 @@
     and marshalling.
   * Migrated to 'hoe' as the new project droid.
 
-* 13 bugs fixed:
+* 14 bugs fixed:
   * Silenced some annoying warnings in filter.rb. Thanks to "barjunk"
     for pointing this out.
   * Some fairly extensive performance optimizations in the BER parser.
@@ -43,7 +43,8 @@
   * Allowed comma in filter strings, suggested by Kouhei.
   * 04Sep07, Changed four error classes to inherit from StandardError rather
     Exception, in order to be friendlier to irb. Suggested by Kouhei.
-  * Minor bug fixes here and there
+  * Ensure connections are closed. Thanks to Kristian Meier.
+  * Minor bug fixes here and there.
 
 === Net::LDAP 0.0.4 / 2006-08-15
 

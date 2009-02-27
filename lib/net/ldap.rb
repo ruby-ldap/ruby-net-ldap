@@ -563,11 +563,14 @@ module Net
     # if the bind was unsuccessful.
     def open
       raise LdapError.new( "open already in progress" ) if @open_connection
-      @open_connection = Connection.new( :host => @host, :port => @port, :encryption => @encryption )
-      @open_connection.bind @auth
-      yield self
-      @open_connection.close
-      @open_connection = nil
+      begin
+        @open_connection = Connection.new( :host => @host, :port => @port, :encryption => @encryption )
+        @open_connection.bind @auth
+        yield self
+      ensure
+        @open_connection.close if @open_connection
+        @open_connection = nil
+      end
     end
 
 
@@ -664,14 +667,17 @@ module Net
         }
       else
         @result = 0
-        conn = Connection.new( :host => @host, :port => @port, :encryption => @encryption )
-        if (@result = conn.bind( args[:auth] || @auth )) == 0
-          @result = conn.search( args ) {|entry|
-            result_set << entry if result_set
-            yield( entry ) if block_given?
-          }
+        begin
+          conn = Connection.new( :host => @host, :port => @port, :encryption => @encryption )
+          if (@result = conn.bind( args[:auth] || @auth )) == 0
+            @result = conn.search( args ) {|entry|
+              result_set << entry if result_set
+              yield( entry ) if block_given?
+            }
+          end
+        ensure
+          conn.close if conn
         end
-        conn.close
       end
 
       @result == 0 and result_set
@@ -743,9 +749,12 @@ module Net
       if @open_connection
         @result = @open_connection.bind auth
       else
-        conn = Connection.new( :host => @host, :port => @port , :encryption => @encryption)
-        @result = conn.bind auth
-        conn.close
+        begin
+          conn = Connection.new( :host => @host, :port => @port , :encryption => @encryption)
+          @result = conn.bind auth
+        ensure
+          conn.close if conn
+        end
       end
 
       @result == 0
@@ -844,11 +853,14 @@ module Net
           @result = @open_connection.add( args )
       else
         @result = 0
-        conn = Connection.new( :host => @host, :port => @port, :encryption => @encryption)
-        if (@result = conn.bind( args[:auth] || @auth )) == 0
-          @result = conn.add( args )
+        begin
+          conn = Connection.new( :host => @host, :port => @port, :encryption => @encryption)
+          if (@result = conn.bind( args[:auth] || @auth )) == 0
+            @result = conn.add( args )
+          end
+        ensure
+          conn.close if conn
         end
-        conn.close
       end
       @result == 0
     end
@@ -939,11 +951,14 @@ module Net
           @result = @open_connection.modify( args )
       else
         @result = 0
-        conn = Connection.new( :host => @host, :port => @port, :encryption => @encryption )
-        if (@result = conn.bind( args[:auth] || @auth )) == 0
-          @result = conn.modify( args )
+        begin
+          conn = Connection.new( :host => @host, :port => @port, :encryption => @encryption )
+          if (@result = conn.bind( args[:auth] || @auth )) == 0
+            @result = conn.modify( args )
+          end
+        ensure
+          conn.close if conn
         end
-        conn.close
       end
       @result == 0
     end
@@ -1011,11 +1026,14 @@ module Net
           @result = @open_connection.rename( args )
       else
         @result = 0
-        conn = Connection.new( :host => @host, :port => @port, :encryption => @encryption )
-        if (@result = conn.bind( args[:auth] || @auth )) == 0
-          @result = conn.rename( args )
+        begin
+          conn = Connection.new( :host => @host, :port => @port, :encryption => @encryption )
+          if (@result = conn.bind( args[:auth] || @auth )) == 0
+            @result = conn.rename( args )
+          end
+        ensure
+          conn.close if conn
         end
-        conn.close
       end
       @result == 0
     end
@@ -1041,11 +1059,14 @@ module Net
           @result = @open_connection.delete( args )
       else
         @result = 0
-        conn = Connection.new( :host => @host, :port => @port, :encryption => @encryption )
-        if (@result = conn.bind( args[:auth] || @auth )) == 0
-          @result = conn.delete( args )
+        begin
+          conn = Connection.new( :host => @host, :port => @port, :encryption => @encryption )
+          if (@result = conn.bind( args[:auth] || @auth )) == 0
+            @result = conn.delete( args )
+          end
+        ensure
+          conn.close
         end
-        conn.close
       end
       @result == 0
     end
