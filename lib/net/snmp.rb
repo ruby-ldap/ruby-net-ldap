@@ -26,9 +26,6 @@
 #
 #
 
-require 'net/ber'
-
-
 module Net
 
     class SNMP

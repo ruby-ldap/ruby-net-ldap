@@ -408,7 +408,6 @@ class FilterParser #:nodoc:
   attr_reader :filter
 
   def initialize str
-    require 'strscan'
     @filter = parse( StringScanner.new( str )) or raise Net::LDAP::LdapError.new( "invalid filter syntax" )
   end
 

@@ -27,13 +27,8 @@
 # THIS FILE IS A STUB.
 
 module Net
-
   class LDIF
-
-
-  end # class LDIF
-
-
-end # module Net
+  end
+end
 
 

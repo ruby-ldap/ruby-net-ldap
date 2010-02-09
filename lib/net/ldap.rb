@@ -9,32 +9,19 @@
 #
 # This program is free software.
 # You may re-distribute and/or modify this program under the same terms
-# as Ruby itself: Ruby Distribution License or GNU General Public License.
+# as Ruby itself: Ruby Distribution License or GNU General Public License.x
 #
 #
 # See Net::LDAP for documentation and usage samples.
 #
 
-
-require 'socket'
-require 'ostruct'
-
-begin
-  require 'openssl'
-  $net_ldap_openssl_available = true
-rescue LoadError
-end
-
-require 'net/ber'
 require 'net/ldap/pdu'
 require 'net/ldap/filter'
 require 'net/ldap/dataset'
 require 'net/ldap/psw'
 require 'net/ldap/entry'
 
-
 module Net
-
 
   # == Net::LDAP
   #
@@ -273,30 +260,30 @@ module Net
 
     AsnSyntax = BER.compile_syntax({
       :application => {
-	:primitive => {
-	  2 => :null		    # UnbindRequest body
-        },
-        :constructed => {
-          0 => :array,              # BindRequest
-          1 => :array,              # BindResponse
-          2 => :array,              # UnbindRequest
-          3 => :array,              # SearchRequest
-          4 => :array,              # SearchData
-          5 => :array,              # SearchResult
-          6 => :array,              # ModifyRequest
-          7 => :array,              # ModifyResponse
-          8 => :array,              # AddRequest
-          9 => :array,              # AddResponse
-          10 => :array,             # DelRequest
-          11 => :array,             # DelResponse
-          12 => :array,             # ModifyRdnRequest
-          13 => :array,             # ModifyRdnResponse
-          14 => :array,             # CompareRequest
-          15 => :array,             # CompareResponse
-          16 => :array,             # AbandonRequest
-          19 => :array,             # SearchResultReferral
-          24 => :array,             # Unsolicited Notification
-        }
+	      :primitive => {
+      	  2 => :null		    # UnbindRequest body
+              },
+              :constructed => {
+                0 => :array,              # BindRequest
+                1 => :array,              # BindResponse
+                2 => :array,              # UnbindRequest
+                3 => :array,              # SearchRequest
+                4 => :array,              # SearchData
+                5 => :array,              # SearchResult
+                6 => :array,              # ModifyRequest
+                7 => :array,              # ModifyResponse
+                8 => :array,              # AddRequest
+                9 => :array,              # AddResponse
+                10 => :array,             # DelRequest
+                11 => :array,             # DelResponse
+                12 => :array,             # ModifyRdnRequest
+                13 => :array,             # ModifyRdnResponse
+                14 => :array,             # CompareRequest
+                15 => :array,             # CompareResponse
+                16 => :array,             # AbandonRequest
+                19 => :array,             # SearchResultReferral
+                24 => :array,             # Unsolicited Notification
+              }
       },
       :context_specific => {
         :primitive => {
@@ -745,7 +732,7 @@ module Net
     # on it. Otherwise, connect, bind, and disconnect.
     # The latter operation is obviously useful only as an auth check.
     #
-    def bind auth=@auth
+    def bind(auth=@auth)
       if @open_connection
         @result = @open_connection.bind auth
       else
@@ -1212,14 +1199,12 @@ module Net
     def setup_encryption args
       case args[:method]
       when :simple_tls
-        raise LdapError.new("openssl unavailable") unless $net_ldap_openssl_available
         ctx = OpenSSL::SSL::SSLContext.new
         @conn = OpenSSL::SSL::SSLSocket.new(@conn, ctx)
         @conn.connect
         @conn.sync_close = true
       # additional branches requiring server validation and peer certs, etc. go here.
 	when :start_tls
-		raise LdapError.new("openssl unavailable") unless $net_ldap_openssl_available
 		msgid = next_msgid.to_ber
 		request = [StartTlsOid.to_ber].to_ber_appsequence( Net::LdapPdu::ExtendedRequest )
 		request_pkt = [msgid, request].to_ber_sequence

@@ -43,10 +43,8 @@ class Password
   def generate( type, str )
     case type
     when :md5
-      require 'md5'
       "{MD5}#{ [MD5.new( str.to_s ).digest].pack("m").chomp }"
     when :sha
-      require 'sha1'
       "{SHA}#{ [SHA1.new( str.to_s ).digest].pack("m").chomp }"
     # when ssha
     else
