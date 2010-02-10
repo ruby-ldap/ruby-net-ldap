@@ -32,7 +32,7 @@ class TestSnmp < Test::Unit::TestCase
   # partially-received data streams, such as from network connections.
   def test_consume_string
       data = "xxx"
-      assert_equal( nil, data.read_ber! )
+      assert_equal( data.read_ber!, nil )
       assert_equal( "xxx", data )
 
       data = SnmpGetRequest + "!!!"

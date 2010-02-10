@@ -29,80 +29,78 @@
 
 
 module Net
-class LDAP
-
-class Dataset < Hash
-
-  attr_reader :comments
-
-
-  def Dataset::read_ldif io
-    ds = Dataset.new
-
-    line = io.gets && chomp
-    dn = nil
-
-    while line
-      io.gets and chomp
-      if $_ =~ /^[\s]+/
-        line << " " << $'
-      else
-        nextline = $_
-
-        if line =~ /^\#/
-          ds.comments << line
-        elsif line =~ /^dn:[\s]*/i
-          dn = $'
-          ds[dn] = Hash.new {|k,v| k[v] = []}
-        elsif line.length == 0
-          dn = nil
-        elsif line =~ /^([^:]+):([\:]?)[\s]*/
-          # $1 is the attribute name
-          # $2 is a colon iff the attr-value is base-64 encoded
-          # $' is the attr-value
-          # Avoid the Base64 class because not all Ruby versions have it.
-          attrvalue = ($2 == ":") ? $'.unpack('m').shift : $'
-          ds[dn][$1.downcase.intern] << attrvalue
+  class LDAP
+    class Dataset < Hash
+      attr_reader :comments
+      class IOFilter
+        def initialize(io)
+          @io = io
         end
-
-        line = nextline
+        
+        def gets
+          s = @io.gets
+          s.chomp if s
+        end
       end
-    end
+      
+      def self.read_ldif io
+        ds = Dataset.new
+
+        line = io.gets
+        dn = nil
+
+        while line
+          io.gets and chomp
+          if new_line =~ /^[\s]+/
+            line << " " << $'
+          else
+            nextline = new_line
+
+            if line =~ /^\#/
+              ds.comments << line
+            elsif line =~ /^dn:[\s]*/i
+              dn = $'
+              ds[dn] = Hash.new {|k,v| k[v] = []}
+            elsif line.length == 0
+              dn = nil
+            elsif line =~ /^([^:]+):([\:]?)[\s]*/
+              # $1 is the attribute name
+              # $2 is a colon iff the attr-value is base-64 encoded
+              # $' is the attr-value
+              # Avoid the Base64 class because not all Ruby versions have it.
+              attrvalue = ($2 == ":") ? $'.unpack('m').shift : $'
+              ds[dn][$1.downcase.intern] << attrvalue
+            end
+
+            line = nextline
+          end
+        end
   
-    ds
-  end
+        ds
+      end
 
 
-  def initialize
-    @comments = []
-  end
+      def initialize
+        @comments = []
+      end
 
 
-  def to_ldif
-    ary = []
-    ary += (@comments || [])
+      def to_ldif
+        ary = []
+        ary += (@comments || [])
+        keys.sort.each do |dn|
+          ary << "dn: #{dn}"
 
-    keys.sort.each {|dn|
-      ary << "dn: #{dn}"
+          self[dn].keys.map {|sym| sym.to_s}.sort.each do |attr|
+            self[dn][attr.intern].each {|val| ary << "#{attr}: #{val}" }
+          end
 
-      self[dn].keys.map {|sym| sym.to_s}.sort.each {|attr|
-        self[dn][attr.intern].each {|val|
-          ary << "#{attr}: #{val}"
-        }
-      }
+          ary << ""
+        end
+        block_given? and ary.each {|line| yield line}
+        ary
+      end
 
-      ary << ""
-    }
-
-    block_given? and ary.each {|line| yield line}
-
-    ary
-  end
-
-
-end # Dataset
-
-end # LDAP
-end # Net
-
-
+    end 
+  end 
+end

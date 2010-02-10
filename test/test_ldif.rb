@@ -11,7 +11,7 @@ class TestLdif < Test::Unit::TestCase
   TestLdifFilename = "#{File.dirname(__FILE__)}/testdata.ldif"
 
   def test_empty_ldif
-    ds = Net::LDAP::Dataset::read_ldif( StringIO.new )
+    ds = Net::LDAP::Dataset.read_ldif( StringIO.new )
     assert_equal( true, ds.empty? )
   end
 
