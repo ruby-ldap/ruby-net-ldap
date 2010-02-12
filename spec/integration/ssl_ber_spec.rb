@@ -14,13 +14,16 @@ describe "BER serialisation (SSL)" do
     
     from.read
   end
-  
+    
   attr_reader :to, :from
   before(:each) do
     @from, @to = IO.pipe
     
-    @to   = Net::LDAP::SSLSocket.wrap(to)
-    @from = Net::LDAP::SSLSocket.wrap(from)
+    flexmock(OpenSSL::SSL::SSLSocket).
+      new_instances.should_receive(:connect => nil)
+              
+    @to   = Net::LDAP::Connection.wrap_with_ssl(to)
+    @from = Net::LDAP::Connection.wrap_with_ssl(from)
   end
   
   it "should transmit strings" do
