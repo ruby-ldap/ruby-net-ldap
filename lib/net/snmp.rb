@@ -30,7 +30,7 @@ module Net
 
     class SNMP
 
-	AsnSyntax = BER.compile_syntax({
+	AsnSyntax = Net::BER.compile_syntax({
 	    :application => {
 		:primitive => {
 		    1 => :integer,	# Counter32, (RFC2578 sec 2)
