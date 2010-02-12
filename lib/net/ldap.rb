@@ -1,25 +1,12 @@
-# $Id$
-#
-# Net::LDAP for Ruby
-#
-#
-# Copyright (C) 2006 by Francis Cianfrocca. All Rights Reserved.
-#
-# Written and maintained by Francis Cianfrocca, gmail: garbagecat10.
-#
-# This program is free software.
-# You may re-distribute and/or modify this program under the same terms
-# as Ruby itself: Ruby Distribution License or GNU General Public License.x
-#
-#
-# See Net::LDAP for documentation and usage samples.
-#
+require 'openssl'
 
+require 'net/ber'
 require 'net/ldap/pdu'
 require 'net/ldap/filter'
 require 'net/ldap/dataset'
 require 'net/ldap/psw'
 require 'net/ldap/entry'
+require 'net/ldap/core_ext/all'
 
 module Net
 
@@ -258,7 +245,7 @@ module Net
     SearchScope_WholeSubtree = 2
     SearchScopes = [SearchScope_BaseObject, SearchScope_SingleLevel, SearchScope_WholeSubtree]
 
-    AsnSyntax = BER.compile_syntax({
+    AsnSyntax = Net::BER.compile_syntax({
       :application => {
 	      :primitive => {
       	  2 => :null		    # UnbindRequest body

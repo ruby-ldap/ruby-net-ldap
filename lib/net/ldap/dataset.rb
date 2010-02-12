@@ -32,25 +32,26 @@ module Net
   class LDAP
     class Dataset < Hash
       attr_reader :comments
+
       class IOFilter
         def initialize(io)
           @io = io
         end
-        
         def gets
           s = @io.gets
           s.chomp if s
         end
       end
-      
+
       def self.read_ldif io
         ds = Dataset.new
+        io = IOFilter.new(io)
 
         line = io.gets
         dn = nil
 
         while line
-          io.gets and chomp
+          new_line = io.gets
           if new_line =~ /^[\s]+/
             line << " " << $'
           else
@@ -75,7 +76,7 @@ module Net
             line = nextline
           end
         end
-  
+
         ds
       end
 

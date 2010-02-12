@@ -17,22 +17,6 @@ require 'stringio'
 
 #------------------------------------------------
 
-class String
-  def read_ber! syntax=nil
-    s = StringIO.new self
-    pdu = s.read_ber(syntax)
-    if pdu
-      if s.eof?
-        slice!(0, length)
-      else
-        slice!(0, length - s.read.length)
-      end
-    end
-    pdu
-  end
-end
-
-
 module LdapServer
 
   LdapServerAsnSyntax = {

@@ -1,5 +1,3 @@
-# $Id$
-#
 # NET::BER
 # Mixes ASN.1/BER convenience methods into several standard classes.
 # Also provides BER parsing functionality.
@@ -25,8 +23,6 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #---------------------------------------------------------------------------
-#
-#
 
 module Net
   module BER
@@ -105,3 +101,4 @@ module Net
   end
 end
 
+require 'net/ber/ber_parser'
