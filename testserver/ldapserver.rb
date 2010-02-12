@@ -12,9 +12,6 @@
 # reactor library.
 #
 
-
-require 'stringio'
-
 #------------------------------------------------
 
 module LdapServer

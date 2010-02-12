@@ -1,3 +1,5 @@
+require 'stringio'
+
 module Net
   class LDAP
     module Extensions
@@ -29,18 +31,9 @@ module Net
         end
         
         def read_ber syntax=nil
-      	  StringIO.new(self).read_ber(syntax)
+          StringIO.new(self).
+            read_ber(syntax)
         end
-          
-        # def read_ber! syntax=nil
-        #           obj,n_consumed = read_ber_from_string(self, syntax)
-        #           if n_consumed
-        #             self.slice!(0...n_consumed)
-        #             obj
-        #           else
-        #             nil
-        #           end
-        # end        
       end
     end
   end

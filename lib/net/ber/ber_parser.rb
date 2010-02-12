@@ -33,19 +33,10 @@ module Net
         # packets coming from streams that don't block when
         # we ask for more data (like StringIOs). At it is,
         # this can throw TypeErrors and other nasties.
-        
-        # We might have been included in two kinds of things: IO-like 
-        # (answering to getbyte) and String-like (answering to to_s). Have 
-        # stream be a stream that is IO-like in both cases.
-        if respond_to? :getbyte
-          stream = self
-        else
-          stream = StringIO.new(self.to_s)
-        end
-        
-        id = stream.getbyte or return nil  # don't trash this value, we'll use it later
+                
+        id = getbyte or return nil  # don't trash this value, we'll use it later
 
-        n = stream.getbyte
+        n = getbyte
         lengthlength,contentlength = if n <= 127
           [1,n]
         else
@@ -56,7 +47,7 @@ module Net
           [1 + (n & 127), j]
         end
 
-        newobj = stream.read contentlength
+        newobj = read contentlength
 
         # This exceptionally clever and clear bit of code is verrrry slow.
         objtype = (syntax && syntax[id]) || BuiltinSyntax[id]

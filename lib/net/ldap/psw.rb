@@ -43,7 +43,7 @@ module Net
           when :md5
             [Digest::MD5.new, 'MD5']
           when :sha
-            [Digest::SHA1.new, 'sha']
+            [Digest::SHA1.new, 'SHA']
         # when ssha
           else
             raise Net::LDAP::LdapError.new( "unsupported password-hash type (#{type})" )

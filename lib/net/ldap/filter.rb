@@ -1,8 +1,3 @@
-# $Id$
-#
-#
-#----------------------------------------------------------------------------
-#
 # Copyright (C) 2006 by Francis Cianfrocca. All Rights Reserved.
 #
 # Gmail: garbagecat10
@@ -25,6 +20,7 @@
 #
 #
 
+require 'strscan'
 
 module Net
 class LDAP

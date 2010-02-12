@@ -77,7 +77,7 @@ module Net
     
     class BerIdentifiedArray < Array
       attr_accessor :ber_identifier
-      def initialize
+      def initialize(*args)
         super
       end
     end
@@ -86,16 +86,6 @@ module Net
       attr_accessor :ber_identifier
       def to_ber
         "\005\000"
-      end
-    end
-    
-    class BerIdentifiedOid
-      attr_accessor :ber_identifier
-      def initialize oid
-        if oid.is_a?(String)
-          oid = oid.split(/\./).map {|s| s.to_i }
-        end
-        @value = oid
       end
     end
   end

@@ -10,8 +10,8 @@ class Array
 end
 
 class String
-  include Net::LDAP::Extensions::String
   include Net::BER::BERParser
+  include Net::LDAP::Extensions::String
 end
 
 class Bignum

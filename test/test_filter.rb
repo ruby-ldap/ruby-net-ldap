@@ -74,7 +74,7 @@ class TestFilter < Test::Unit::TestCase
 			Net::LDAP::Filter.construct("objectclass=aaa*bbb*"),
 			Net::LDAP::Filter.construct("objectclass=aaa*bbb*ccc*"),
 		].each {|ber|
-			f = Net::LDAP::Filter.parse_ber( ber.to_ber.read_ber( Net::LDAP::AsnSyntax) )
+		f = Net::LDAP::Filter.parse_ber( ber.to_ber.read_ber( Net::LDAP::AsnSyntax) )
 			assert( f == ber )
 			assert_equal( f.to_ber, ber.to_ber )
 		}

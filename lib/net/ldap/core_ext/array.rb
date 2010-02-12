@@ -33,7 +33,7 @@ module Net
 
         private
         def to_ber_seq_internal code
-          s = self.to_s
+          s = self.join
           [code].pack('C') + s.length.to_ber_length_encoding + s
         end
       end
