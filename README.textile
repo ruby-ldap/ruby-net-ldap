@@ -1,10 +1,12 @@
 h1. Net::LDAP for Ruby
 
 Issues & Project Homepage
-* http://rubyforge.org/projects/net-ldap
+
+"http://rubyforge.org/projects/net-ldap":http://rubyforge.org/projects/net-ldap
 
 Code
-* git://github.com/RoryO/ruby-net-ldap.git
+
+"git://github.com/RoryO/ruby-net-ldap.git":git://github.com/RoryO/ruby-net-ldap.git
 
 h2. DESCRIPTION
 
