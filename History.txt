@@ -1,3 +1,9 @@
+=== Net::LDAP 0.1.0 / 2010-03-08
+
+* Ruby 1.9 support. Should now run with rubies starting 1.8.2 upwards.
+
+* New maintainers, new project repository location. Please see the README.txt.
+
 === Net::LDAP 0.0.5 / 2009-03-xx
 
 * 13 minor enhancements:

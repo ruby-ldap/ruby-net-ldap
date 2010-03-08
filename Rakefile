@@ -24,18 +24,16 @@ spec = Gem::Specification.new do |s|
   # Change these as appropriate
   s.name              = "net-ldap"
   s.version           = "0.1.0"
-  s.summary           = "What this thing does"
-  s.author            = "Francis Cianfrocca"
-  s.author            = 'Emiel van de Laar'
-  s.author            = "Rory O'Connell"
-  s.author            = "Kaspar Schiess"
+  s.summary           = "Net::LDAP is an LDAP support library written in pure Ruby. It supports most LDAP client features and a subset of server features as well."
+  s.authors = [
+    "Francis Cianfrocca", 
+    "Austin Ziegler", 
+    "Emiel van de Laar", 
+    "Rory O\'Connell",
+    "Kaspar Schiess"]
   
   s.description       = "Pure Ruby LDAP library"
   
-  # s.has_rdoc          = true
-  # s.extra_rdoc_files  = %w(README.txt)
-  # s.rdoc_options      = %w(--main README.txt)
-
   # Add any extra files to include in the gem
   s.files             = %w(COPYING History.txt LICENSE Rakefile README.txt) + Dir.glob("{spec,test,lib/**/*}")
   s.require_paths     = ["lib"]
