@@ -29,7 +29,7 @@ See Net::LDAP for documentation and usage samples.
 
 h2. REQUIREMENTS
 
-Net::LDAP requires Ruby 1.8.2 or better.
+Net::LDAP requires Ruby 1.8.7-compliant interpreter or better.
 
 h2. INSTALL
 
@@ -39,9 +39,8 @@ sources.
 
 * gem install net-ldap
 
-If using the packaged (.tgz) version; it can be installed with:
-
-* ruby setup.rb
+There is no installation required if using a source release.  Simply 
+unarchive and require 'lib/net'.
 
 h2. CREDITS
 
