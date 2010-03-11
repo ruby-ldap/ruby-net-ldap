@@ -110,16 +110,3 @@ task :build_manifest do |t|
 
   puts paths.sort.join("\n")
 end
-
-# require "rake/testtask"
-# Rake::TestTask.new do |t|
-#   t.libs << "test"
-#   t.test_files = FileList["test/test_*.rb"]
-#   t.verbose = true
-# end
-
-# require 'spec/rake/spectask'
-# Spec::Rake::SpecTask.new
-
-# task :default => ["test", 'spec']
-
