@@ -1,2 +1,8 @@
 pkg/
-*.gemspec
+*.swp
+html/
+doc/
+publish/
+coverage/
+coverage.info
+.rake_tasks~

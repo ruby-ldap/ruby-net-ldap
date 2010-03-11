@@ -1,67 +1,125 @@
 require "rubygems"
+require 'hanna/rdoctask'
+require 'hoe'
+
+$LOAD_PATH.unshift('lib')
+
+require 'net/ldap'
+
 require "rake/gempackagetask"
 require "rake/rdoctask"
 
-require "rake/testtask"
-Rake::TestTask.new do |t|
-  t.libs << "test"
-  t.test_files = FileList["test/test_*.rb"]
-  t.verbose = true
+PKG_NAME    = 'net-ldap'
+PKG_VERSION = Net::LDAP::VERSION
+PKG_DIST    = "#{PKG_NAME}-#{PKG_VERSION}"
+PKG_TAR     = "pkg/#{PKG_DIST}.tar.gz"
+MANIFEST    = File.read("Manifest.txt").split
+
+Hoe.spec PKG_NAME do
+  self.readme_file = "README.markdown"
+  self.version = PKG_VERSION
+  self.rubyforge_name = PKG_NAME
+
+  developer "Francis Cianfrocca", "blackhedd@rubyforge.org"
+  developer "Emiel van de Laar", "gemiel@gmail.com"
+  developer "Rory O'Connell", "rory.ocon@gmail.com"
+  developer "Kaspar Schiess", "kaspar.schiess@absurd.li"
+  developer "Austin Ziegler", "austin@rubyforge.org" 
+
+  self.url = %W(http://net-ldap.rubyforge.org/ http://github.com/RoryO/ruby-net-ldap)
+
+  self.summary = "Pure Ruby LDAP support library with most client features and some server features."
+  self.changes = paragraphs_of(self.history_file, 0..1).join("\n\n")
+  self.description = paragraphs_of(self.readme_file, 2..2).join("\n\n")
+
+  extra_dev_deps << [ "archive-tar-minitar", "~>0.5.1" ]
+  extra_dev_deps << [ "hanna", "~>0.1.2" ]
+  clean_globs << "coverage"
+
+  # This is a lie because I will continue to use Archive::Tar::Minitar.
+  self.need_tar        = false
 end
 
-require 'spec/rake/spectask'
-Spec::Rake::SpecTask.new
+desc "Build a Net-LDAP .tar.gz distribution."
+task :tar => [ PKG_TAR ]
+file PKG_TAR => [ :test ] do |t|
+  require 'archive/tar/minitar'
+  require 'zlib'
+  files = MANIFEST.map { |f|
+    fn = File.join(PKG_DIST, f)
+    tm = File.stat(f).mtime
 
-task :default => ["test", 'spec']
+    if File.directory?(f)
+      { :name => fn, :mode => 0755, :dir => true, :mtime => tm }
+    else
+      mode = if f =~ %r{^bin}
+               0755
+             else
+               0644
+             end
+      data = File.read(f)
+      { :name => fn, :mode => mode, :data => data, :size => data.size,
+        :mtime => tm }
+    end
+  }
 
-# This builds the actual gem. For details of what all these options
-# mean, and other ones you can add, check the documentation here:
-#
-#   http://rubygems.org/read/chapter/20
-#
-spec = Gem::Specification.new do |s|
+  begin
+    unless File.directory?(File.dirname(t.name))
+      require 'fileutils'
+      File.mkdir_p File.dirname(t.name)
+    end
+    tf = File.open(t.name, 'wb')
+    gz = Zlib::GzipWriter.new(tf)
+    tw = Archive::Tar::Minitar::Writer.new(gz)
 
-  # Change these as appropriate
-  s.name              = "net-ldap"
-  s.version           = "0.1.0"
-  s.summary           = "Net::LDAP is an LDAP support library written in pure Ruby. It supports most LDAP client features and a subset of server features as well."
-  s.authors = [
-    "Francis Cianfrocca", 
-    "Austin Ziegler", 
-    "Emiel van de Laar", 
-    "Rory O\'Connell",
-    "Kaspar Schiess"]
-  
-  s.description       = "Pure Ruby LDAP library"
-  
-  # Add any extra files to include in the gem
-  s.files             = %w(COPYING History.txt LICENSE Rakefile README.txt) + Dir.glob("{spec,test,lib/**/*}")
-  s.require_paths     = ["lib"]
+    files.each do |entry|
+      if entry[:dir]
+        tw.mkdir(entry[:name], entry)
+      else
+        tw.add_file_simple(entry[:name], entry) { |os|
+          os.write(entry[:data])
+        }
+      end
+    end
+  ensure
+    tw.close if tw
+    gz.close if gz
+  end
+end
+task :package => [ PKG_TAR ]
+
+desc "Build the manifest file from the current set of files."
+task :build_manifest do |t|
+  require 'find'
+
+  paths = []
+  Find.find(".") do |path|
+    next if File.directory?(path)
+    next if path =~ /\.svn/
+    next if path =~ /\.git/
+    next if path =~ /\.hoerc/
+    next if path =~ /\.swp$/
+    next if path =~ %r{coverage/}
+    next if path =~ /~$/
+    paths << path.sub(%r{^\./}, '')
+  end
+
+  File.open("Manifest.txt", "w") do |f|
+    f.puts paths.sort.join("\n")
+  end
+
+  puts paths.sort.join("\n")
 end
 
-# This task actually builds the gem. We also regenerate a static
-# .gemspec file, which is useful if something (i.e. GitHub) will
-# be automatically building a gem for this project. If you're not
-# using GitHub, edit as appropriate.
-#
-# To publish your gem online, install the 'gemcutter' gem; Read more 
-# about that here: http://gemcutter.org/pages/gem_docs
-Rake::GemPackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
+# require "rake/testtask"
+# Rake::TestTask.new do |t|
+#   t.libs << "test"
+#   t.test_files = FileList["test/test_*.rb"]
+#   t.verbose = true
+# end
 
-  # Generate the gemspec file for github.
-  file = File.dirname(__FILE__) + "/#{spec.name}.gemspec"
-  File.open(file, "w") {|f| f << spec.to_ruby }
-end
+# require 'spec/rake/spectask'
+# Spec::Rake::SpecTask.new
 
-# Generate documentation
-Rake::RDocTask.new do |rd|
-  rd.main = "README.txt"
-  rd.rdoc_files.include("README.txt", "lib/**/*.rb")
-  rd.rdoc_dir = "rdoc"
-end
+# task :default => ["test", 'spec']
 
-desc 'Clear out RDoc and generated packages'
-task :clean => [:clobber_rdoc, :clobber_package] do
-  rm "#{spec.name}.gemspec"
-end

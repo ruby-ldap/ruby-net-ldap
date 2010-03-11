@@ -1,18 +1,20 @@
-h1. Net::LDAP for Ruby
+# Net::LDAP for Ruby
 
-Issues & Project Homepage
-
-"http://rubyforge.org/projects/net-ldap":http://rubyforge.org/projects/net-ldap
-
-Code
-
-"git://github.com/RoryO/ruby-net-ldap.git":git://github.com/RoryO/ruby-net-ldap.git
-
-h2. DESCRIPTION
+## DESCRIPTION
 
 Pure Ruby LDAP library.
 
-h2. FEATURES/PROBLEMS
+## Where
+
+### Issues & Project Homepage
+
+[http://rubyforge.org/projects/net-ldap][http://rubyforge.org/projects/net-ldap]
+
+### Code
+
+[git://github.com/RoryO/ruby-net-ldap.git][git://github.com/RoryO/ruby-net-ldap.git]
+
+## FEATURES/PROBLEMS
 
 The Lightweight Directory Access Protocol (LDAP) is an Internet protocol for
 accessing distributed directory services.
@@ -23,15 +25,15 @@ LDAP client features and a subset of server features as well.
 * Standards-based (going for RFC 4511)
 * Portable: 100% Ruby
 
-h2. SYNOPSIS
+## SYNOPSIS
 
 See Net::LDAP for documentation and usage samples.
 
-h2. REQUIREMENTS
+## REQUIREMENTS
 
 Net::LDAP requires Ruby 1.8.7-compliant interpreter or better.
 
-h2. INSTALL
+## INSTALL
 
 Net::LDAP is a pure Ruby library. It does not require any external libraries.
 You can install the RubyGems version of Net::LDAP available from the usual
@@ -42,7 +44,7 @@ sources.
 There is no installation required if using a source release.  Simply 
 unarchive and require 'lib/net'.
 
-h2. CREDITS
+## CREDITS
 
 Net::LDAP was originally developed by:
 
@@ -50,12 +52,12 @@ Net::LDAP was originally developed by:
 
 Contributions since:
 
-* Austin Ziegler <halostatue@gmail.com>
 * Emiel van de Laar <gemiel@gmail.com>
 * Rory O'Connell <rory.ocon@gmail.com>
 * Kaspar Schiess <kaspar.schiess@absurd.li>
+* Austin Ziegler <austin@rubyforge.com>
 
-h2. LICENSE
+## LICENSE
 
 Copyright (C) 2006 by Francis Cianfrocca
 
