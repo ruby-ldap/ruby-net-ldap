@@ -1,6 +1,6 @@
 # Net::LDAP for Ruby
 
-## DESCRIPTION
+## Description
 
 Pure Ruby LDAP library.
 
@@ -8,11 +8,11 @@ Pure Ruby LDAP library.
 
 ### Issues & Project Homepage
 
-[http://rubyforge.org/projects/net-ldap][http://rubyforge.org/projects/net-ldap]
+[http://rubyforge.org/projects/net-ldap][1]
 
 ### Code
 
-[git://github.com/RoryO/ruby-net-ldap.git][git://github.com/RoryO/ruby-net-ldap.git]
+[http://github.com/RoryO/ruby-net-ldap/][2]
 
 ## FEATURES/PROBLEMS
 
@@ -67,3 +67,6 @@ itself.
 
 Available under the same terms as Ruby. See LICENSE in the main distribution
 for full licensing information.
+
+[1]:http://rubyforge.org/projects/net-ldap/
+[2]:http://github.com/RoryO/ruby-net-ldap/
