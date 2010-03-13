@@ -490,5 +490,3 @@ end # class Net::LDAP::FilterParser
 
 end # class Net::LDAP
 end # module Net
-
-

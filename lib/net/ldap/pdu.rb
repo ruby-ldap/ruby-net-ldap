@@ -1,4 +1,3 @@
-# $Id$
 #
 # LDAP PDU support classes
 #
@@ -24,12 +23,12 @@
 #
 #---------------------------------------------------------------------------
 
-module Net
+require 'ostruct'
 
+module Net
 	class LdapPduError < StandardError; end
 
 	class LdapPdu
-
 		BindRequest = 0
 		BindResult = 1
 		UnbindRequest = 2

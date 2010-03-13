@@ -1,4 +1,5 @@
 require 'openssl'
+require 'ostruct'
 
 require 'net/ber'
 require 'net/ldap/pdu'
@@ -9,7 +10,6 @@ require 'net/ldap/entry'
 require 'net/ldap/core_ext/all'
 
 module Net
-
   # == Net::LDAP
   #
   # This library provides a pure-Ruby implementation of the
@@ -231,14 +231,10 @@ module Net
   # and then disconnect from the server. The exception is Net::LDAP#open, which makes a connection
   # to the server and then keeps it open while it executes a user-supplied block. Net::LDAP#open
   # closes the connection on completion of the block.
-  #
-
   class LDAP
-
     class LdapError < StandardError; end
 
-    VERSION = "0.0.5"
-
+    VERSION = "0.5.0"
 
     SearchScope_BaseObject = 0
     SearchScope_SingleLevel = 1
@@ -322,22 +318,16 @@ module Net
       68 => "Entry Already Exists"
     }
 
-
     module LdapControls
       PagedResults = "1.2.840.113556.1.4.319" # Microsoft evil from RFC 2696
     end
 
-
-    #
     # LDAP::result2string
-    #
     def LDAP::result2string code # :nodoc:
       ResultStrings[code] || "unknown result (#{code})"
     end 
 
-
     attr_accessor :host, :port, :base
-
 
     # Instantiate an object of type Net::LDAP to perform directory operations.
     # This constructor takes a Hash containing arguments, all of which are either optional or may be specified later with other methods as described below. The following arguments
@@ -457,7 +447,6 @@ module Net
       @encryption = args
     end
 
-
     # #open takes the same parameters as #new. #open makes a network connection to the
     # LDAP server and then passes a newly-created Net::LDAP object to the caller-supplied block.
     # Within the block, you can call any of the instance methods of Net::LDAP to
@@ -478,24 +467,25 @@ module Net
       ldap1.open {|ldap| yield ldap }
     end
 
-    # Returns a meaningful result any time after
-    # a protocol operation (#bind, #search, #add, #modify, #rename, #delete)
-    # has completed.
-    # It returns an #OpenStruct containing an LDAP result code (0 means success),
-    # and a human-readable string.
+    # Returns a meaningful result any time after a protocol operation
+    # (#bind, #search, #add, #modify, #rename, #delete) has completed.
+    # It returns an #OpenStruct containing an LDAP result code (0 means
+    # success), and a human-readable string.
+    #
     #  unless ldap.bind
     #    puts "Result: #{ldap.get_operation_result.code}"
     #    puts "Message: #{ldap.get_operation_result.message}"
     #  end
     #
-    # Certain operations return additional information, accessible through members
-    # of the object returned from #get_operation_result. Check #get_operation_result.error_message
-    # and #get_operation_result.matched_dn.
+    # Certain operations return additional information, accessible through
+    # members of the object returned from #get_operation_result. Check
+    # #get_operation_result.error_message and
+    # #get_operation_result.matched_dn.
     #
     #--
-    # Modified the implementation, 20Mar07. We might get a hash of LDAP response codes
-    # instead of a simple numeric code.
-    #
+    # Modified the implementation, 20Mar07. We might get a hash of LDAP
+    # response codes instead of a simple numeric code.
+    #++
     def get_operation_result
       os = OpenStruct.new
       if @result.is_a?(Hash)
@@ -510,7 +500,6 @@ module Net
       os.message = LDAP.result2string( os.code )
       os
     end
-
 
     # Opens a network connection to the server and then
     # passes <tt>self</tt> to the caller-supplied block. The connection is
@@ -535,6 +524,7 @@ module Net
     # We then pass self to the caller's block, where he will execute
     # his LDAP operations. Of course they will all generate auth failures
     # if the bind was unsuccessful.
+    #++
     def open
       raise LdapError.new( "open already in progress" ) if @open_connection
       begin
@@ -546,7 +536,6 @@ module Net
         @open_connection = nil
       end
     end
-
 
     # Searches the LDAP directory for directory entries.
     # Takes a hash argument with parameters. Supported parameters include:
@@ -625,7 +614,7 @@ module Net
     # handle DNs. Change it to a plain array. Eventually we may
     # want to return a Dataset object that delegates to an internal
     # array, so we can provide sort methods and what-not.
-    #
+    #++
     def search args = {}
       unless args[:ignore_server_caps]
         args[:paged_searches_supported] = paged_searches_supported?
@@ -718,7 +707,7 @@ module Net
     # If there is an @open_connection, then perform the bind
     # on it. Otherwise, connect, bind, and disconnect.
     # The latter operation is obviously useful only as an auth check.
-    #
+    #++
     def bind(auth=@auth)
       if @open_connection
         @result = @open_connection.bind auth
@@ -733,7 +722,6 @@ module Net
 
       @result == 0
     end
-
 
     #
     # #bind_as is for testing authentication credentials.
@@ -794,7 +782,6 @@ module Net
       result
     end
 
-
     # Adds a new entry to the remote LDAP server.
     # Supported arguments:
     # :dn :: Full DN of the new entry
@@ -821,7 +808,7 @@ module Net
     #--
     # Provisional modification: Connection#add returns a full hash with LDAP status values,
     # instead of the simple result number we're used to getting.
-    #
+    #++
     def add args
       if @open_connection
           @result = @open_connection.add( args )
@@ -838,7 +825,6 @@ module Net
       end
       @result == 0
     end
-
 
     # Modifies the attribute values of a particular entry on the LDAP directory.
     # Takes a hash with arguments. Supported arguments are:
@@ -937,7 +923,6 @@ module Net
       @result == 0
     end
 
-
     # Add a value to an attribute.
     # Takes the full DN of the entry to modify,
     # the name (Symbol or String) of the attribute, and the value (String or
@@ -990,7 +975,6 @@ module Net
     def delete_attribute dn, attribute
       modify :dn => dn, :operations => [[:delete, attribute, nil]]
     end
-
 
     # Rename an entry on the remote DIS by changing the last RDN of its DN.
     # _Documentation_ _stub_
@@ -1045,7 +1029,6 @@ module Net
       @result == 0
     end
 
-
     # (Experimental, subject to change).
     # Return the rootDSE record from the LDAP server as a Net::LDAP::Entry, or an
     # empty Entry if the server doesn't return the record.
@@ -1058,7 +1041,7 @@ module Net
     # We may be called by #search itself, which may need to determine things like paged
     # search capabilities. So to avoid an infinite regress, set :ignore_server_caps,
     # which prevents us getting called recursively.
-    #
+    #++
     def search_root_dse
       rs = search(
         :ignore_server_caps=>true,
@@ -1068,7 +1051,6 @@ module Net
       )
       (rs and rs.first) or Entry.new
     end
-
 
     # Return the root Subschema record from the LDAP server as a Net::LDAP::Entry,
     # or an empty Entry if the server doesn't return the record. On success, the
@@ -1093,7 +1075,7 @@ module Net
     # The :dn attribute in the returned Entry is the subschema name as returned from
     # the server.
     # Set :ignore_server_caps, see the notes in search_root_dse.
-    #
+    #++
     def search_subschema_entry
       rs = search(
             :ignore_server_caps=>true,
@@ -1116,30 +1098,25 @@ module Net
       (rs and rs.first) or Entry.new
     end
 
-
     #--
     # Convenience method to query server capabilities.
     # Only do this once per Net::LDAP object.
     # Note, we call a search, and we might be called from inside a search!
     # MUST refactor the root_dse call out.
+    #++
     def paged_searches_supported?
       @server_caps ||= search_root_dse
       @server_caps[:supportedcontrol].include?(LdapControls::PagedResults)
     end
-
   end # class LDAP
 
   class LDAP
-    # This is a private class used internally by the library. It should not be called by user code.
+    # This is a private class used internally by the library. It should not
+    # be called by user code.
     class Connection # :nodoc:
-
       LdapVersion = 3
       MaxSaslChallenges = 10
 
-
-      #--
-      # initialize
-      #
       def initialize server
         begin
           @conn = TCPSocket.new( server[:host], server[:port] )
@@ -1159,6 +1136,7 @@ module Net
           getc.ord
         end
       end
+
       def self.wrap_with_ssl(io)
         ctx = OpenSSL::SSL::SSLContext.new
         conn = OpenSSL::SSL::SSLSocket.new(io, ctx)
@@ -1195,7 +1173,7 @@ module Net
       # It does not require an alternative port for encrypted communications, as with
       # simple_tls.
       # Thanks for Kouhei Sutou for generously contributing the :start_tls path.
-      #
+      #++
       def setup_encryption args
         case args[:method]
           when :simple_tls
@@ -1226,6 +1204,7 @@ module Net
       # sure a connection object gets closed without waiting
       # for a GC to happen. Clients shouldn't have to call it,
       # but perhaps it will come in handy someday.
+      #++
       def close
         @conn.close
         @conn = nil
@@ -1233,16 +1212,15 @@ module Net
 
       #--
       # next_msgid
-      #
+      #++
       def next_msgid
         @msgid ||= 0
         @msgid += 1
       end
 
-
       #--
       # bind
-      #
+      #++
       def bind auth
         meth = auth[:method]
         if [:simple, :anonymous, :anon].include?( meth )
@@ -1260,7 +1238,7 @@ module Net
       # bind_simple
       # Implements a simple user/psw authentication.
       # Accessed by calling #bind with a method of :simple or :anonymous.
-      #
+      #++
       def bind_simple auth
         user,psw = if auth[:method] == :simple
           [auth[:username] || auth[:dn], auth[:password]]
@@ -1292,7 +1270,7 @@ module Net
       # field of the LDAP BindResponse packet. The challenge-response block may be called multiple
       # times during the course of a SASL authentication, and each time it must return a value
       # that will be passed back to the server as the credential data in the next BindRequest packet.
-      #
+      #++
       def bind_sasl auth
         mech,cred,chall = auth[:mechanism],auth[:initial_credential],auth[:challenge_response]
         raise LdapError.new( "invalid binding information" ) unless (mech && cred && chall)
@@ -1325,7 +1303,7 @@ module Net
       # :gss_spnego. It requires :username and :password attributes, just like the :simple
       # authentication method. It performs a GSS-SPNEGO authentication with the server, which
       # is presumed to be a Microsoft Active Directory.
-      #
+      #++
       def bind_gss_spnego auth
         require 'ntlm.rb'
 
@@ -1365,7 +1343,7 @@ module Net
       # This implementation is kindof clunky and should probably be refactored.
       # Also, is it my imagination, or are A/Ds the slowest directory servers ever???
       # OpenLDAP newer than version 2.2.0 supports paged searches.
-      #
+      #++
       def search args = {}
         search_filter = (args && args[:filter]) || Filter.eq( "objectclass", "*" )
         search_filter = Filter.construct(search_filter) if search_filter.is_a?(String)
@@ -1496,8 +1474,6 @@ module Net
         result_code
       end
 
-
-
       #--
       # modify
       # TODO, need to support a time limit, in case the server fails to respond.
@@ -1505,7 +1481,7 @@ module Net
       # Should return a proper error instead, probaby from farther up the chain.
       # TODO!!! If the user specifies a bogus opcode, we'll throw a
       # confusing error here ("to_ber_enumerated is not defined on nil").
-      #
+      #++
       def modify args
         modify_dn = args[:dn] or raise "Unable to modify empty DN"
         modify_ops = []
@@ -1524,7 +1500,6 @@ module Net
         pdu.result
       end
 
-
       #--
       # add
       # TODO, need to support a time limit, in case the server fails to respond.
@@ -1532,7 +1507,7 @@ module Net
       # than a simple result number. This is experimental, and eventually we'll want
       # to do this with all the others. The point is to have access to the error message
       # and the matched-DN returned by the server.
-      #
+      #++
       def add args
         add_dn = args[:dn] or raise LdapError.new("Unable to add empty DN")
         add_attrs = []
@@ -1548,11 +1523,10 @@ module Net
         pdu.result
       end
 
-
       #--
       # rename
       # TODO, need to support a time limit, in case the server fails to respond.
-      #
+      #++
       def rename args
         old_dn = args[:olddn] or raise "Unable to rename empty DN"
         new_rdn = args[:newrdn] or raise "Unable to rename to empty RDN"
@@ -1566,11 +1540,10 @@ module Net
         pdu.result_code
       end
 
-
       #--
       # delete
       # TODO, need to support a time limit, in case the server fails to respond.
-      #
+      #++
       def delete args
         dn = args[:dn] or raise "Unable to delete empty DN"
 
@@ -1581,10 +1554,6 @@ module Net
         (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be )) && (pdu.app_tag == 11) or raise LdapError.new( "response missing or invalid" )
         pdu.result_code
       end
-
-
     end # class Connection
   end # class LDAP
 end # module Net
-
-

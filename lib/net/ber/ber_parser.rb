@@ -1,3 +1,5 @@
+require 'stringio'
+
 module Net
   module BER
     module BERParser
@@ -106,3 +108,4 @@ module Net
     end
   end
 end
+
