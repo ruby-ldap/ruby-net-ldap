@@ -14,6 +14,7 @@ PKG_VERSION = Net::LDAP::VERSION
 PKG_DIST    = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_TAR     = "pkg/#{PKG_DIST}.tar.gz"
 MANIFEST    = File.read("Manifest.txt").split
+MINRUBY     = "1.8.7"
 
 Hoe.spec PKG_NAME do
   self.readme_file = "README.markdown"
@@ -35,6 +36,10 @@ Hoe.spec PKG_NAME do
   extra_dev_deps << [ "archive-tar-minitar", "~>0.5.1" ]
   extra_dev_deps << [ "hanna", "~>0.1.2" ]
   clean_globs << "coverage"
+
+  spec_extras[:required_ruby_version] = ">= #{MINRUBY}"
+  multiruby_skip << "1.8.6"
+  multiruby_skip << "1_8_6"
 
   # This is a lie because I will continue to use Archive::Tar::Minitar.
   self.need_tar        = false
