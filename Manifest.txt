@@ -2,7 +2,7 @@ COPYING
 History.txt
 LICENSE
 Manifest.txt
-README.markdown
+README.txt
 Rakefile
 lib/net-ldap.rb
 lib/net/ber.rb

@@ -16,8 +16,9 @@ PKG_TAR     = "pkg/#{PKG_DIST}.tar.gz"
 MANIFEST    = File.read("Manifest.txt").split
 MINRUBY     = "1.8.7"
 
+Hoe.plugin :git
+
 Hoe.spec PKG_NAME do
-  self.readme_file = "README.markdown"
   self.version = PKG_VERSION
   self.rubyforge_name = PKG_NAME
 
@@ -35,6 +36,7 @@ Hoe.spec PKG_NAME do
 
   extra_dev_deps << [ "archive-tar-minitar", "~>0.5.1" ]
   extra_dev_deps << [ "hanna", "~>0.1.2" ]
+  extra_dev_deps << [ "hoe-git", "~>1" ]
   clean_globs << "coverage"
 
   spec_extras[:required_ruby_version] = ">= #{MINRUBY}"

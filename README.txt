@@ -1,20 +1,20 @@
-# Net::LDAP for Ruby
+= Net::LDAP for Ruby
 
-## Description
+== Description
 
 Pure Ruby LDAP library.
 
-## Where
+== Where
 
-### Issues & Project Homepage
+=== Issues & Project Homepage
 
-[http://rubyforge.org/projects/net-ldap][1]
+http://rubyforge.org/projects/net-ldap
 
-### Code
+=== Code
 
-[http://github.com/RoryO/ruby-net-ldap/][2]
+http://github.com/RoryO/ruby-net-ldap/
 
-## FEATURES/PROBLEMS
+== FEATURES/PROBLEMS
 
 The Lightweight Directory Access Protocol (LDAP) is an Internet protocol for
 accessing distributed directory services.
@@ -25,15 +25,15 @@ LDAP client features and a subset of server features as well.
 * Standards-based (going for RFC 4511)
 * Portable: 100% Ruby
 
-## SYNOPSIS
+== SYNOPSIS
 
 See Net::LDAP for documentation and usage samples.
 
-## REQUIREMENTS
+== REQUIREMENTS
 
 Net::LDAP requires Ruby 1.8.7-compliant interpreter or better.
 
-## INSTALL
+== INSTALL
 
 Net::LDAP is a pure Ruby library. It does not require any external libraries.
 You can install the RubyGems version of Net::LDAP available from the usual
@@ -41,23 +41,22 @@ sources.
 
 * gem install net-ldap
 
-There is no installation required if using a source release.  Simply 
-unarchive and require 'lib/net'.
+Simply require 'net/ldap'.
 
-## CREDITS
+== CREDITS
 
 Net::LDAP was originally developed by:
 
-* Francis Cianfrocca <blackhedd@rubyforge.org>
+* Francis Cianfrocca blackhedd@rubyforge.org
 
 Contributions since:
 
-* Emiel van de Laar <emiel@rubyforge.org>
-* Rory O'Connell <rory.ocon@gmail.com>
-* Kaspar Schiess <eule@rubyforge.org>
-* Austin Ziegler <austin@rubyforge.org>
+* Emiel van de Laar emiel@rubyforge.org
+* Rory O'Connell rory.ocon@gmail.com
+* Kaspar Schiess eule@rubyforge.org
+* Austin Ziegler austin@rubyforge.org
 
-## LICENSE
+== LICENSE
 
 Copyright (C) 2006 - 2010 by Francis Cianfrocca and other contributors.
 
@@ -67,6 +66,3 @@ itself.
 
 Available under the same terms as Ruby. See LICENSE in the main distribution
 for full licensing information.
-
-[1]:http://rubyforge.org/projects/net-ldap/
-[2]:http://github.com/RoryO/ruby-net-ldap/
