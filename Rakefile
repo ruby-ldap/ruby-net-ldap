@@ -28,6 +28,8 @@ Hoe.spec PKG_NAME do
   developer "Kaspar Schiess", "kaspar.schiess@absurd.li"
   developer "Austin Ziegler", "austin@rubyforge.org" 
 
+  self.remote_rdoc_dir = ''
+
   self.url = %W(http://net-ldap.rubyforge.org/ http://github.com/RoryO/ruby-net-ldap)
 
   self.summary = "Pure Ruby LDAP support library with most client features and some server features."
