@@ -1,6 +1,3 @@
-# $Id$
-#
-#
 #----------------------------------------------------------------------------
 #
 # Copyright (C) 2006 by Francis Cianfrocca. All Rights Reserved.
@@ -22,11 +19,6 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 #---------------------------------------------------------------------------
-#
-#
-
-
-
 
 module Net
   class LDAP

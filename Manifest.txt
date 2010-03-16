@@ -3,9 +3,8 @@ History.txt
 LICENSE
 Manifest.txt
 README.markdown
-README.textile
 Rakefile
-lib/net.rb
+lib/net-ldap.rb
 lib/net/ber.rb
 lib/net/ber/ber_parser.rb
 lib/net/ldap.rb

@@ -29,6 +29,7 @@
 module Net
 
     class SNMP
+      VERSION = '0.1.0'
 
 	AsnSyntax = Net::BER.compile_syntax({
 	    :application => {

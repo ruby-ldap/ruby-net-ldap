@@ -48,18 +48,18 @@ unarchive and require 'lib/net'.
 
 Net::LDAP was originally developed by:
 
-* Francis Cianfrocca <garbagecat10@gmail.com>
+* Francis Cianfrocca <blackhedd@rubyforge.org>
 
 Contributions since:
 
-* Emiel van de Laar <gemiel@gmail.com>
+* Emiel van de Laar <emiel@rubyforge.org>
 * Rory O'Connell <rory.ocon@gmail.com>
-* Kaspar Schiess <kaspar.schiess@absurd.li>
-* Austin Ziegler <austin@rubyforge.com>
+* Kaspar Schiess <eule@rubyforge.org>
+* Austin Ziegler <austin@rubyforge.org>
 
 ## LICENSE
 
-Copyright (C) 2006 by Francis Cianfrocca
+Copyright (C) 2006 - 2010 by Francis Cianfrocca and other contributors.
 
 Please read the file LICENSE for licensing restrictions on this library. In
 the simplest terms, this library is available under the same terms as Ruby

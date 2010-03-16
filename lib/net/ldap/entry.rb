@@ -1,7 +1,4 @@
-# $Id$
-#
 # LDAP Entry (search-result) support classes
-#
 #
 #----------------------------------------------------------------------------
 #
@@ -261,5 +258,3 @@ class LDAP
 
 end # class LDAP
 end # module Net
-
-

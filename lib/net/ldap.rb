@@ -234,7 +234,7 @@ module Net
   class LDAP
     class LdapError < StandardError; end
 
-    VERSION = "0.5.0"
+    VERSION = "0.1.0"
 
     SearchScope_BaseObject = 0
     SearchScope_SingleLevel = 1
