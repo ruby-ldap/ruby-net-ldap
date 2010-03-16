@@ -29,6 +29,7 @@ Hoe.spec PKG_NAME do
   developer "Austin Ziegler", "austin@rubyforge.org" 
 
   self.remote_rdoc_dir = ''
+  rsync_args << ' --exclude=statsvn/'
 
   self.url = %W(http://net-ldap.rubyforge.org/ http://github.com/RoryO/ruby-net-ldap)
 
