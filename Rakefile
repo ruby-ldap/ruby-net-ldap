@@ -1,13 +1,9 @@
 require "rubygems"
-require 'hanna/rdoctask'
 require 'hoe'
 
 $LOAD_PATH.unshift('lib')
 
 require 'net/ldap'
-
-require "rake/gempackagetask"
-require "rake/rdoctask"
 
 PKG_NAME    = 'net-ldap'
 PKG_VERSION = Net::LDAP::VERSION
