@@ -1,6 +1,8 @@
 require 'openssl'
 require 'ostruct'
 
+require 'socket'
+
 require 'net/ber'
 require 'net/ldap/pdu'
 require 'net/ldap/filter'

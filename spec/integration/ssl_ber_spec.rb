@@ -1,8 +1,5 @@
 require 'spec_helper'
 
-require 'socket'
-require 'openssl'
-
 require 'net/ldap'
 
 describe "BER serialisation (SSL)" do
