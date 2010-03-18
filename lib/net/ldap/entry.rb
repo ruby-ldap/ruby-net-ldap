@@ -71,14 +71,9 @@ class LDAP
   #
   class Entry
     # This constructor is not generally called by user code.
-    #--
-    # Originally, myhash took a block so we wouldn't have to
-    # make sure its elements returned empty arrays when necessary.
-    # Got rid of that to enable marshalling of Entry objects,
-    # but that doesn't work anyway, because Entry objects have
-    # singleton methods. So we define a custom dump and load.
+    #
     def initialize dn = nil # :nodoc:
-      @myhash = {} # originally: Hash.new {|k,v| k[v] = [] }
+      @myhash = {}
       @myhash[:dn] = [dn]
     end
 
@@ -95,20 +90,18 @@ class LDAP
     #--
     # Discovered bug, 26Aug06: I noticed that we're not converting the
     # incoming value to an array if it isn't already one.
-    def []= name, value # :nodoc:
-      sym = name.to_s.downcase.intern
+    def []=(name, value) # :nodoc:
+      sym = attribute_name(name)
       value = [value] unless value.is_a?(Array)
       @myhash[sym] = value
     end
 
-
     #--
-    # We have to deal with this one as we do with []=
-    # because this one and not the other one gets called
-    # in formulations like entry["CN"] << cn.
+    # We have to deal with this one as we do with []= because this one and not
+    # the other one gets called in formulations like entry["CN"] << cn.
     #
-    def [] name # :nodoc:
-      name = name.to_s.downcase.intern unless name.is_a?(Symbol)
+    def [](name) # :nodoc:
+      name = attribute_name(name) unless name.is_a?(Symbol)
       @myhash[name] || []
     end
 
@@ -139,8 +132,6 @@ class LDAP
 
     alias_method :each_attribute, :each
 
-
-
     # Converts the Entry to a String, representing the
     # Entry's attributes in LDIF format.
     #--
@@ -166,24 +157,15 @@ class LDAP
 
     #--
     # TODO, doesn't support broken lines.
-    # It generates a SINGLE Entry object from an incoming LDIF stream
-    # which is of course useless for big LDIF streams that encode
-    # many objects.
-    # DO NOT DOCUMENT THIS METHOD UNTIL THESE RESTRICTIONS ARE LIFTED.
-    # As it is, it's useful for unmarshalling objects that we create,
-    # but not for reading arbitrary LDIF files.
-    # Eventually, we should have a class method that parses large LDIF
-    # streams into individual LDIF blocks (delimited by blank lines)
-    # and passes them here.
+    # It generates a SINGLE Entry object from an incoming LDIF stream which is
+    # of course useless for big LDIF streams that encode many objects.
     #
-    # There is one oddity, noticed by Matthias Tarasiewicz: as originally
-    # written, this code would return an Entry object in which the DN
-    # attribute consisted of a two-element array, and the first element was
-    # nil. That's because Entry#initialize doesn't like to create an object
-    # without a DN attribute so it adds one: nil. The workaround here is
-    # to wipe out the nil DN after creating the Entry object, and trust the
-    # LDIF string to fill it in. If it doesn't we return a nil at the end.
-    # (30Sep06, FCianfrocca)
+    # DO NOT DOCUMENT THIS METHOD UNTIL THESE RESTRICTIONS ARE LIFTED.
+    #
+    # As it is, it's useful for unmarshalling objects that we create, but not
+    # for reading arbitrary LDIF files. Eventually, we should have a class
+    # method that parses large LDIF streams into individual LDIF blocks
+    # (delimited by blank lines) and passes them here.
     #
     class << self
       def from_single_ldif_string ldif
@@ -202,35 +184,42 @@ class LDAP
         entry.dn ? entry : nil
       end
     end
+    
+    #--
+    # Part of the support for getter and setter style access to attributes. 
+    #
+    def respond_to?(sym)
+      name = attribute_name(sym)
+      return true if valid_attribute?(name)
+      return super
+    end
 
     #--
-    # Convenience method to convert unknown method names
-    # to attribute references. Of course the method name
-    # comes to us as a symbol, so let's save a little time
-    # and not bother with the to_s.downcase two-step.
-    # Of course that means that a method name like mAIL
-    # won't work, but we shouldn't be encouraging that
-    # kind of bad behavior in the first place.
-    # Maybe we should thow something if the caller sends
-    # arguments or a block...
+    # Supports getter and setter style access for all the attributes that this
+    # entry holds.
     #
-    def method_missing *args, &block # :nodoc:
-      s = args[0].to_s.downcase.intern
-      if attribute_names.include?(s)
-        self[s]
-      elsif s.to_s[-1] == 61 and s.to_s.length > 1
-        value = args[1] or raise RuntimeError.new( "unable to set value" )
-        value = [value] unless value.is_a?(Array)
-        name = s.to_s[0..-2].intern
-        self[name] = value
-      else
-        raise NoMethodError.new( "undefined method '#{s}'" )
+    def method_missing sym, *args, &block # :nodoc:
+      name = attribute_name(sym)
+      
+      if valid_attribute? name 
+        if setter?(sym) && args.size == 1
+          value = args.first
+          value = [value] unless value.instance_of?(Array)
+          self[name]= value
+
+          return value
+        elsif args.empty?
+          return self[name]
+        end
       end
+      
+      super
     end
 
     def write
     end
 
+  private
 
     #--
     # Internal convenience method. It seems like the standard
@@ -249,8 +238,27 @@ class LDAP
       end
       false
     end
-    private :is_attribute_value_binary?
-
+  
+    # Returns the symbol that can be used to access the attribute that
+    # sym_or_str designates.
+    #
+    def attribute_name(sym_or_str)
+      str = sym_or_str.to_s.downcase
+      
+      # Does str match 'something='? Still only returns :something
+      return str[0...-1].to_sym if str.size>1 && str[-1] == ?=
+      return str.to_sym
+    end
+    
+    # Given a valid attribute symbol, returns true. 
+    #
+    def valid_attribute?(attr_name)
+      attribute_names.include?(attr_name)
+    end
+    
+    def setter?(sym)
+      sym.to_s[-1] == ?=
+    end
   end # class Entry
 
 
