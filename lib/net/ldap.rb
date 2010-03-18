@@ -233,9 +233,9 @@ module Net
   # to the server and then keeps it open while it executes a user-supplied block. Net::LDAP#open
   # closes the connection on completion of the block.
   class LDAP
-    class LdapError < StandardError; end
+    VERSION = "0.1.1"
 
-    VERSION = "0.1.0"
+    class LdapError < StandardError; end
 
     SearchScope_BaseObject = 0
     SearchScope_SingleLevel = 1
