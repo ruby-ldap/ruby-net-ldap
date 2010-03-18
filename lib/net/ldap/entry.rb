@@ -27,51 +27,49 @@ module Net
 class LDAP
 
 
-  # Objects of this class represent individual entries in an LDAP
-  # directory. User code generally does not instantiate this class.
-  # Net::LDAP#search provides objects of this class to user code,
-  # either as block parameters or as return values.
+  # Objects of this class represent individual entries in an LDAP directory.
+  # User code generally does not instantiate this class. Net::LDAP#search
+  # provides objects of this class to user code, either as block parameters or
+  # as return values.
   #
-  # In LDAP-land, an "entry" is a collection of attributes that are
-  # uniquely and globally identified by a DN ("Distinguished Name").
-  # Attributes are identified by short, descriptive words or phrases.
-  # Although a directory is
+  # In LDAP-land, an "entry" is a collection of attributes that are uniquely
+  # and globally identified by a DN ("Distinguished Name"). Attributes are
+  # identified by short, descriptive words or phrases. Although a directory is
   # free to implement any attribute name, most of them follow rigorous
-  # standards so that the range of commonly-encountered attribute
-  # names is not large.
+  # standards so that the range of commonly-encountered attribute names is not
+  # large.
   #
-  # An attribute name is case-insensitive. Most directories also
-  # restrict the range of characters allowed in attribute names.
-  # To simplify handling attribute names, Net::LDAP::Entry
-  # internally converts them to a standard format. Therefore, the
-  # methods which take attribute names can take Strings or Symbols,
-  # and work correctly regardless of case or capitalization.
+  # An attribute name is case-insensitive. Most directories also restrict the
+  # range of characters allowed in attribute names. To simplify handling
+  # attribute names, Net::LDAP::Entry internally converts them to a standard
+  # format. Therefore, the methods which take attribute names can take Strings
+  # or Symbols, and work correctly regardless of case or capitalization.
   #
-  # An attribute consists of zero or more data items called
-  # <i>values.</i> An entry is the combination of a unique DN, a set of attribute
-  # names, and a (possibly-empty) array of values for each attribute.
+  # An attribute consists of zero or more data items called <i>values.</i> An
+  # entry is the combination of a unique DN, a set of attribute names, and a
+  # (possibly-empty) array of values for each attribute.
   #
-  # Class Net::LDAP::Entry provides convenience methods for dealing
-  # with LDAP entries.
-  # In addition to the methods documented below, you may access individual
-  # attributes of an entry simply by giving the attribute name as
+  # Class Net::LDAP::Entry provides convenience methods for dealing with LDAP
+  # entries. In addition to the methods documented below, you may access
+  # individual attributes of an entry simply by giving the attribute name as
   # the name of a method call. For example:
-  #  ldap.search( ... ) do |entry|
-  #    puts "Common name: #{entry.cn}"
-  #    puts "Email addresses:"
-  #      entry.mail.each {|ma| puts ma}
-  #  end
-  # If you use this technique to access an attribute that is not present
-  # in a particular Entry object, a NoMethodError exception will be raised.
+  #
+  #   ldap.search( ... ) do |entry|
+  #     puts "Common name: #{entry.cn}"
+  #     puts "Email addresses:"
+  #     entry.mail.each {|ma| puts ma}
+  #   end
+  #
+  # If you use this technique to access an attribute that is not present in a
+  # particular Entry object, a NoMethodError exception will be raised.
   #
   #--
-  # Ugly problem to fix someday: We key off the internal hash with
-  # a canonical form of the attribute name: convert to a string,
-  # downcase, then take the symbol. Unfortunately we do this in
-  # at least three places. Should do it in ONE place.
+  # Ugly problem to fix someday: We key off the internal hash with a canonical
+  # form of the attribute name: convert to a string, downcase, then take the
+  # symbol. Unfortunately we do this in at least three places. Should do it in
+  # ONE place.
+  #
   class Entry
-
-
     # This constructor is not generally called by user code.
     #--
     # Originally, myhash took a block so we wouldn't have to

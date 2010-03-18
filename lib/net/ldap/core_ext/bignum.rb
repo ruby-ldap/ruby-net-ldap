@@ -4,9 +4,9 @@ module Net
       module Bignum
 
         def to_ber
-          # NOTE: Array#pack's 'w' is a BER _compressed_ integer. We need uncompressed
-          # BER integers, so we're not using that.
-          # See also: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/228864
+          # NOTE: Array#pack's 'w' is a BER _compressed_ integer. We need
+          # uncompressed BER integers, so we're not using that. See also:
+          # http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/228864
           result = []
 
           n = self
