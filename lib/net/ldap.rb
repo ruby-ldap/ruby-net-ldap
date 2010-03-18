@@ -1,6 +1,5 @@
 require 'openssl'
 require 'ostruct'
-
 require 'socket'
 
 require 'net/ber'
@@ -1122,8 +1121,10 @@ module Net
       def initialize server
         begin
           @conn = TCPSocket.new( server[:host], server[:port] )
-        rescue
-          raise LdapError.new( "no connection to server" )
+        rescue SocketError
+          raise LdapError, "No such address or other socket error."
+        rescue Errno::ECONNREFUSED
+          raise LdapError, "Server #{server[:host]} refused connection on port #{server[:port]}."
         end
 
         if server[:encryption]
