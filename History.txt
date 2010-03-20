@@ -1,5 +1,4 @@
 === Net::LDAP NEXT / 2010-__-__
-* String#read_ber! destructive read_ber added back in.
 * SSL capabilities will be enabled or disabled based on whether we can load
   OpenSSL successfully or not.
 * Moved the core class extensions extensions from being in the Net::LDAP
