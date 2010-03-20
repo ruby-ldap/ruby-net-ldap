@@ -1,3 +1,10 @@
+=== Net::LDAP NEXT / 2010-__-__
+* Moved the core class extensions extensions from being in the Net::LDAP
+  hierarchy to the Net::BER hierarchy as most of the methods therein are
+  related to BER-encoding values. This will make extracting Net::BER from
+  Net::LDAP easier in the future.
+* Documented the core class extension methods.
+
 === Net::LDAP 0.1.1 / 2010-03-18
 * Fixing a critical problem with sockets.
 
