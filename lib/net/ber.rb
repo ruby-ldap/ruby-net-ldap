@@ -67,6 +67,10 @@ end
 
 module Net
   module BER
+    # Used for BER-encoding the length and content bytes of a Fixnum integer
+    # values.
+    MAX_FIXNUM_SIZE = 0.size
+
     class BerError < StandardError; end
     
     class BerIdentifiedString < String
@@ -92,4 +96,4 @@ module Net
   end
 end
 
-require 'net/ber/ber_parser'
+require 'net/ber/core_ext'

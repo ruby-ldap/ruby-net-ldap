@@ -18,7 +18,6 @@ require 'net/ldap/filter'
 require 'net/ldap/dataset'
 require 'net/ldap/psw'
 require 'net/ldap/entry'
-require 'net/ldap/core_ext/all'
 
 module Net
   # == Net::LDAP
