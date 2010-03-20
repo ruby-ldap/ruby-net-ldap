@@ -1,3 +1,7 @@
+=== Net::LDAP NEXT / 2010-__-__
+* SSL capabilities will be enabled or disabled based on whether we can load
+  OpenSSL successfully or not.
+
 === Net::LDAP 0.1.1 / 2010-03-18
 * Fixing a critical problem with sockets.
 

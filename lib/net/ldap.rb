@@ -1,5 +1,15 @@
-require 'openssl'
 require 'ostruct'
+
+module Net
+  class LDAP
+    begin
+      require 'openssl'
+      HasOpenSSL = true
+    rescue LoadError
+      HasOpenSSL = false
+    end
+  end
+end
 require 'socket'
 
 require 'net/ber'
@@ -1141,6 +1151,7 @@ module Net
       end
 
       def self.wrap_with_ssl(io)
+        raise Net::LDAP::LdapError, "OpenSSL is unavailable" unless Net::LDAP::HasOpenSSL
         ctx = OpenSSL::SSL::SSLContext.new
         conn = OpenSSL::SSL::SSLSocket.new(io, ctx)
         conn.connect
