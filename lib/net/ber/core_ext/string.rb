@@ -31,21 +31,16 @@ module Net::BER::Extensions::String
   def read_ber(syntax = nil)
     StringIO.new(self).read_ber(syntax)
   end
-
-=begin
-  # 20100319 AZ I've kept this here because I'm not yet sure if it's
-  # necessary.
-
+  
   ##
-  # Destructively reads a BER object from this string.
-  def read_ber!(syntax = nil)
-    obj, consumed = read_ber_from_string(self, syntax)
-    if consumed
-      self.slice!(0...consumed)
-      obj
-    else
-      nil
-    end
+  # Destructively reads a BER object from the string. 
+  #
+  def read_ber!(syntax=nil)
+    io = StringIO.new(self)
+
+    result = io.read_ber(syntax)
+    self.slice!(0...io.pos)
+    
+    return result
   end
-=end
 end
