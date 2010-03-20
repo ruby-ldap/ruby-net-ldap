@@ -34,8 +34,7 @@ module Net::BER::Extensions::String
   
   ##
   # Destructively reads a BER object from the string. 
-  #
-  def read_ber!(syntax=nil)
+  def read_ber!(syntax = nil)
     io = StringIO.new(self)
 
     result = io.read_ber(syntax)
