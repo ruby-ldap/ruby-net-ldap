@@ -1,5 +1,24 @@
 === Net::LDAP NEXT / 2010-__-__
-* Added documentation:
+* SSL capabilities will be enabled or disabled based on whether we can load
+  OpenSSL successfully or not.
+* Moved the core class extensions extensions from being in the Net::LDAP
+  hierarchy to the Net::BER hierarchy as most of the methods therein are
+  related to BER-encoding values. This will make extracting Net::BER from
+  Net::LDAP easier in the future.
+* Net::LDAP::Filter changes:
+  * Filters can only be constructed using our custom constructors (eq, ge,
+    etc.). Cleaned up the code to reflect the private new.
+  * Fixed #to_ber to output a BER representation for :ne filters. Simplified
+  * the BER construction for substring matching.
+  * Added Filter.join(left, right), Filter.intersect(left, right), and
+    Filter.negate(filter) to match Filter#&, Filter#|, and Filter#~@ to prevent
+    those operators from having problems with the private new.
+  * Added Filter.present and Filter.present? aliases for the method previously
+    only known as Filter.pres.
+  * Cleaned up Net::LDAP::Filter::FilterParser to handle branches better. Fixed
+    some of the regular expressions to be more canonically defined.
+  * Cleaned up the string representation of Filter objects.
+* Added or revised documentation:
   * Core class extension methods under Net::BER.
 * Extended unit testing:
   * Added some unit tests for the BER core extensions.
@@ -7,12 +26,6 @@
   * Replaced calls to #to_a with calls to Kernel#Array; since Ruby 1.8.3, the
     default #to_a implementation has been deprecated and should be replaced
     either with calls to Kernel#Array or [value].flatten(1).
-* SSL capabilities will be enabled or disabled based on whether we can load
-  OpenSSL successfully or not.
-* Moved the core class extensions extensions from being in the Net::LDAP
-  hierarchy to the Net::BER hierarchy as most of the methods therein are
-  related to BER-encoding values. This will make extracting Net::BER from
-  Net::LDAP easier in the future.
 
 === Net::LDAP 0.1.1 / 2010-03-18
 * Fixing a critical problem with sockets.
