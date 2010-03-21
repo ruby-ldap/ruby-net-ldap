@@ -1502,7 +1502,7 @@ module Net
           # TODO, fix the following line, which gives a bogus error
           # if the opcode is invalid.
           op_1 = {:add => 0, :delete => 1, :replace => 2} [op.to_sym].to_ber_enumerated
-          modify_ops << [op_1, [attr.to_s.to_ber, values.to_a.map {|v| v.to_ber}.to_ber_set].to_ber_sequence].to_ber_sequence
+          modify_ops << [op_1, [attr.to_s.to_ber, Array(values).map {|v| v.to_ber}.to_ber_set].to_ber_sequence].to_ber_sequence
         }
 
         request = [modify_dn.to_ber, modify_ops.to_ber_sequence].to_ber_appsequence(6)
@@ -1525,7 +1525,7 @@ module Net
         add_dn = args[:dn] or raise LdapError.new("Unable to add empty DN")
         add_attrs = []
         a = args[:attributes] and a.each {|k,v|
-          add_attrs << [ k.to_s.to_ber, v.to_a.map {|m| m.to_ber}.to_ber_set ].to_ber_sequence
+          add_attrs << [ k.to_s.to_ber, Array(v).map {|m| m.to_ber}.to_ber_set ].to_ber_sequence
         }
 
         request = [add_dn.to_ber, add_attrs.to_ber_sequence].to_ber_appsequence(8)

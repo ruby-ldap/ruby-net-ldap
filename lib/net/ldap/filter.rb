@@ -376,7 +376,7 @@ class Filter
       if @right == "*"
         l = entry[@left] and l.length > 0
       else
-        l = entry[@left] and l = l.to_a and l.index(@right)
+        l = entry[@left] and l = Array(l) and l.index(@right)
       end
     else
       raise LdapError.new( "unknown filter type in match: #{@op}" )

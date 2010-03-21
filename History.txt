@@ -1,13 +1,18 @@
 === Net::LDAP NEXT / 2010-__-__
-* Extending unit testing:
+* Added documentation:
+  * Core class extension methods under Net::BER.
+* Extended unit testing:
   * Added some unit tests for the BER core extensions.
+* Code clean-up:
+  * Replaced calls to #to_a with calls to Kernel#Array; since Ruby 1.8.3, the
+    default #to_a implementation has been deprecated and should be replaced
+    either with calls to Kernel#Array or [value].flatten(1).
 * SSL capabilities will be enabled or disabled based on whether we can load
   OpenSSL successfully or not.
 * Moved the core class extensions extensions from being in the Net::LDAP
   hierarchy to the Net::BER hierarchy as most of the methods therein are
   related to BER-encoding values. This will make extracting Net::BER from
   Net::LDAP easier in the future.
-* Documented the core class extension methods.
 
 === Net::LDAP 0.1.1 / 2010-03-18
 * Fixing a critical problem with sockets.
