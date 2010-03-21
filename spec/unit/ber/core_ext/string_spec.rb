@@ -1,5 +1,4 @@
 require 'spec_helper'
-
 require 'metaid'
 
 describe String, "when extended with BER core extensions" do
