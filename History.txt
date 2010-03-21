@@ -18,6 +18,8 @@
   * Cleaned up Net::LDAP::Filter::FilterParser to handle branches better. Fixed
     some of the regular expressions to be more canonically defined.
   * Cleaned up the string representation of Filter objects.
+  * Added experimental support for RFC4515 extensible matching (e.g.,
+    "(cn:caseExactMatch:=Fred Flintstone)"); provided by "nowhereman".
 * Added or revised documentation:
   * Core class extension methods under Net::BER.
 * Extended unit testing:

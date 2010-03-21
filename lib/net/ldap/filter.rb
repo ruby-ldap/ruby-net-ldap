@@ -43,7 +43,7 @@
 class Net::LDAP::Filter
   ##
   # Known filter types.
-  FilterTypes = [ :ne, :eq, :ge, :le, :and, :or, :not ]
+  FilterTypes = [ :ne, :eq, :ge, :le, :and, :or, :not, :ex ]
 
   def initialize(op, left, right) #:nodoc:
     unless FilterTypes.include?(op)
@@ -81,6 +81,55 @@ class Net::LDAP::Filter
     #   f = Net::LDAP::Filter.eq("mail", "*anderson*")
     def eq(attribute, value)
       new(:eq, attribute, value)
+    end
+
+    ##
+    # Creates a Filter object indicating extensible comparison. This Filter
+    # object is currently considered EXPERIMENTAL.
+    #
+    #   sample_attributes = ['cn:fr', 'cn:fr.eq',
+    #     'cn:1.3.6.1.4.1.42.2.27.9.4.49.1.3', 'cn:dn:fr', 'cn:dn:fr.eq']
+    #   attr = sample_attributes.first # Pick an extensible attribute
+    #   value = 'roberts'
+    #
+    #   filter = "#{attr}:=#{value}" # Basic String Filter
+    #   filter = Net::LDAP::Filter.ex(attr, value) # Net::LDAP::Filter
+    #
+    #   # Perform a search with the Extensible Match Filter
+    #   Net::LDAP.search(:filter => filter)
+    #--
+    # The LDIF required to support the above examples on the OpenDS LDAP
+    # server:
+    #
+    #   version: 1
+    #
+    #   dn: dc=example,dc=com
+    #   objectClass: domain
+    #   objectClass: top
+    #   dc: example
+    #
+    #   dn: ou=People,dc=example,dc=com
+    #   objectClass: organizationalUnit
+    #   objectClass: top
+    #   ou: People
+    #
+    #   dn: uid=1,ou=People,dc=example,dc=com
+    #   objectClass: person
+    #   objectClass: organizationalPerson
+    #   objectClass: inetOrgPerson
+    #   objectClass: top
+    #   cn:: csO0YsOpcnRz
+    #   sn:: YsO0YiByw7Riw6lydHM=
+    #   givenName:: YsO0Yg==
+    #   uid: 1
+    #
+    # =Refs:
+    # * http://www.ietf.org/rfc/rfc2251.txt
+    # * http://www.novell.com/documentation/edir88/edir88/?page=/documentation/edir88/edir88/data/agazepd.html
+    # * https://docs.opends.org/2.0/page/SearchingUsingInternationalCollationRules
+    #++
+    def ex(attribute, value)
+      new(:ex, attribute, value)
     end
 
     ##
@@ -280,9 +329,9 @@ class Net::LDAP::Filter
   def ==(filter)
     # 20100320 AZ: We need to come up with a better way of doing this. This
     # is just nasty.
-		str = "[@op,@left,@right]"
-		self.instance_eval(str) == filter.instance_eval(str)
-	end
+    str = "[@op,@left,@right]"
+    self.instance_eval(str) == filter.instance_eval(str)
+  end
 
   def to_raw_rfc2254
     case @op
@@ -290,19 +339,20 @@ class Net::LDAP::Filter
       "!(#{@left}=#{@right})"
     when :eq
       "#{@left}=#{@right}"
+    when :ex
+      "#{@left}:=#{@right}"
     when :ge
       "#{@left}>=#{@right}"
     when :le
       "#{@left}<=#{@right}"
     when :and
-      "&(#{@left.__send__(:to_raw_rfc2254)})(#{@right.__send__(:to_raw_rfc2254)})"
+      "&(#{@left.to_raw_rfc2254})(#{@right.to_raw_rfc2254})"
     when :or
-      "|(#{@left.__send__(:to_raw_rfc2254)})(#{@right.__send__(:to_raw_rfc2254)})"
+      "|(#{@left.to_raw_rfc2254})(#{@right.to_raw_rfc2254})"
     when :not
-      "!(#{@left.__send__(:to_raw_rfc2254)})"
+      "!(#{@left.to_raw_rfc2254})"
     end
   end
-  private :to_raw_rfc2254
 
   ##
   # Converts the Filter object to an RFC 2254-compatible text format.
@@ -317,21 +367,21 @@ class Net::LDAP::Filter
   ##
   # Converts the filter to BER format.
   #--
-  # to_ber
   # Filter ::=
   #     CHOICE {
-  #         and            [0] SET OF Filter,
-  #         or             [1] SET OF Filter,
-  #         not            [2] Filter,
-  #         equalityMatch  [3] AttributeValueAssertion,
-  #         substrings     [4] SubstringFilter,
-  #         greaterOrEqual [5] AttributeValueAssertion,
-  #         lessOrEqual    [6] AttributeValueAssertion,
-  #         present        [7] AttributeType,
-  #         approxMatch    [8] AttributeValueAssertion
+  #         and             [0] SET OF Filter,
+  #         or              [1] SET OF Filter,
+  #         not             [2] Filter,
+  #         equalityMatch   [3] AttributeValueAssertion,
+  #         substrings      [4] SubstringFilter,
+  #         greaterOrEqual  [5] AttributeValueAssertion,
+  #         lessOrEqual     [6] AttributeValueAssertion,
+  #         present         [7] AttributeType,
+  #         approxMatch     [8] AttributeValueAssertion,
+  #         extensibleMatch [9] MatchingRuleAssertion
   #     }
   #
-  # SubstringFilter
+  # SubstringFilter ::=
   #     SEQUENCE {
   #         type               AttributeType,
   #         SEQUENCE OF CHOICE {
@@ -340,6 +390,23 @@ class Net::LDAP::Filter
   #             final          [2] LDAPString
   #         }
   #     }
+  #
+  # MatchingRuleAssertion ::=
+  #     SEQUENCE {
+  #       matchingRule    [1] MatchingRuleId OPTIONAL,
+  #       type            [2] AttributeDescription OPTIONAL,
+  #       matchValue      [3] AssertionValue,
+  #       dnAttributes    [4] BOOLEAN DEFAULT FALSE
+  #     }
+  #
+  # Matching Rule Suffixes
+  #     Less than   [.1] or .[lt]
+  #     Less than or equal to  [.2] or [.lte]
+  #     Equality  [.3] or  [.eq] (default)
+  #     Greater than or equal to  [.4] or [.gte]
+  #     Greater than  [.5] or [.gt]
+  #     Substring  [.6] or  [.sub]
+  #
   #++
   def to_ber
     case @op
@@ -381,6 +448,20 @@ class Net::LDAP::Filter
       else # equality
         [@left.to_s.to_ber, unescape(@right).to_ber].to_ber_contextspecific(3)
       end
+    when :ex
+      seq = []
+
+      unless @left =~ /^([-;\d\w]*)(:dn)?(:(\w+|[.\d\w]+))?$/
+        raise Net::LDAP::LdapError, "Bad attribute #{@left}"
+      end
+      type, dn, rule = $1, $2, $4
+
+      seq << rule.to_ber_contextspecific(1) unless rule.to_s.empty? # matchingRule
+      seq << type.to_ber_contextspecific(2) unless type.to_s.empty? # type
+      seq << unescape(@right).to_ber_contextspecific(3) # matchingValue
+      seq << "1".to_ber_contextspecific(4) unless dn.to_s.empty? # dnAttributes
+
+      seq.to_ber_contextspecific(9)
     when :ge
       [@left.to_s.to_ber, unescape(@right).to_ber].to_ber_contextspecific(5)
     when :le
@@ -407,10 +488,10 @@ class Net::LDAP::Filter
   # some desired application-defined processing, and may return a
   # locally-meaningful object that will appear as a parameter in the :and,
   # :or and :not operations detailed below.
-	#
-	# A typical object to return from the user-supplied block is an array of
-	# Net::LDAP::Filter objects.
-	#
+  #
+  # A typical object to return from the user-supplied block is an array of
+  # Net::LDAP::Filter objects.
+  #
   # These are the possible values that may be passed to the user-supplied
   # block:
   #   * :equalityMatch (the arguments will be an attribute name and a value
@@ -428,26 +509,26 @@ class Net::LDAP::Filter
   #     a recursive call to #execute, with the same block; and
   #   * :not (one argument, which is an object returned from a recursive
   #     call to #execute with the the same block.
-	def execute(&block)
-		case @op
-		when :eq
-			if @right == "*"
-				yield :present, @left
-			elsif @right.index '*'
-				yield :substrings, @left, @right
-			else
-				yield :equalityMatch, @left, @right
-			end
-		when :ge
-			yield :greaterOrEqual, @left, @right
-		when :le
-			yield :lessOrEqual, @left, @right
-		when :or, :and
-			yield @op, (@left.execute(&block)), (@right.execute(&block))
-		when :not
-			yield @op, (@left.execute(&block))
-		end || []
-	end
+  def execute(&block)
+    case @op
+    when :eq
+      if @right == "*"
+        yield :present, @left
+      elsif @right.index '*'
+        yield :substrings, @left, @right
+      else
+        yield :equalityMatch, @left, @right
+      end
+    when :ge
+      yield :greaterOrEqual, @left, @right
+    when :le
+      yield :lessOrEqual, @left, @right
+    when :or, :and
+      yield @op, (@left.execute(&block)), (@right.execute(&block))
+    when :not
+      yield @op, (@left.execute(&block))
+    end || []
+  end
 
   ##
   # This is a private helper method for dealing with chains of ANDs and ORs
@@ -588,9 +669,9 @@ class Net::LDAP::Filter
     # This parses a given expression inside of parentheses.
     def parse_filter_branch(scanner)
       scanner.scan(/\s*/)
-      if token = scanner.scan(/[-\w_]+/)
+      if token = scanner.scan(/[-\w\d_:.]*[\d\w]/)
         scanner.scan(/\s*/)
-        if op = scanner.scan(/<=|>=|!=|=/)
+        if op = scanner.scan(/<=|>=|!=|:=|=/)
           scanner.scan(/\s*/)
           if value = scanner.scan(/(?:[-\w*.+@=,#\$%&!\s]|\\[a-fA-F\d]{2})+/)
             # 20100313 AZ: Assumes that "(uid=george*)" is the same as
@@ -606,6 +687,8 @@ class Net::LDAP::Filter
               Net::LDAP::Filter.le(token, value)
             when ">="
               Net::LDAP::Filter.ge(token, value)
+            when ":="
+              Net::LDAP::Filter.ex(token, value)
             end
           end
         end
