@@ -247,11 +247,32 @@ class Net::LDAP::Filter
         eq(ber.first.to_s, str)
       when 0xa5 # context-specific constructed 5, "greaterOrEqual"
         ge(ber.first.to_s, ber.last.to_s)
-      when 0xa6 # context-specific constructed 5, "lessOrEqual"
+      when 0xa6 # context-specific constructed 6, "lessOrEqual"
         le(ber.first.to_s, ber.last.to_s)
       when 0x87 # context-specific primitive 7, "present"
         # call to_s to get rid of the BER-identifiedness of the incoming string.
         present?(ber.to_s)
+      when 0xa9 # context-specific constructed 9, "extensible comparison"
+        raise Net::LDAP::LdapError, "Invalid extensible search filter, should be at least two elements" if ber.size<2
+        
+        # Reassembles the extensible filter parts 
+        # (["sn", "2.4.6.8.10", "Barbara Jones", '1'])
+        type = value = dn = rule = nil
+        ber.each do |element|
+          case element.ber_identifier
+            when 0x81 then rule=element
+            when 0x82 then type=element
+            when 0x83 then value=element
+            when 0x84 then dn='dn'
+          end
+        end
+
+        attribute = ''
+        attribute << type if type
+        attribute << ":#{dn}" if dn
+        attribute << ":#{rule}" if rule
+        
+        ex(attribute, value)
       else
         raise Net::LDAP::LdapError, "Invalid BER tag-value (#{ber.ber_identifier}) in search filter."
       end

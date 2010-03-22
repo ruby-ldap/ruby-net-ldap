@@ -283,6 +283,8 @@ module Net
           0 => :string,             # password
           1 => :string,             # Kerberos v4
           2 => :string,             # Kerberos v5
+          3 => :string,             # SearchFilter-extensible
+          4 => :string,             # SearchFilter-extensible
           7 => :string,             # serverSaslCreds
         },
         :constructed => {
@@ -294,6 +296,7 @@ module Net
           5 => :array,              # SearchFilter-GE
           6 => :array,              # SearchFilter-LE
           7 => :array,              # serverSaslCreds
+          9 => :array,              # SearchFilter-extensible
         }
       }
     })

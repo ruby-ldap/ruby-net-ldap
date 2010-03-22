@@ -102,7 +102,7 @@ module Net
           n.ber_identifier = id
           n
         else
-          raise BerError.new( "unsupported object type: id=#{id}" )
+          raise BerError, "unsupported object type: id=0x#{id.to_s(16)}"
         end
 
         obj
