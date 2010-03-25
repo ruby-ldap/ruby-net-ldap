@@ -25,6 +25,7 @@
 * Extended unit testing:
   * Added some unit tests for the BER core extensions.
 * Code clean-up:
+  * Made the formatting of Net::LDAP code consistent across all files.
   * Replaced calls to #to_a with calls to Kernel#Array; since Ruby 1.8.3, the
     default #to_a implementation has been deprecated and should be replaced
     either with calls to Kernel#Array or [value].flatten(1).
