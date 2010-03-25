@@ -1,4 +1,5 @@
 require "rubygems"
+require 'hanna/rdoctask'
 require 'hoe'
 
 $LOAD_PATH.unshift('lib')
@@ -32,6 +33,8 @@ Hoe.spec PKG_NAME do
   self.summary = "Pure Ruby LDAP support library with most client features and some server features."
   self.changes = paragraphs_of(self.history_file, 0..1).join("\n\n")
   self.description = paragraphs_of(self.readme_file, 2..2).join("\n\n")
+
+  extra_rdoc_files << "Hacking.rdoc"
 
   extra_dev_deps << [ "archive-tar-minitar", "~>0.5.1" ]
   extra_dev_deps << [ "hanna", "~>0.1.2" ]

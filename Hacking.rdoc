@@ -1,0 +1,16 @@
+= Hacking Net::LDAP
+
+We welcome your contributions to Net::LDAP. To increase the chances of your
+patches being accepted, we recommend that you follow the guidelines below:
+
+1. Your code should be formatted like the rest of Net::LDAP. We use a text
+   wrap of 76 - 78 characters, especially for documentation contents.
+   Operators should have spaces around them, method definitions should have
+   parentheses around arguments. Keep the indentation as flat as possible.
+2. Your changes should be well-documented and described.
+3. You must provide rspec tests for any new or changed features. Rspec has
+   been chosen as the way forward for tests.
+4. You should provide LDIF data for importing into LDAP servers so that the
+   changes can be tested <em>in situ</em> with more than one real LDAP
+   server.
+5. You should have tested your changes against a real LDAP server.
