@@ -28,6 +28,10 @@
   * Replaced calls to #to_a with calls to Kernel#Array; since Ruby 1.8.3, the
     default #to_a implementation has been deprecated and should be replaced
     either with calls to Kernel#Array or [value].flatten(1).
+  * Modified #add and #modify to return a Pdu#result_code instead of a
+    Pdu#result. This may be changed in Net::LDAP 1.0 to return the full
+    Pdu#result, but if we do so, it will be that way for all LDAP calls
+    involving Pdu objects.
 
 === Net::LDAP 0.1.1 / 2010-03-18
 * Fixing a critical problem with sockets.
