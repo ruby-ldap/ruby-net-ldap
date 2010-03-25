@@ -311,7 +311,7 @@ class Net::LDAP
 
   DefaultHost = "127.0.0.1"
   DefaultPort = 389
-  DefaultAuth = {:method => :anonymous}
+  DefaultAuth = { :method => :anonymous }
   DefaultTreebase = "dc=com"
 
   StartTlsOid = "1.3.6.1.4.1.1466.20037"
@@ -343,8 +343,7 @@ class Net::LDAP
     PagedResults = "1.2.840.113556.1.4.319" # Microsoft evil from RFC 2696
   end
 
-  # LDAP::result2string
-  def self.result2string(code) # :nodoc:
+  def self.result2string(code) #:nodoc:
     ResultStrings[code] || "unknown result (#{code})"
   end
 
@@ -428,9 +427,14 @@ class Net::LDAP
   #  ldap.host = server_ip_address
   #  psw = proc { your_psw_function }
   #  ldap.authenticate "cn=Your Username, cn=Users, dc=example, dc=com", psw
+  #
   def authenticate(username, password)
     password = password.call if password.respond_to?(:call)
-    @auth = {:method => :simple, :username => username, :password => password}
+    @auth = {
+      :method => :simple,
+      :username => username,
+      :password => password
+    }
   end
   alias_method :auth, :authenticate
 
@@ -442,7 +446,7 @@ class Net::LDAP
   # additional capabilities are added, more configuration values will be
   # added here.
   #
-  # Currently, the only supported argument is {:method => :simple_tls}.
+  # Currently, the only supported argument is { :method => :simple_tls }.
   # (Equivalently, you may pass the symbol :simple_tls all by itself,
   # without enclosing it in a Hash.)
   #
@@ -471,7 +475,7 @@ class Net::LDAP
   def encryption(args)
     case args
     when :simple_tls, :start_tls
-      args = {:method => args}
+      args = { :method => args }
     end
     @encryption = args
   end
@@ -485,7 +489,7 @@ class Net::LDAP
   # automatically when the block finishes.
   #
   #  # (PSEUDOCODE)
-  #  auth = {:method => :simple, :username => username, :password => password}
+  #  auth = { :method => :simple, :username => username, :password => password }
   #  Net::LDAP.open(:host => ipaddress, :port => 389, :auth => auth) do |ldap|
   #    ldap.search(...)
   #    ldap.add(...)
@@ -510,6 +514,11 @@ class Net::LDAP
   # members of the object returned from #get_operation_result. Check
   # #get_operation_result.error_message and
   # #get_operation_result.matched_dn.
+  #
+  #--
+  # Modified the implementation, 20Mar07. We might get a hash of LDAP
+  # response codes instead of a simple numeric code.
+  #++
   def get_operation_result
     os = OpenStruct.new
     if @result.is_a?(Hash)
@@ -536,7 +545,7 @@ class Net::LDAP
   # the class method Net::LDAP#open.
   #
   #  # (PSEUDOCODE)
-  #  auth = {:method => :simple, :username => username, :password => password}
+  #  auth = { :method => :simple, :username => username, :password => password }
   #  ldap = Net::LDAP.new(:host => ipaddress, :port => 389, :auth => auth)
   #  ldap.open do |ldap|
   #    ldap.search(...)
@@ -705,7 +714,6 @@ class Net::LDAP
       begin
         conn = Connection.new(:host => @host, :port => @port,
                               :encryption => @encryption)
-
         @result = conn.bind(auth)
       ensure
         conn.close if conn
@@ -753,11 +761,9 @@ class Net::LDAP
   #  ldap.port = 389
   #  ldap.auth "cn=manager, dc=yourcompany, dc=com", "topsecret"
   #
-  #  result = ldap.bind_as(
-  #    :base => "dc=yourcompany, dc=com",
-  #    :filter => "(mail=#{user})",
-  #    :password => psw
-  # )
+  #  result = ldap.bind_as(:base => "dc=yourcompany, dc=com",
+  #                        :filter => "(mail=#{user})",
+  #                        :password => psw)
   #  if result
   #    puts "Authenticated #{result.first.dn}"
   #  else
@@ -798,7 +804,7 @@ class Net::LDAP
   #    :sn => "Smith",
   #    :mail => "gsmith@example.com"
   #  }
-  #  Net::LDAP.open (:host => host) do |ldap|
+  #  Net::LDAP.open(:host => host) do |ldap|
   #    ldap.add(:dn => dn, :attributes => attr)
   #  end
   def add(args)
@@ -1164,8 +1170,7 @@ class Net::LDAP::Connection #:nodoc:
       # go here.
     when :start_tls
       msgid = next_msgid.to_ber
-      request =
-        [StartTlsOid.to_ber].to_ber_appsequence(Net::LdapPdu::ExtendedRequest)
+      request = [StartTlsOid.to_ber].to_ber_appsequence(Net::LdapPdu::ExtendedRequest)
       request_pkt = [msgid, request].to_ber_sequence
       @conn.write request_pkt
       be = @conn.read_ber(AsnSyntax)
