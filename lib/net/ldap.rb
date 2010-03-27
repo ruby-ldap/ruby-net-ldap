@@ -1041,7 +1041,7 @@ class Net::LDAP
                 :attributes => [ :namingContexts, :supportedLdapVersion,
                   :altServer, :supportedControl, :supportedExtension,
                   :supportedFeatures, :supportedSASLMechanisms])
-    (rs and rs.first) or Entry.new
+    (rs and rs.first) or Net::LDAP::Entry.new
   end
 
   # Return the root Subschema record from the LDAP server as a
@@ -1072,16 +1072,16 @@ class Net::LDAP
     rs = search(:ignore_server_caps => true, :base => "",
                 :scope => SearchScope_BaseObject,
                 :attributes => [:subschemaSubentry])
-    return Entry.new unless (rs and rs.first)
+    return Net::LDAP::Entry.new unless (rs and rs.first)
 
     subschema_name = rs.first.subschemasubentry
-    return Entry.new unless (subschema_name and subschema_name.first)
+    return Net::LDAP::Entry.new unless (subschema_name and subschema_name.first)
 
     rs = search(:ignore_server_caps => true, :base => subschema_name.first,
                 :scope => SearchScope_BaseObject,
                 :filter => "objectclass=subschema",
                 :attributes => [:objectclasses, :attributetypes])
-    (rs and rs.first) or Entry.new
+    (rs and rs.first) or Net::LDAP::Entry.new
   end
 
   #--
