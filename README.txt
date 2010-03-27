@@ -52,9 +52,11 @@ Net::LDAP was originally developed by:
 Contributions since:
 
 * Emiel van de Laar emiel@rubyforge.org
-* Rory O'Connell rory.ocon@gmail.com
+* Rory O'Connell roryo@rubyforge.org
 * Kaspar Schiess eule@rubyforge.org
 * Austin Ziegler austin@rubyforge.org
+* Dimitrij Denissenko dimdenis@rubyforge.org
+* "nowhereman" on GitHub
 
 == LICENSE
 
