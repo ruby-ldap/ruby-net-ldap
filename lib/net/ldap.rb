@@ -629,7 +629,7 @@ class Net::LDAP
     if @open_connection
       @result = @open_connection.search(args) { |entry|
         result_set << entry if result_set
-        yield(entry) if block_given?
+        yield entry if block_given?
       }
     else
       @result = 0
@@ -639,7 +639,7 @@ class Net::LDAP
         if (@result = conn.bind(args[:auth] || @auth)) == 0
           @result = conn.search(args) { |entry|
             result_set << entry if result_set
-            yield(entry) if block_given?
+            yield entry if block_given?
           }
         end
       ensure
@@ -1404,7 +1404,7 @@ class Net::LDAP::Connection #:nodoc:
         case pdu.app_tag
         when 4 # search-data
           n_results += 1
-          yield(pdu.search_entry) if block_given?
+          yield pdu.search_entry if block_given?
         when 19 # search-referral
           if return_referrals
             if block_given?
