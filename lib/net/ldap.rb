@@ -1092,7 +1092,7 @@ class Net::LDAP
   #++
   def paged_searches_supported?
     @server_caps ||= search_root_dse
-    @server_caps[:supportedcontrol].include?(LdapControls::PagedResults)
+    @server_caps[:supportedcontrol].include?(Net::LDAP::LdapControls::PagedResults)
   end
 end # class LDAP
 
@@ -1173,7 +1173,7 @@ class Net::LDAP::Connection #:nodoc:
       request = [StartTlsOid.to_ber].to_ber_appsequence(Net::LdapPdu::ExtendedRequest)
       request_pkt = [msgid, request].to_ber_sequence
       @conn.write request_pkt
-      be = @conn.read_ber(AsnSyntax)
+      be = @conn.read_ber(Net::LDAP::AsnSyntax)
       raise Net::LDAP::LdapError, "no start_tls result" if be.nil?
       pdu = Net::LdapPdu.new(be)
       raise Net::LDAP::LdapError, "no start_tls result" if pdu.nil?
@@ -1234,7 +1234,7 @@ class Net::LDAP::Connection #:nodoc:
     request_pkt = [msgid, request].to_ber_sequence
     @conn.write request_pkt
 
-    (be = @conn.read_ber(AsnSyntax) and pdu = Net::LdapPdu.new(be)) or raise Net::LDAP::LdapError, "no bind result"
+    (be = @conn.read_ber(Net::LDAP::AsnSyntax) and pdu = Net::LdapPdu.new(be)) or raise Net::LDAP::LdapError, "no bind result"
 
     pdu.result_code
   end
@@ -1273,7 +1273,7 @@ class Net::LDAP::Connection #:nodoc:
       request_pkt = [msgid, request].to_ber_sequence
       @conn.write request_pkt
 
-      (be = @conn.read_ber(AsnSyntax) and pdu = Net::LdapPdu.new(be)) or raise Net::LDAP::LdapError, "no bind result"
+      (be = @conn.read_ber(Net::LDAP::AsnSyntax) and pdu = Net::LdapPdu.new(be)) or raise Net::LDAP::LdapError, "no bind result"
       return pdu.result_code unless pdu.result_code == 14 # saslBindInProgress
       raise Net::LDAP::LdapError, "sasl-challenge overflow" if ((n += 1) > MaxSaslChallenges)
 
@@ -1325,8 +1325,9 @@ class Net::LDAP::Connection #:nodoc:
   # in the protocol.
   #++
   def search(args = {})
-    search_filter = (args && args[:filter]) || Filter.eq("objectclass", "*")
-    search_filter = Filter.construct(search_filter) if search_filter.is_a?(String)
+    search_filter = (args && args[:filter]) || 
+      Net::LDAP::Filter.eq("objectclass", "*")
+    search_filter = Net::LDAP::Filter.construct(search_filter) if search_filter.is_a?(String)
     search_base = (args && args[:base]) || "dc=example, dc=com"
     search_attributes = ((args && args[:attributes]) || []).map { |attr| attr.to_s.to_ber}
     return_referrals = args && args[:return_referrals] == true
@@ -1387,7 +1388,7 @@ class Net::LDAP::Connection #:nodoc:
 
       controls = [
         [
-          LdapControls::PagedResults.to_ber,
+          Net::LDAP::LdapControls::PagedResults.to_ber,
           # Criticality MUST be false to interoperate with normal LDAPs.
           false.to_ber,
           rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber
@@ -1400,7 +1401,7 @@ class Net::LDAP::Connection #:nodoc:
       result_code = 0
       controls = []
 
-      while (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new(be))
+      while (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LdapPdu.new(be))
         case pdu.app_tag
         when 4 # search-data
           n_results += 1
@@ -1435,7 +1436,7 @@ class Net::LDAP::Connection #:nodoc:
       more_pages = false
       if result_code == 0 and controls
         controls.each do |c|
-          if c.oid == LdapControls::PagedResults
+          if c.oid == Net::LDAP::LdapControls::PagedResults
             # just in case some bogus server sends us more than 1 of these.
             more_pages = false
             if c.value and c.value.length > 0
@@ -1477,7 +1478,7 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [next_msgid.to_ber, request].to_ber_sequence
     @conn.write pkt
 
-    (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new(be)) && (pdu.app_tag == 7) or raise Net::LDAP::LdapError, "response missing or invalid"
+    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LdapPdu.new(be)) && (pdu.app_tag == 7) or raise Net::LDAP::LdapError, "response missing or invalid"
     pdu.result_code
   end
 
@@ -1499,7 +1500,7 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [next_msgid.to_ber, request].to_ber_sequence
     @conn.write pkt
 
-    (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new(be)) && (pdu.app_tag == 9) or raise Net::LDAP::LdapError, "response missing or invalid"
+    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LdapPdu.new(be)) && (pdu.app_tag == 9) or raise Net::LDAP::LdapError, "response missing or invalid"
     pdu.result_code
   end
 
@@ -1515,7 +1516,7 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [next_msgid.to_ber, request].to_ber_sequence
     @conn.write pkt
 
-    (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new(be)) && (pdu.app_tag == 13) or raise Net::LDAP::LdapError, "response missing or invalid"
+    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LdapPdu.new(be)) && (pdu.app_tag == 13) or raise Net::LDAP::LdapError, "response missing or invalid"
     pdu.result_code
   end
 
@@ -1529,7 +1530,7 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [next_msgid.to_ber, request].to_ber_sequence
     @conn.write pkt
 
-    (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new(be)) && (pdu.app_tag == 11) or raise Net::LDAP::LdapError, "response missing or invalid"
+    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LdapPdu.new(be)) && (pdu.app_tag == 11) or raise Net::LDAP::LdapError, "response missing or invalid"
     pdu.result_code
   end
 end # class Connection
