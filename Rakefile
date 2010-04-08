@@ -14,7 +14,6 @@ MANIFEST    = File.read("Manifest.txt").split
 MINRUBY     = "1.8.7"
 
 Hoe.plugin :git
-
 Hoe.spec PKG_NAME do
   self.version = PKG_VERSION
   self.rubyforge_name = PKG_NAME
@@ -120,3 +119,6 @@ task :build_manifest do |t|
 
   puts paths.sort.join("\n")
 end
+
+desc "Run a full set of integration and unit tests" 
+task :cruise => [:test, :spec]
