@@ -50,7 +50,9 @@ class TestLdif < Test::Unit::TestCase
     data = File.open(TestLdifFilename, "rb") { |f| f.read }
     io = StringIO.new(data)
 
-    entries = data.grep(/^dn:\s*/) { $'.chomp }
+    # added .lines to turn to array because 1.9 doesn't have
+    # .grep on basic strings
+    entries = data.lines.grep(/^dn:\s*/) { $'.chomp }
     dn_entries = entries.dup
 
     ds = Net::LDAP::Dataset::read_ldif(io) { |type, value|
