@@ -24,8 +24,15 @@
     "(cn:caseExactMatch:=Fred Flintstone)"); provided by "nowhereman".
 * Added or revised documentation:
   * Core class extension methods under Net::BER.
+  * Extensive changes to Net::BER documentation.
+  * Cleaned up some rdoc oddities, suppressed empty documentation sections
+    where possible.
+  * Adding a Hacking document.
 * Extended unit testing:
   * Added some unit tests for the BER core extensions.
+  * The LDIF test data file was split for Ruby 1.9.1 regexp support.
+  * Added a cruisecontrol.rb task.
+  * Converted some test/unit tests to specs.
 * Code clean-up:
   * Made the formatting of code consistent across all files.
   * Removed Net::BER::BERParser::TagClasses as it does not appear to be used.
@@ -36,6 +43,9 @@
     Pdu#result. This may be changed in Net::LDAP 1.0 to return the full
     Pdu#result, but if we do so, it will be that way for all LDAP calls
     involving Pdu objects.
+  * Renamed Net::LDAP::Psw to Net::LDAP::Password with a corresponding filename
+    change.
+  * Removed the stub file lib/net/ldif.rb and class Net::LDIF.
 
 === Net::LDAP 0.1.1 / 2010-03-18
 * Fixing a critical problem with sockets.
