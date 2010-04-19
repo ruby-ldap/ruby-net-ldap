@@ -1,12 +1,16 @@
 require 'ostruct'
 
-module Net
+module Net # :nodoc:
   class LDAP
     begin
       require 'openssl'
+      ##
+      # Set to +true+ if OpenSSL is available and LDAPS is supported.
       HasOpenSSL = true
     rescue LoadError
+      # :stopdoc:
       HasOpenSSL = false
+      # :startdoc:
     end
   end
 end
@@ -19,16 +23,6 @@ require 'net/ldap/dataset'
 require 'net/ldap/password'
 require 'net/ldap/entry'
 
-# == Net::LDAP
-#
-# This library provides a pure-Ruby implementation of the LDAP client
-# protocol, per RFC-2251. It can be used to access any server which
-# implements the LDAP protocol.
-#
-# Net::LDAP is intended to provide full LDAP functionality while hiding the
-# more arcane aspects the LDAP protocol itself, and thus presenting as
-# Ruby-like a programming interface as possible.
-#
 # == Quick-start for the Impatient
 # === Quick Example of a user-authentication against an LDAP directory:
 #
