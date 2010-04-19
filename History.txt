@@ -1,4 +1,6 @@
-=== Net::LDAP NEXT / 2010-__-__
+=== Net::LDAP 0.2 / 2010-04-__
+* Added a document describing how to contribute to Net::LDAP most effectively.
+* Preparing for a license change for Net::LDAP in the next release.
 * SSL capabilities will be enabled or disabled based on whether we can load
   OpenSSL successfully or not.
 * Moved the core class extensions extensions from being in the Net::LDAP
@@ -38,7 +40,7 @@
 === Net::LDAP 0.1.1 / 2010-03-18
 * Fixing a critical problem with sockets.
 
-=== Net::LDAP 0.1.0 / 2010-03-17
+=== Net::LDAP 0.1 / 2010-03-17
 * Small fixes throughout, more to come.
 * Ruby 1.9 support added.
 * Ruby 1.8.6 and below support removed. If we can figure out a compatible way

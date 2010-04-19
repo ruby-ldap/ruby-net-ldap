@@ -1,16 +1,59 @@
 = Hacking Net::LDAP
 
-We welcome your contributions to Net::LDAP. To increase the chances of your
-patches being accepted, we recommend that you follow the guidelines below:
+We welcome your contributions to Net::LDAP. We accept most contributions, but
+there are ways to increase the chance of your patch being accepted quickly.
 
-1. Your code should be formatted like the rest of Net::LDAP. We use a text
-   wrap of 76 - 78 characters, especially for documentation contents.
-   Operators should have spaces around them, method definitions should have
-   parentheses around arguments. Keep the indentation as flat as possible.
-2. Your changes should be well-documented and described.
-3. You must provide rspec tests for any new or changed features. Rspec has
-   been chosen as the way forward for tests.
-4. You should provide LDIF data for importing into LDAP servers so that the
-   changes can be tested <em>in situ</em> with more than one real LDAP
-   server.
-5. You should have tested your changes against a real LDAP server.
+== Licensing
+
+Net::LDAP 0.3 and later will be licensed under an MIT-style license; any
+contributions after 2010-04-20 must be under this license to be accepted.
+
+== Formatting
+
+* Your patches should be formatted like the rest of Net::LDAP.
+* We use a text wrap of 76–78 characters, especially for documentation
+  contents.
+* Operators should have spaces around them.
+* Method definitions should have parentheses around arguments (and no
+  parentheses if there are no arguments).
+* Indentation should be kept as flat as possible; this may mean being more
+  explicit with constants.
+
+== Documentation
+
+* Documentation: net-ldap[http://net-ldap.rubyforge.org/]
+
+It is very important that, if you add new methods or objects, your code is
+well-documented. The purpose of the changes should be clearly described so that
+even if this is a feature we do not use, we can understand its purpose.
+
+We also encourage documentation-only contributions that improve the
+documentation of Net::LDAP.
+
+== Tests
+
+The Net::LDAP team uses RSpec for unit testing; all changes must have rspec
+tests for any new or changed features.
+
+Your changes should have been tested against at least one real LDAP server; the
+current tests are not sufficient to find all possible bugs. It's unlikely that
+they will ever be sufficient given the variations in LDAP server behaviour.
+
+If you're introducing a new feature, it would be useful to provide LDIF data
+for importing into LDAP servers for testing.
+
+== Development Dependencies
+
+Net::LDAP uses several libraries during development, all of which can be
+installed using RubyGems.
+
+* *hoe*
+* *hoe-git*
+* *archive-tar-minitar*
+* *metaid*
+
+== Participation
+
+* RubyForge: net-ldap[http://rubyforge.org/projects/net-ldap]
+* GitHub: RoryO/ruby-net-ldap[http://github.com/RoryO/ruby-net-ldap/]
+* Group: ruby-ldap[http://groups.google.com/group/ruby-ldap]

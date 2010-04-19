@@ -33,6 +33,7 @@ Hoe.spec PKG_NAME do
   self.description = paragraphs_of(self.readme_file, 2..2).join("\n\n")
 
   extra_rdoc_files << MANIFEST.grep(/\.rdoc$/)
+  extra_rdoc_files.flatten!
 
   extra_dev_deps << [ "archive-tar-minitar", "~>0.5.1" ]
   extra_dev_deps << [ "hoe-git", "~>1" ]
