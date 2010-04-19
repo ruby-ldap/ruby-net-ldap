@@ -1,5 +1,7 @@
 require 'stringio'
 
+##
+# BER extensions to the String class.
 module Net::BER::Extensions::String
   ##
   # Converts a string to a BER string. Universal octet-strings are tagged
