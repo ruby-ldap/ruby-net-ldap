@@ -1,5 +1,4 @@
 require "rubygems"
-require 'hanna/rdoctask'
 require 'hoe'
 
 $LOAD_PATH.unshift('lib')
@@ -36,7 +35,6 @@ Hoe.spec PKG_NAME do
   extra_rdoc_files << MANIFEST.grep(/\.rdoc$/)
 
   extra_dev_deps << [ "archive-tar-minitar", "~>0.5.1" ]
-  extra_dev_deps << [ "hanna", "~>0.1.2" ]
   extra_dev_deps << [ "hoe-git", "~>1" ]
   extra_dev_deps << [ "metaid", "~>1" ]
   clean_globs << "coverage"
