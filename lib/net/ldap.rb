@@ -532,7 +532,7 @@ class Net::LDAP
     else
       os.code = 0
     end
-    os.message = LDAP.result2string(os.code)
+    os.message = Net::LDAP.result2string(os.code)
     os
   end
 
