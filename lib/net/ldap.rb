@@ -1170,7 +1170,7 @@ class Net::LDAP::Connection #:nodoc:
       # go here.
     when :start_tls
       msgid = next_msgid.to_ber
-      request = [StartTlsOid.to_ber].to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
+      request = [Net::LDAP::StartTlsOid.to_ber].to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
       request_pkt = [msgid, request].to_ber_sequence
       @conn.write request_pkt
       be = @conn.read_ber(Net::LDAP::AsnSyntax)
