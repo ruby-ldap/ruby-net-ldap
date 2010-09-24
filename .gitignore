@@ -1,3 +1,4 @@
+.rvmrc
 *.gemspec
 pkg/
 *.swp
