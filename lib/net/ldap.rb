@@ -1519,11 +1519,7 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [next_msgid.to_ber, request.to_ber_appsequence(12)].to_ber_sequence
     @conn.write pkt
 
-<<<<<<< HEAD
-    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 13) or raise Net::LDAP::LdapError, "response missing or invalid"
-=======
     (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be )) && (pdu.app_tag == 13) or raise LdapError.new( "response missing or invalid" )
->>>>>>> tonyheadford/master
     pdu.result_code
   end
 
