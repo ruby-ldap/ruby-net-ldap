@@ -496,7 +496,7 @@ class Net::LDAP
   #    ldap.modify(...)
   #  end
   def self.open(args)
-    ldap1 = LDAP.new(args)
+    ldap1 = new(args)
     ldap1.open { |ldap| yield ldap }
   end
 
