@@ -44,5 +44,10 @@ describe Net::LDAP::Filter do
       end
     end
   end
+  describe "<- .construct" do
+    it "should accept apostrophes in filters (regression)" do
+      Net::LDAP::Filter.construct("uid=O'Keefe").to_rfc2254.should == "(uid=O'Keefe)"
+    end 
+  end
   
 end

@@ -694,7 +694,7 @@ class Net::LDAP::Filter
         scanner.scan(/\s*/)
         if op = scanner.scan(/<=|>=|!=|:=|=/)
           scanner.scan(/\s*/)
-          if value = scanner.scan(/(?:[-\w*.+@=,#\$%&!\s]|\\[a-fA-F\d]{2})+/)
+          if value = scanner.scan(/(?:[-\w*.+@=,#\$%&!'\s]|\\[a-fA-F\d]{2})+/)
             # 20100313 AZ: Assumes that "(uid=george*)" is the same as
             # "(uid=george* )". The standard doesn't specify, but I can find
             # no examples that suggest otherwise.
