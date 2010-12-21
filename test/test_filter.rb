@@ -24,6 +24,13 @@ class TestFilter < Test::Unit::TestCase
     assert_equal("(uid=george *)", Filter.eq("uid", "george *").to_s)
   end
 
+  def test_convenience_filters
+    assert_equal("(uid=\\2a)", Filter.equals("uid", "*").to_s)
+    assert_equal("(uid=\\28*)", Filter.begins("uid", "(").to_s)
+    assert_equal("(uid=*\\29)", Filter.ends("uid", ")").to_s)
+    assert_equal("(uid=*\\5c*)", Filter.contains("uid", "\\").to_s)
+  end
+
 	def test_c2
     assert_equal("(uid=george *)",
                  Filter.from_rfc2254("uid=george *").to_rfc2254)
