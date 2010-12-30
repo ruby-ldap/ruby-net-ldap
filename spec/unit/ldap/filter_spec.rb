@@ -49,5 +49,35 @@ describe Net::LDAP::Filter do
       Net::LDAP::Filter.construct("uid=O'Keefe").to_rfc2254.should == "(uid=O'Keefe)"
     end 
   end
-  
+
+  describe "convenience filter constructors" do
+    def eq(attribute, value)
+      described_class.eq(attribute, value)
+    end
+    describe "<- .equals(attr, val)" do
+      it "should delegate to .eq with escaping" do
+        described_class.equals('dn', 'f*oo').should == eq('dn', 'f\2Aoo')
+      end 
+    end
+    describe "<- .begins(attr, val)" do
+      it "should delegate to .eq with escaping" do
+        described_class.begins('dn', 'f*oo').should == eq('dn', 'f\2Aoo*')
+      end 
+    end
+    describe "<- .ends(attr, val)" do
+      it "should delegate to .eq with escaping" do
+        described_class.ends('dn', 'f*oo').should == eq('dn', '*f\2Aoo')
+      end 
+    end
+    describe "<- .contains(attr, val)" do
+      it "should delegate to .eq with escaping" do
+        described_class.contains('dn', 'f*oo').should == eq('dn', '*f\2Aoo*')
+      end 
+    end
+  end
+  describe "<- .escape(str)" do
+    it "should escape !, &, *, :, | and ~" do
+      Net::LDAP::Filter.escape('!&*:|~').should == "\\21\\26\\2A\\3A\\7C\\7E"
+    end 
+  end
 end
