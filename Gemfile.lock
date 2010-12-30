@@ -26,4 +26,4 @@ DEPENDENCIES
   hoe
   hoe-git
   metaid
-  rspec
+  rspec (~> 2.0)

@@ -5,6 +5,6 @@ gem 'hoe-git'
 
 group :development do
   gem 'metaid'
-  gem 'rspec'
+  gem 'rspec', '~> 2.0'
   gem 'flexmock'
 end
