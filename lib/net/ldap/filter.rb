@@ -1,3 +1,4 @@
+# Encoding: UTF-8
 # Copyright (C) 2006 by Francis Cianfrocca and other contributors. All
 # Rights Reserved.
 #
@@ -79,6 +80,8 @@ class Net::LDAP::Filter
     # <tt>mail</tt> value containing the substring "anderson":
     #
     #   f = Net::LDAP::Filter.eq("mail", "*anderson*")
+    #
+    # This filter does not perform any escaping
     def eq(attribute, value)
       new(:eq, attribute, value)
     end
@@ -136,8 +139,42 @@ class Net::LDAP::Filter
     # Creates a Filter object indicating that a particular attribute value
     # is either not present or does not match a particular string; see
     # Filter::eq for more information.
+    #
+    # This filter does not perform any escaping
     def ne(attribute, value)
       new(:ne, attribute, value)
+    end
+
+    ##
+    # Creates a Filter object indicating that the value of a particular
+    # attribute must match a particular string. The attribute value is
+    # escaped, so the "*" character is interpreted literally.
+    def equals(attribute, value)
+      new(:eq, attribute, escape(value))
+    end
+
+    ##
+    # Creates a Filter object indicating that the value of a particular
+    # attribute must begin with a particular string. The attribute value is
+    # escaped, so the "*" character is interpreted literally.
+    def begins(attribute, value)
+      new(:eq, attribute, escape(value) + "*")
+    end
+
+    ##
+    # Creates a Filter object indicating that the value of a particular
+    # attribute must end with a particular string. The attribute value is
+    # escaped, so the "*" character is interpreted literally.
+    def ends(attribute, value)
+      new(:eq, attribute, "*" + escape(value))
+    end
+
+    ##
+    # Creates a Filter object indicating that the value of a particular
+    # attribute must contain a particular string. The attribute value is
+    # escaped, so the "*" character is interpreted literally.
+    def contains(attribute, value)
+      new(:eq, attribute, "*" + escape(value) + "*")
     end
 
     ##
@@ -206,6 +243,30 @@ class Net::LDAP::Filter
     end
     alias_method :present, :present?
     alias_method :pres, :present?
+
+    # http://tools.ietf.org/html/rfc4515 lists these exceptions from UTF1
+    # charset for filters. All of the following must be escaped in any normal
+    # string using a single backslash ('\') as escape. 
+    #
+    ESCAPES = {
+      '!' => '21', # EXCLAMATION    = %x21 ; exclamation mark ("!")
+      '&' => '26', # AMPERSAND      = %x26 ; ampersand (or AND symbol) ("&")
+      '*' => '2A', # ASTERISK       = %x2A ; asterisk ("*")
+      ':' => '3A', # COLON          = %x3A ; colon (":")
+      '|' => '7C', # VERTBAR        = %x7C ; vertical bar (or pipe) ("|")
+      '~' => '7E', # TILDE          = %x7E ; tilde ("~")
+    }
+    # Compiled character class regexp using the keys from the above hash. 
+    ESCAPE_RE = Regexp.new(
+      "[" + 
+      ESCAPES.keys.map { |e| Regexp.escape(e) }.join + 
+      "]")
+
+    ##
+    # Escape a string for use in an LDAP filter
+    def escape(string)
+      string.gsub(ESCAPE_RE) { |char| "\\" + ESCAPES[char] }
+    end
 
     ##
     # Converts an LDAP search filter in BER format to an Net::LDAP::Filter

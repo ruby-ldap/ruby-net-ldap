@@ -4,12 +4,13 @@ require 'net/ber'
 require 'net/ldap'
 
 describe "BER encoding of" do
-  def properly_encode_and_decode
-    simple_matcher('properly encode and decode') do |given|
+  
+  RSpec::Matchers.define :properly_encode_and_decode do 
+    match do |given|
       given.to_ber.read_ber.should == given
     end
   end
-  
+   
   context "arrays" do
     it "should properly encode/decode []" do
       [].should properly_encode_and_decode
