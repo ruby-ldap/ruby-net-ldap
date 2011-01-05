@@ -1386,14 +1386,15 @@ class Net::LDAP::Connection #:nodoc:
         search_attributes.to_ber_sequence
       ].to_ber_appsequence(3)
 
-      controls = [
+      controls = []
+      controls <<
         [
           Net::LDAP::LdapControls::PagedResults.to_ber,
           # Criticality MUST be false to interoperate with normal LDAPs.
           false.to_ber,
           rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber
-        ].to_ber_sequence
-      ].to_ber_contextspecific(0)
+        ].to_ber_sequence if paged_searches_supported
+      controls = controls.to_ber_contextspecific(0)
 
       pkt = [next_msgid.to_ber, request, controls].to_ber_sequence
       @conn.write pkt
