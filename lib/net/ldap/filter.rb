@@ -249,12 +249,11 @@ class Net::LDAP::Filter
     # string using a single backslash ('\') as escape. 
     #
     ESCAPES = {
-      '!' => '21', # EXCLAMATION    = %x21 ; exclamation mark ("!")
-      '&' => '26', # AMPERSAND      = %x26 ; ampersand (or AND symbol) ("&")
-      '*' => '2A', # ASTERISK       = %x2A ; asterisk ("*")
-      ':' => '3A', # COLON          = %x3A ; colon (":")
-      '|' => '7C', # VERTBAR        = %x7C ; vertical bar (or pipe) ("|")
-      '~' => '7E', # TILDE          = %x7E ; tilde ("~")
+      "\0" => '00', # NUL            = %x00 ; null character
+      '*'  => '2A', # ASTERISK       = %x2A ; asterisk ("*")
+      '('  => '28', # LPARENS        = %x28 ; left parenthesis ("(")
+      ')'  => '29', # RPARENS        = %x29 ; right parenthesis (")")
+      '\\' => '5C', # ESC            = %x5C ; esc (or backslash) ("\")
     }
     # Compiled character class regexp using the keys from the above hash. 
     ESCAPE_RE = Regexp.new(
