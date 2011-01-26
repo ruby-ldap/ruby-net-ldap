@@ -1470,7 +1470,7 @@ class Net::LDAP::Connection #:nodoc:
       # TODO, fix the following line, which gives a bogus error if the
       # opcode is invalid.
       op_1 = { :add => 0, :delete => 1, :replace => 2 }[op.to_sym].to_ber_enumerated
-      modify_ops << [op_1, [attr.to_s.to_ber, Array(values).map { |v| v.to_ber}.to_ber_set].to_ber_sequence].to_ber_sequence
+      modify_ops << [op_1, [attr.to_s.to_ber, Array(values).map { |v| v.to_ber unless v.nil? }.to_ber_set].to_ber_sequence].to_ber_sequence
     }
 
     request = [modify_dn.to_ber,
