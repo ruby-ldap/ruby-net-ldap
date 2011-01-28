@@ -1456,6 +1456,20 @@ class Net::LDAP::Connection #:nodoc:
     result_code
   end
 
+  def self.modify_ops args
+      modify_ops = []
+      a = args[:operations] and a.each {|op, attr, values|
+        # TODO, fix the following line, which gives a bogus error
+        # if the opcode is invalid.
+        op_1 = {:add => 0, :delete => 1, :replace => 2} [op.to_sym].to_ber_enumerated
+        values = [values].flatten.map { |v|
+            v.to_ber unless v.nil?
+        }.to_ber_set
+        modify_ops << [op_1,[attr.to_s.to_ber,values].to_ber_sequence].to_ber
+      }
+      modify_ops
+  end
+
   #--
   # TODO: need to support a time limit, in case the server fails to respond.
   # TODO: We're throwing an exception here on empty DN. Should return a
@@ -1465,14 +1479,7 @@ class Net::LDAP::Connection #:nodoc:
   #++
   def modify(args)
     modify_dn = args[:dn] or raise "Unable to modify empty DN"
-    modify_ops = []
-    a = args[:operations] and a.each { |op, attr, values|
-      # TODO, fix the following line, which gives a bogus error if the
-      # opcode is invalid.
-      op_1 = { :add => 0, :delete => 1, :replace => 2 }[op.to_sym].to_ber_enumerated
-      modify_ops << [op_1, [attr.to_s.to_ber, Array(values).map { |v| v.to_ber unless v.nil? }.to_ber_set].to_ber_sequence].to_ber_sequence
-    }
-
+    modify_ops = modify_ops args[:operations]
     request = [modify_dn.to_ber,
       modify_ops.to_ber_sequence].to_ber_appsequence(6)
     pkt = [next_msgid.to_ber, request].to_ber_sequence
