@@ -533,7 +533,7 @@ class Net::LDAP::Filter
     when :ex
       seq = []
 
-      unless @left =~ /^([-;\d\w]*)(:dn)?(:(\w+|[.\d\w]+))?$/
+      unless @left =~ /^([-;\w]*)(:dn)?(:(\w+|[.\w]+))?$/
         raise Net::LDAP::LdapError, "Bad attribute #{@left}"
       end
       type, dn, rule = $1, $2, $4
@@ -751,7 +751,7 @@ class Net::LDAP::Filter
     # This parses a given expression inside of parentheses.
     def parse_filter_branch(scanner)
       scanner.scan(/\s*/)
-      if token = scanner.scan(/[-\w\d_:.]*[\d\w]/)
+      if token = scanner.scan(/[-\w:.]*[\w]/)
         scanner.scan(/\s*/)
         if op = scanner.scan(/<=|>=|!=|:=|=/)
           scanner.scan(/\s*/)
