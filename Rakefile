@@ -14,6 +14,8 @@ MANIFEST    = File.read("Manifest.txt").split
 MINRUBY     = "1.8.7"
 
 Hoe.plugin :git
+Hoe.plugin :gemspec
+
 Hoe.spec PKG_NAME do
   self.version = PKG_VERSION
   self.rubyforge_name = PKG_NAME

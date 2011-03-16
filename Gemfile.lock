@@ -5,6 +5,8 @@ GEM
     flexmock (0.8.11)
     hoe (2.8.0)
       rake (>= 0.8.7)
+    hoe-gemspec (1.0.0)
+      hoe (>= 2.2.0)
     hoe-git (1.3.0)
       hoe (>= 2.2.0)
     metaid (1.0)
@@ -24,6 +26,7 @@ PLATFORMS
 DEPENDENCIES
   flexmock
   hoe
+  hoe-gemspec
   hoe-git
   metaid
   rspec (~> 2.0)

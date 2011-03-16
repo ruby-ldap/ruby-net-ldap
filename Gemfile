@@ -2,6 +2,7 @@ source "http://rubygems.org"
 
 gem 'hoe'
 gem 'hoe-git'
+gem 'hoe-gemspec'
 
 group :development do
   gem 'metaid'
