@@ -19,8 +19,8 @@ lib/net/ldap.rb
 lib/net/ldap/dataset.rb
 lib/net/ldap/entry.rb
 lib/net/ldap/filter.rb
+lib/net/ldap/password.rb
 lib/net/ldap/pdu.rb
-lib/net/ldap/psw.rb
 lib/net/ldif.rb
 lib/net/snmp.rb
 spec/integration/ssl_ber_spec.rb
@@ -32,11 +32,12 @@ spec/unit/ldap/entry_spec.rb
 spec/unit/ldap/filter_spec.rb
 spec/unit/ldap_spec.rb
 test/common.rb
-test/test_ber.rb
 test/test_entry.rb
 test/test_filter.rb
+test/test_ldap_connection.rb
 test/test_ldif.rb
 test/test_password.rb
+test/test_rename.rb
 test/test_snmp.rb
 test/testdata.ldif
 testserver/ldapserver.rb

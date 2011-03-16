@@ -1,5 +1,4 @@
 require "rubygems"
-# require 'hanna/rdoctask'
 require 'hoe'
 
 $LOAD_PATH.unshift('lib')
@@ -9,7 +8,6 @@ require 'net/ldap'
 PKG_NAME    = 'net-ldap'
 PKG_VERSION = Net::LDAP::VERSION
 PKG_DIST    = "#{PKG_NAME}-#{PKG_VERSION}"
-PKG_TAR     = "pkg/#{PKG_DIST}.tar.gz"
 MANIFEST    = File.read("Manifest.txt").split
 MINRUBY     = "1.8.7"
 
@@ -29,7 +27,7 @@ Hoe.spec PKG_NAME do
   self.remote_rdoc_dir = ''
   rsync_args << ' --exclude=statsvn/'
 
-  self.url = %W(http://net-ldap.rubyforge.org/ http://github.com/RoryO/ruby-net-ldap)
+  self.url = %W(http://net-ldap.rubyforge.org/ https://github.com/RoryO/ruby-net-ldap)
 
   self.summary = "Pure Ruby LDAP support library with most client features and some server features."
   self.changes = paragraphs_of(self.history_file, 0..1).join("\n\n")
@@ -37,67 +35,19 @@ Hoe.spec PKG_NAME do
 
   extra_rdoc_files << "Hacking.rdoc"
 
-  extra_dev_deps << [ "archive-tar-minitar", "~>0.5.1" ]
-  extra_dev_deps << [ "hanna", "~>0.1.2" ]
-  extra_dev_deps << [ "hoe-git", "~>1" ]
-  extra_dev_deps << [ "metaid", "~>1" ]
+  extra_dev_deps << [ "hoe-git", "~> 1" ]
+  extra_dev_deps << [ "hoe-gemspec", "~> 1" ]
+  extra_dev_deps << [ "metaid", "~> 1" ]
+  extra_dev_deps << [ "flexmock", "~> 0.9.0" ]
+  extra_dev_deps << [ "rspec", "~> 2.0" ]
   clean_globs << "coverage"
 
   spec_extras[:required_ruby_version] = ">= #{MINRUBY}"
   multiruby_skip << "1.8.6"
   multiruby_skip << "1_8_6"
 
-  # This is a lie because I will continue to use Archive::Tar::Minitar.
-  self.need_tar        = false
+  self.need_tar = true
 end
-
-desc "Build a Net-LDAP .tar.gz distribution."
-task :tar => [ PKG_TAR ]
-file PKG_TAR => [ :test ] do |t|
-  require 'archive/tar/minitar'
-  require 'zlib'
-  files = MANIFEST.map { |f|
-    fn = File.join(PKG_DIST, f)
-    tm = File.stat(f).mtime
-
-    if File.directory?(f)
-      { :name => fn, :mode => 0755, :dir => true, :mtime => tm }
-    else
-      mode = if f =~ %r{^bin}
-               0755
-             else
-               0644
-             end
-      data = File.read(f)
-      { :name => fn, :mode => mode, :data => data, :size => data.size,
-        :mtime => tm }
-    end
-  }
-
-  begin
-    unless File.directory?(File.dirname(t.name))
-      require 'fileutils'
-      File.mkdir_p File.dirname(t.name)
-    end
-    tf = File.open(t.name, 'wb')
-    gz = Zlib::GzipWriter.new(tf)
-    tw = Archive::Tar::Minitar::Writer.new(gz)
-
-    files.each do |entry|
-      if entry[:dir]
-        tw.mkdir(entry[:name], entry)
-      else
-        tw.add_file_simple(entry[:name], entry) { |os|
-          os.write(entry[:data])
-        }
-      end
-    end
-  ensure
-    tw.close if tw
-    gz.close if gz
-  end
-end
-task :package => [ PKG_TAR ]
 
 desc "Build the manifest file from the current set of files."
 task :build_manifest do |t|
