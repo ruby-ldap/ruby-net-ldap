@@ -12,9 +12,12 @@
       previously only known as Filter.pres.
     * Cleaned up Net::LDAP::Filter::FilterParser to handle branches better.
       Fixed some of the regular expressions to be more canonically defined.
+    * Correctly handles single-branch branches.
     * Cleaned up the string representation of Filter objects.
     * Added experimental support for RFC4515 extensible matching (e.g.,
       "(cn:caseExactMatch:=Fred Flintstone)"); provided by "nowhereman".
+  * Net::LDAP::DN class representing an automatically escaping/unescaping
+    distinguished name for LDAP queries.
 * Minor Enhancements:
   * SSL capabilities will be enabled or disabled based on whether we can load
     OpenSSL successfully or not.
@@ -23,6 +26,7 @@
     related to BER-encoding values. This will make extracting Net::BER from
     Net::LDAP easier in the future.
   * Added some unit tests for the BER core extensions.
+  * Paging controls are only sent where they are supported.
 * Documentation Changes:
   * Core class extension methods under Net::BER.
   * Extensive changes to Net::BER documentation.
