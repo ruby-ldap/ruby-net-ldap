@@ -1,10 +1,13 @@
-COPYING
+.autotest
+.rspec
+Contributors.rdoc
 Hacking.rdoc
-History.txt
-LICENSE
+History.rdoc
+License.rdoc
 Manifest.txt
-README.txt
+README.rdoc
 Rakefile
+autotest/discover.rb
 lib/net-ldap.rb
 lib/net/ber.rb
 lib/net/ber/ber_parser.rb
@@ -21,11 +24,8 @@ lib/net/ldap/entry.rb
 lib/net/ldap/filter.rb
 lib/net/ldap/password.rb
 lib/net/ldap/pdu.rb
-<<<<<<< HEAD
-lib/net/ldif.rb
-=======
->>>>>>> f46c68dce3be545811041fb344273a9c84d372c4
 lib/net/snmp.rb
+net-ldap.gemspec
 spec/integration/ssl_ber_spec.rb
 spec/spec.opts
 spec/spec_helper.rb
