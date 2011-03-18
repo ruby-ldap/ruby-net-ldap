@@ -77,8 +77,8 @@ describe Net::LDAP::Filter do
     end
   end
   describe "<- .escape(str)" do
-    it "should escape !, &, *, :, | and ~" do
-      Net::LDAP::Filter.escape('!&*:|~').should == "\\21\\26\\2A\\3A\\7C\\7E"
+    it "should escape nul, *, (, ) and \\" do
+      Net::LDAP::Filter.escape("\0*()\\").should == "\\00\\2A\\28\\29\\5C"
     end 
   end
 end
