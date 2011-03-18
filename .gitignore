@@ -1,4 +1,3 @@
-.rspec
 spec/ldap.yml
 .rvmrc
 *.gemspec
