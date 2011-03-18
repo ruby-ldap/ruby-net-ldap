@@ -1,0 +1,43 @@
+= Net::LDAP for Ruby
+
+== Description
+
+Net::LDAP for Ruby implements client access for the Lightweight Directory
+Access Protocol (LDAP), an IETF standard protocol for accessing distributed
+directory services. Net::LDAP is written completely in Ruby with no external
+dependencies. It supports most LDAP client features and a subset of server
+features as well.
+
+Net::LDAP strives for standards-conformity ({RFC
+4511}[http://www.rfc-editor.org/rfc/rfc4511.txt]), but it also provides support
+for features in popular non-conforming LDAP servers.
+
+== Where
+
+* {RubyForge}[http://rubyforge.org/projects/net-ldap]
+* {GitHub}[https://github.com/ruby-ldap/ruby-net-ldap]
+
+The Net::LDAP for Ruby documentation, project description, and main downloads
+can currently be found on {RubyForge}[http://rubyforge.org/projects/net-ldap].
+
+== Synopsis
+
+See Net::LDAP for documentation and usage samples.
+
+== Requirements
+
+Net::LDAP requires a Ruby 1.8.7 interpreter or better.
+
+== Install
+
+Net::LDAP is a pure Ruby library. It does not require any external libraries.
+You can install the RubyGems version of Net::LDAP available from the usual
+sources.
+
+* gem install net-ldap
+
+Simply require 'net/ldap'.
+
+:include: Contributors.rdoc
+
+:include: License.rdoc
