@@ -696,7 +696,7 @@ class Net::LDAP::Filter
       filter = nil
       branches = parse_branches(scanner)
 
-      if branches.size >= 2
+      if branches.size >= 1
         filter = branches.shift
         while not branches.empty?
           filter = filter.__send__(op, branches.shift)
