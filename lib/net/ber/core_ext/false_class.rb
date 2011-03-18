@@ -1,3 +1,5 @@
+##
+# BER extensions to +false+.
 module Net::BER::Extensions::FalseClass
   ##
   # Converts +false+ to the BER wireline representation of +false+.

@@ -21,7 +21,10 @@ lib/net/ldap/entry.rb
 lib/net/ldap/filter.rb
 lib/net/ldap/password.rb
 lib/net/ldap/pdu.rb
+<<<<<<< HEAD
 lib/net/ldif.rb
+=======
+>>>>>>> f46c68dce3be545811041fb344273a9c84d372c4
 lib/net/snmp.rb
 spec/integration/ssl_ber_spec.rb
 spec/spec.opts

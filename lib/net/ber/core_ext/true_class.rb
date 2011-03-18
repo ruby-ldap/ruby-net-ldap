@@ -1,3 +1,5 @@
+##
+# BER extensions to +true+.
 module Net::BER::Extensions::TrueClass
   ##
   # Converts +true+ to the BER wireline representation of +true+.

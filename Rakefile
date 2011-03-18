@@ -31,6 +31,7 @@ Hoe.spec 'net-ldap' do
   self.extra_dev_deps << [ "metaid", "~> 1" ]
   self.extra_dev_deps << [ "flexmock", "~> 0.9.0" ]
   self.extra_dev_deps << [ "rspec", "~> 2.0" ]
+
   self.clean_globs << "coverage"
 
   self.spec_extras[:required_ruby_version] = ">= 1.8.7"

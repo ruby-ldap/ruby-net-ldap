@@ -1,3 +1,5 @@
+##
+# BER extensions to the Array class.
 module Net::BER::Extensions::Array
   ##
   # Converts an Array to a BER sequence. All values in the Array are

@@ -2,7 +2,6 @@
 
 require 'common'
 
-require 'net/ldif'
 require 'digest/sha1'
 require 'base64'
 
