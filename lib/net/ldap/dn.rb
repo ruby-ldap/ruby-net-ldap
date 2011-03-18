@@ -1,12 +1,10 @@
-# LDAP DN support classes
-#
+# -*- ruby encoding: utf-8 -*-
 
 ##
-# Objects of this class represent an LDAP DN.
-#
-# In LDAP-land, a DN ("Distinguished Name") is a unique identifier for an
-# entry within an LDAP directory. It is made up of a number of other
-# attributes strung together, to identify the entry in the tree.
+# Objects of this class represent an LDAP DN ("Distinguished Name"). A DN
+# ("Distinguished Name") is a unique identifier for an entry within an LDAP
+# directory. It is made up of a number of other attributes strung together,
+# to identify the entry in the tree.
 #
 # Each attribute that makes up a DN needs to have its value escaped so that
 # the DN is valid. This class helps take care of that.
@@ -18,10 +16,10 @@ class Net::LDAP::DN
   # Initialize a DN, escaping as required. Pass in attributes in name/value
   # pairs. If there is a left over argument, it will be appended to the dn
   # without escaping (useful for a base string).
-  # 
+  #
   # Most uses of this class will be to escape a DN, rather than to parse it,
-  # so storing the dn as an escaped String and parsing parts as required with
-  # a state machine seems sensible.
+  # so storing the dn as an escaped String and parsing parts as required
+  # with a state machine seems sensible.
   def initialize(*args)
     buffer = StringIO.new
 
@@ -42,7 +40,6 @@ class Net::LDAP::DN
   ##
   # Parse a DN into key value pairs using ASN from
   # http://tools.ietf.org/html/rfc2253 section 3.
-  #
   def each_pair
     state = :key
     key = StringIO.new
@@ -51,118 +48,126 @@ class Net::LDAP::DN
 
     @dn.each_char do |char|
       case state
-
-        when :key then case char
-          when 'a'..'z','A'..'Z' then
-            state = :key_normal
-            key << char
-          when '0'..'9' then
-            state = :key_oid
-            key << char
-          when ' ' then state = :key
-          else raise "DN badly formed"
+      when :key then
+        case char
+        when 'a'..'z', 'A'..'Z' then
+          state = :key_normal
+          key << char
+        when '0'..'9' then
+          state = :key_oid
+          key << char
+        when ' ' then state = :key
+        else raise "DN badly formed"
         end
-        when :key_normal then case char
-          when '=' then state = :value
-          when 'a'..'z','A'..'Z','0'..'9','-',' ' then key << char
-          else raise "DN badly formed"
+      when :key_normal then
+        case char
+        when '=' then state = :value
+        when 'a'..'z', 'A'..'Z', '0'..'9', '-', ' ' then key << char
+        else raise "DN badly formed"
         end
-        when :key_oid then case char
-          when '=' then state = :value
-          when '0'..'9','.',' ' then key << char
-          else raise "DN badly formed"
+      when :key_oid then
+        case char
+        when '=' then state = :value
+        when '0'..'9', '.', ' ' then key << char
+        else raise "DN badly formed"
         end
-
-        when :value then case char
-          when '\\' then state = :value_normal_escape
-          when '"' then state = :value_quoted
-          when ' ' then state = :value
-          when '#' then
-            state = :value_hexstring
-            value << char
-          when ',' then
-            state = :key
-            yield key.string.strip, value.string.rstrip
-            key = StringIO.new
-            value = StringIO.new;
-          else
-            state = :value_normal
-            value << char
+      when :value then
+        case char
+        when '\\' then state = :value_normal_escape
+        when '"' then state = :value_quoted
+        when ' ' then state = :value
+        when '#' then
+          state = :value_hexstring
+          value << char
+        when ',' then
+          state = :key
+          yield key.string.strip, value.string.rstrip
+          key = StringIO.new
+          value = StringIO.new;
+        else
+          state = :value_normal
+          value << char
         end
-
-        when :value_normal then case char
-          when '\\' then state = :value_normal_escape
-          when ',' then
-            state = :key
-            yield key.string.strip, value.string.rstrip
-            key = StringIO.new
-            value = StringIO.new;
-          else value << char
+      when :value_normal then
+        case char
+        when '\\' then state = :value_normal_escape
+        when ',' then
+          state = :key
+          yield key.string.strip, value.string.rstrip
+          key = StringIO.new
+          value = StringIO.new;
+        else value << char
         end
-        when :value_normal_escape then case char
-          when '0'..'9', 'a'..'f', 'A'..'F' then
-            state = :value_normal_escape_hex
-            hex_buffer = char
-          else state = :value_normal; value << char
+      when :value_normal_escape then
+        case char
+        when '0'..'9', 'a'..'f', 'A'..'F' then
+          state = :value_normal_escape_hex
+          hex_buffer = char
+        else state = :value_normal; value << char
         end
-        when :value_normal_escape_hex then case char
-          when '0'..'9', 'a'..'f', 'A'..'F' then
-            state = :value_normal
-            value << "#{hex_buffer}#{char}".to_i(16).chr
-          else raise "DN badly formed"
+      when :value_normal_escape_hex then
+        case char
+        when '0'..'9', 'a'..'f', 'A'..'F' then
+          state = :value_normal
+          value << "#{hex_buffer}#{char}".to_i(16).chr
+        else raise "DN badly formed"
         end
-
-        when :value_quoted then case char
-          when '\\' then state = :value_quoted_escape
-          when '"' then state = :value_end
-          else value << char
+      when :value_quoted then
+        case char
+        when '\\' then state = :value_quoted_escape
+        when '"' then state = :value_end
+        else value << char
         end
-        when :value_quoted_escape then case char
-          when '0'..'9', 'a'..'f', 'A'..'F' then
-            state = :value_quoted_escape_hex
-            hex_buffer = char
-          else state = :value_quoted; value << char
+      when :value_quoted_escape then
+        case char
+        when '0'..'9', 'a'..'f', 'A'..'F' then
+          state = :value_quoted_escape_hex
+          hex_buffer = char
+        else
+          state = :value_quoted;
+          value << char
         end
-        when :value_quoted_escape_hex then case char
-          when '0'..'9', 'a'..'f', 'A'..'F' then
-            state = :value_quoted
-            value << "#{hex_buffer}#{char}".to_i(16).chr
-          else raise "DN badly formed"
+      when :value_quoted_escape_hex then
+        case char
+        when '0'..'9', 'a'..'f', 'A'..'F' then
+          state = :value_quoted
+          value << "#{hex_buffer}#{char}".to_i(16).chr
+        else raise "DN badly formed"
         end
-
-        when :value_hexstring then case char
-          when '0'..'9', 'a'..'f', 'A'..'F' then
-            state = :value_hexstring_hex
-            value << char
-          when ' ' then state = :value_end
-          when ',' then
-            state = :key
-            yield key.string.strip, value.string.rstrip
-            key = StringIO.new
-            value = StringIO.new;
-          else raise "DN badly formed"
+      when :value_hexstring then
+        case char
+        when '0'..'9', 'a'..'f', 'A'..'F' then
+          state = :value_hexstring_hex
+          value << char
+        when ' ' then state = :value_end
+        when ',' then
+          state = :key
+          yield key.string.strip, value.string.rstrip
+          key = StringIO.new
+          value = StringIO.new;
+        else raise "DN badly formed"
         end
-        when :value_hexstring_hex then case char
-          when '0'..'9', 'a'..'f', 'A'..'F' then
-            state = :value_hexstring
-            value << char
-          else raise "DN badly formed"
+      when :value_hexstring_hex then
+        case char
+        when '0'..'9', 'a'..'f', 'A'..'F' then
+          state = :value_hexstring
+          value << char
+        else raise "DN badly formed"
         end
-
-        when :value_end then case char
-          when ' ' then state = :value_end
-          when ',' then
-            state = :key
-            yield key.string.strip, value.string.rstrip
-            key = StringIO.new
-            value = StringIO.new;
-          else raise "DN badly formed"
+      when :value_end then
+        case char
+        when ' ' then state = :value_end
+        when ',' then
+          state = :key
+          yield key.string.strip, value.string.rstrip
+          key = StringIO.new
+          value = StringIO.new;
+        else raise "DN badly formed"
         end
-
-        else raise "Fell out of state machine"
+      else raise "Fell out of state machine"
       end
     end
-    
+
     # Last pair
     if [:value, :value_normal, :value_hexstring, :value_end].include? state
       yield key.string.strip, value.string.rstrip
@@ -186,9 +191,8 @@ class Net::LDAP::DN
   end
 
   # http://tools.ietf.org/html/rfc2253 section 2.4 lists these exceptions
-  # for dn values. All of the following must be escaped in any normal
-  # string using a single backslash ('\') as escape.
-  #
+  # for dn values. All of the following must be escaped in any normal string
+  # using a single backslash ('\') as escape.
   ESCAPES = {
     ','  => ',',
     '+'  => '+',
@@ -198,13 +202,13 @@ class Net::LDAP::DN
     '>' => '>',
     ';' => ';',
   }
+
   # Compiled character class regexp using the keys from the above hash, and
   # checking for a space or # at the start, or space at the end, of the
   # string.
-  ESCAPE_RE = Regexp.new(
-    "(^ |^#| $|[" + 
-    ESCAPES.keys.map { |e| Regexp.escape(e) }.join + 
-    "])")
+  ESCAPE_RE = Regexp.new("(^ |^#| $|[" +
+                         ESCAPES.keys.map { |e| Regexp.escape(e) }.join +
+                         "])")
 
   ##
   # Escape a string for use in a DN value
