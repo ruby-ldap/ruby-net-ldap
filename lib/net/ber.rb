@@ -1,3 +1,4 @@
+# -*- ruby encoding: utf-8 -*-
 module Net # :nodoc:
   ##
   # == Basic Encoding Rules (BER) Support Module

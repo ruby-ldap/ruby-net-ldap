@@ -1,6 +1,6 @@
+# -*- ruby encoding: utf-8 -*-
 require 'stringio'
 
-##
 # Implements Basic Encoding Rules parsing to be mixed into types as needed.
 module Net::BER::BERParser
   primitive = {

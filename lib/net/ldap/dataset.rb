@@ -1,3 +1,4 @@
+# -*- ruby encoding: utf-8 -*-
 ##
 # An LDAP Dataset. Used primarily as an intermediate format for converting
 # to and from LDIF strings and Net::LDAP::Entry objects.

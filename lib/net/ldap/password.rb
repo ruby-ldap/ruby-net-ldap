@@ -1,3 +1,4 @@
+# -*- ruby encoding: utf-8 -*-
 require 'digest/sha1'
 require 'digest/md5'
 

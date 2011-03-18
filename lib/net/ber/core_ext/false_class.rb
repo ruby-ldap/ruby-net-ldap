@@ -1,3 +1,4 @@
+# -*- ruby encoding: utf-8 -*-
 ##
 # BER extensions to +false+.
 module Net::BER::Extensions::FalseClass

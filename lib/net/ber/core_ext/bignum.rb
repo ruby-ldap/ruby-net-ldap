@@ -1,3 +1,4 @@
+# -*- ruby encoding: utf-8 -*-
 ##
 # BER extensions to the Bignum class.
 module Net::BER::Extensions::Bignum

@@ -1,4 +1,5 @@
 # -*- ruby encoding: utf-8 -*-
+# -*- ruby encoding: utf-8 -*-
 
 ##
 # Class Net::LDAP::Filter is used to constrain LDAP searches. An object of

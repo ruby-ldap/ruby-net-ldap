@@ -1,3 +1,4 @@
+# -*- ruby encoding: utf-8 -*-
 ##
 # Objects of this class represent individual entries in an LDAP directory.
 # User code generally does not instantiate this class. Net::LDAP#search
