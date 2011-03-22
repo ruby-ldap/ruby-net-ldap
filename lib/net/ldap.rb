@@ -1452,9 +1452,9 @@ class Net::LDAP::Connection #:nodoc:
     result_code
   end
 
-  def self.modify_ops args
+  def modify_ops args
       modify_ops = []
-      a = args[:operations] and a.each {|op, attr, values|
+      a = args and a.each {|op, attr, values|
         # TODO, fix the following line, which gives a bogus error
         # if the opcode is invalid.
         op_1 = {:add => 0, :delete => 1, :replace => 2} [op.to_sym].to_ber_enumerated
