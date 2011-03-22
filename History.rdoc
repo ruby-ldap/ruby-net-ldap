@@ -10,6 +10,10 @@
       prevent those operators from having problems with the private new.
     * Added Filter.present and Filter.present? aliases for the method
       previously only known as Filter.pres.
+    * Added Filter.escape to escape strings for use in filters, based on
+      rfc4515.
+    * Added Filter.equals, Filter.begins, Filter.ends and Filter.contains,
+      which automatically escape input for use in a filter string.
     * Cleaned up Net::LDAP::Filter::FilterParser to handle branches better.
       Fixed some of the regular expressions to be more canonically defined.
     * Correctly handles single-branch branches.
