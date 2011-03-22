@@ -7,38 +7,38 @@ Hoe.plugin :doofus
 Hoe.plugin :git
 Hoe.plugin :gemspec
 
-Hoe.spec 'net-ldap' do
-  self.rubyforge_name = 'net-ldap'
+Hoe.spec 'net-ldap' do |spec|
+  spec.rubyforge_name = spec.name
 
-  self.developer("Francis Cianfrocca", "blackhedd@rubyforge.org")
-  self.developer("Emiel van de Laar", "gemiel@gmail.com")
-  self.developer("Rory O'Connell", "rory.ocon@gmail.com")
-  self.developer("Kaspar Schiess", "kaspar.schiess@absurd.li")
-  self.developer("Austin Ziegler", "austin@rubyforge.org")
+  spec.developer("Francis Cianfrocca", "blackhedd@rubyforge.org")
+  spec.developer("Emiel van de Laar", "gemiel@gmail.com")
+  spec.developer("Rory O'Connell", "rory.ocon@gmail.com")
+  spec.developer("Kaspar Schiess", "kaspar.schiess@absurd.li")
+  spec.developer("Austin Ziegler", "austin@rubyforge.org")
 
-  self.remote_rdoc_dir = ''
-  self.rsync_args << ' --exclude=statsvn/'
+  spec.remote_rdoc_dir = ''
+  spec.rsync_args << ' --exclude=statsvn/'
 
-  self.url = %W(http://net-ldap.rubyforge.org/ https://github.com/ruby-ldap/ruby-net-ldap)
+  spec.url = %W(http://net-ldap.rubyforge.org/ https://github.com/ruby-ldap/ruby-net-ldap)
 
-  self.history_file = 'History.rdoc'
-  self.readme_file = 'README.rdoc'
+  spec.history_file = 'History.rdoc'
+  spec.readme_file = 'README.rdoc'
 
-  self.extra_rdoc_files = FileList["*.rdoc"].to_a
+  spec.extra_rdoc_files = FileList["*.rdoc"].to_a
 
-  self.extra_dev_deps << [ "hoe-git", "~> 1" ]
-  self.extra_dev_deps << [ "hoe-gemspec", "~> 1" ]
-  self.extra_dev_deps << [ "metaid", "~> 1" ]
-  self.extra_dev_deps << [ "flexmock", "~> 0.9.0" ]
-  self.extra_dev_deps << [ "rspec", "~> 2.0" ]
+  spec.extra_dev_deps << [ "hoe-git", "~> 1" ]
+  spec.extra_dev_deps << [ "hoe-gemspec", "~> 1" ]
+  spec.extra_dev_deps << [ "metaid", "~> 1" ]
+  spec.extra_dev_deps << [ "flexmock", "~> 0.9.0" ]
+  spec.extra_dev_deps << [ "rspec", "~> 2.0" ]
 
-  self.clean_globs << "coverage"
+  spec.clean_globs << "coverage"
 
-  self.spec_extras[:required_ruby_version] = ">= 1.8.7"
-  self.multiruby_skip << "1.8.6"
-  self.multiruby_skip << "1_8_6"
+  spec.spec_extras[:required_ruby_version] = ">= 1.8.7"
+  spec.multiruby_skip << "1.8.6"
+  spec.multiruby_skip << "1_8_6"
 
-  self.need_tar = true
+  spec.need_tar = true
 end
 
 # I'm not quite ready to get rid of this, but I think "rake git:manifest" is
