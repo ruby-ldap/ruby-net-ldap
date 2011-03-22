@@ -1,4 +1,4 @@
-=== Net::LDAP 0.2 / 2011-03-__
+=== Net::LDAP 0.2 / 2011-03-22
 * Major Enhancements:
   * Net::LDAP::Filter changes:
     * Filters can only be constructed using our custom constructors (eq, ge,
