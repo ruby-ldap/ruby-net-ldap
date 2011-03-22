@@ -6,6 +6,7 @@ require 'hoe'
 Hoe.plugin :doofus
 Hoe.plugin :git
 Hoe.plugin :gemspec
+Hoe.plugin :rubyforge
 
 Hoe.spec 'net-ldap' do |spec|
   spec.rubyforge_name = spec.name
