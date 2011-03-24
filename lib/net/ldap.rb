@@ -241,7 +241,7 @@ require 'net/ldap/entry'
 # and then keeps it open while it executes a user-supplied block.
 # Net::LDAP#open closes the connection on completion of the block.
 class Net::LDAP
-  VERSION = "0.2"
+  VERSION = "0.2.1"
 
   class LdapError < StandardError; end
 
@@ -1452,18 +1452,25 @@ class Net::LDAP::Connection #:nodoc:
     result_code
   end
 
-  def self.modify_ops args
-      modify_ops = []
-      a = args[:operations] and a.each {|op, attr, values|
-        # TODO, fix the following line, which gives a bogus error
-        # if the opcode is invalid.
-        op_1 = {:add => 0, :delete => 1, :replace => 2} [op.to_sym].to_ber_enumerated
-        values = [values].flatten.map { |v|
-            v.to_ber unless v.nil?
-        }.to_ber_set
-        modify_ops << [op_1,[attr.to_s.to_ber,values].to_ber_sequence].to_ber
+  MODIFY_OPERATIONS = { #:nodoc:
+    :add => 0,
+    :delete => 1,
+    :replace => 2
+  }
+
+  def self.modify_ops(operations)
+    modify_ops = []
+    if operations
+      operations.each { |op, attrib, values|
+        # TODO, fix the following line, which gives a bogus error if the
+        # opcode is invalid.
+        op_ber = MODIFY_OPERATIONS[op.to_sym].to_ber_enumerated
+        values = [ values ].flatten.map { |v| v.to_ber if v }.to_ber_set
+        values = [ attrib.to_s.to_ber, values ].to_ber_sequence
+        modify_ops << [ op_ber, values ].to_ber
       }
-      modify_ops
+    end
+    modify_ops
   end
 
   #--
@@ -1476,9 +1483,9 @@ class Net::LDAP::Connection #:nodoc:
   def modify(args)
     modify_dn = args[:dn] or raise "Unable to modify empty DN"
     modify_ops = modify_ops args[:operations]
-    request = [modify_dn.to_ber,
-      modify_ops.to_ber_sequence].to_ber_appsequence(6)
-    pkt = [next_msgid.to_ber, request].to_ber_sequence
+    request = [ modify_dn.to_ber,
+      modify_ops.to_ber_sequence ].to_ber_appsequence(6)
+    pkt = [ next_msgid.to_ber, request ].to_ber_sequence
     @conn.write pkt
 
     (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 7) or raise Net::LDAP::LdapError, "response missing or invalid"
