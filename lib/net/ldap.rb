@@ -241,7 +241,7 @@ require 'net/ldap/entry'
 # and then keeps it open while it executes a user-supplied block.
 # Net::LDAP#open closes the connection on completion of the block.
 class Net::LDAP
-  VERSION = "0.2.1"
+  VERSION = "0.2.2"
 
   class LdapError < StandardError; end
 
@@ -1459,7 +1459,7 @@ class Net::LDAP::Connection #:nodoc:
   }
 
   def self.modify_ops(operations)
-    modify_ops = []
+    ops = []
     if operations
       operations.each { |op, attrib, values|
         # TODO, fix the following line, which gives a bogus error if the
@@ -1467,10 +1467,10 @@ class Net::LDAP::Connection #:nodoc:
         op_ber = MODIFY_OPERATIONS[op.to_sym].to_ber_enumerated
         values = [ values ].flatten.map { |v| v.to_ber if v }.to_ber_set
         values = [ attrib.to_s.to_ber, values ].to_ber_sequence
-        modify_ops << [ op_ber, values ].to_ber
+        ops << [ op_ber, values ].to_ber
       }
     end
-    modify_ops
+    ops
   end
 
   #--
@@ -1482,9 +1482,9 @@ class Net::LDAP::Connection #:nodoc:
   #++
   def modify(args)
     modify_dn = args[:dn] or raise "Unable to modify empty DN"
-    modify_ops = modify_ops args[:operations]
+    ops = self.class.modify_ops args[:operations]
     request = [ modify_dn.to_ber,
-      modify_ops.to_ber_sequence ].to_ber_appsequence(6)
+      ops.to_ber_sequence ].to_ber_appsequence(6)
     pkt = [ next_msgid.to_ber, request ].to_ber_sequence
     @conn.write pkt
 

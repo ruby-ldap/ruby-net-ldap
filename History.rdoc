@@ -1,3 +1,7 @@
+=== Net::LDAP 0.2.2 / 2011-03-26
+* Bug Fixes:
+  * Fixed the call to Net::LDAP.modify_ops from Net::LDAP#modify.
+
 === Net::LDAP 0.2.1 / 2011-03-23
 * Bug Fixes:
   * Net::LDAP.modify_ops was broken and is now fixed.
