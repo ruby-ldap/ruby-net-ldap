@@ -642,7 +642,7 @@ class Net::LDAP
       end
     end
 
-    @result == 0 and result_set
+    result_set || @result == 0
   end
 
   # #bind connects to an LDAP server and requests authentication based on
