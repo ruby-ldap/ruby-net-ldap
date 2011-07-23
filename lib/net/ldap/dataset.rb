@@ -117,8 +117,8 @@ class Net::LDAP::Dataset < Hash
       while line
         new_line = io.gets
 
-        if new_line =~ /^[\s]+/
-          line << " " << $'
+        if new_line =~ /^ /
+          line << $'
         else
           nextline = new_line
 
