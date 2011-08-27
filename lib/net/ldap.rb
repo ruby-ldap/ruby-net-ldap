@@ -308,6 +308,7 @@ class Net::LDAP
   DefaultPort = 389
   DefaultAuth = { :method => :anonymous }
   DefaultTreebase = "dc=com"
+  DefaultEncoding = "ASCII-8BIT"
 
   StartTlsOid = "1.3.6.1.4.1.1466.20037"
 
@@ -369,6 +370,10 @@ class Net::LDAP
   #   specifying the Hash {:method => :simple_tls}. There is a fairly large
   #   range of potential values that may be given for this parameter. See
   #   #encryption for details.
+  # * :encoding => specifies which encoding you are using. Net::LDAP will try
+  #    to return data to you with this encoding. Note that Net::LDAP does not
+  #    perform any conversion, it only marks strings as using the specified
+  #    encoding. You must make sure you are using the same encoding as the server.
   #
   # Instantiating a Net::LDAP object does <i>not</i> result in network
   # traffic to the LDAP server. It simply stores the connection and binding
@@ -379,6 +384,7 @@ class Net::LDAP
     @verbose = false # Make this configurable with a switch on the class.
     @auth = args[:auth] || DefaultAuth
     @base = args[:base] || DefaultTreebase
+    @encoding = args[:encoding] || DefaultEncoding
     encryption args[:encryption] # may be nil
 
     if pr = @auth[:password] and pr.respond_to?(:call)
@@ -555,10 +561,7 @@ class Net::LDAP
     raise Net::LDAP::LdapError, "Open already in progress" if @open_connection
 
     begin
-      @open_connection = Net::LDAP::Connection.new(:host => @host,
-                                                   :port => @port,
-                                                   :encryption =>
-                                                   @encryption)
+      @open_connection = create_connection
       @open_connection.bind(@auth)
       yield self
     ensure
@@ -566,6 +569,14 @@ class Net::LDAP
       @open_connection = nil
     end
   end
+  
+  def create_connection
+    Net::LDAP::Connection.new(:host => @host,
+                               :port => @port,
+                               :encryption => @encryption,
+                               :encoding => @encoding)
+  end
+  private :create_connection
 
   # Searches the LDAP directory for directory entries. Takes a hash argument
   # with parameters. Supported parameters include:
@@ -629,8 +640,7 @@ class Net::LDAP
     else
       @result = 0
       begin
-        conn = Net::LDAP::Connection.new(:host => @host, :port => @port,
-                                         :encryption => @encryption)
+        conn = create_connection
         if (@result = conn.bind(args[:auth] || @auth)) == 0
           @result = conn.search(args) { |entry|
             result_set << entry if result_set
@@ -707,8 +717,7 @@ class Net::LDAP
       @result = @open_connection.bind(auth)
     else
       begin
-        conn = Connection.new(:host => @host, :port => @port,
-                              :encryption => @encryption)
+        conn = create_connection
         @result = conn.bind(auth)
       ensure
         conn.close if conn
@@ -808,8 +817,7 @@ class Net::LDAP
     else
       @result = 0
       begin
-        conn = Connection.new(:host => @host, :port => @port,
-                              :encryption => @encryption)
+        conn = create_connection
         if (@result = conn.bind(args[:auth] || @auth)) == 0
           @result = conn.add(args)
         end
@@ -906,8 +914,7 @@ class Net::LDAP
     else
       @result = 0
       begin
-        conn = Connection.new(:host => @host, :port => @port,
-                              :encryption => @encryption)
+        conn = create_connection
         if (@result = conn.bind(args[:auth] || @auth)) == 0
           @result = conn.modify(args)
         end
@@ -977,8 +984,7 @@ class Net::LDAP
     else
       @result = 0
       begin
-        conn = Connection.new(:host => @host, :port => @port,
-                              :encryption => @encryption)
+        conn = create_connection
         if (@result = conn.bind(args[:auth] || @auth)) == 0
           @result = conn.rename(args)
         end
@@ -1005,8 +1011,7 @@ class Net::LDAP
     else
       @result = 0
       begin
-        conn = Connection.new(:host => @host, :port => @port,
-                              :encryption => @encryption)
+        conn = create_connection
         if (@result = conn.bind(args[:auth] || @auth)) == 0
           @result = conn.delete(args)
         end
@@ -1098,6 +1103,7 @@ class Net::LDAP::Connection #:nodoc:
   MaxSaslChallenges = 10
 
   def initialize(server)
+    @encoding = server[:encoding]
     begin
       @conn = TCPSocket.new(server[:host], server[:port])
     rescue SocketError
@@ -1170,7 +1176,7 @@ class Net::LDAP::Connection #:nodoc:
       @conn.write request_pkt
       be = @conn.read_ber(Net::LDAP::AsnSyntax)
       raise Net::LDAP::LdapError, "no start_tls result" if be.nil?
-      pdu = Net::LDAP::PDU.new(be)
+      pdu = make_pdu(be)
       raise Net::LDAP::LdapError, "no start_tls result" if pdu.nil?
       if pdu.result_code.zero?
         @conn = self.class.wrap_with_ssl(@conn)
@@ -1229,7 +1235,7 @@ class Net::LDAP::Connection #:nodoc:
     request_pkt = [msgid, request].to_ber_sequence
     @conn.write request_pkt
 
-    (be = @conn.read_ber(Net::LDAP::AsnSyntax) and pdu = Net::LDAP::PDU.new(be)) or raise Net::LDAP::LdapError, "no bind result"
+    (be = @conn.read_ber(Net::LDAP::AsnSyntax) and pdu = make_pdu(be)) or raise Net::LDAP::LdapError, "no bind result"
 
     pdu.result_code
   end
@@ -1268,7 +1274,7 @@ class Net::LDAP::Connection #:nodoc:
       request_pkt = [msgid, request].to_ber_sequence
       @conn.write request_pkt
 
-      (be = @conn.read_ber(Net::LDAP::AsnSyntax) and pdu = Net::LDAP::PDU.new(be)) or raise Net::LDAP::LdapError, "no bind result"
+      (be = @conn.read_ber(Net::LDAP::AsnSyntax) and pdu = make_pdu(be)) or raise Net::LDAP::LdapError, "no bind result"
       return pdu.result_code unless pdu.result_code == 14 # saslBindInProgress
       raise Net::LDAP::LdapError, "sasl-challenge overflow" if ((n += 1) > MaxSaslChallenges)
 
@@ -1320,7 +1326,7 @@ class Net::LDAP::Connection #:nodoc:
   # in the protocol.
   #++
   def search(args = {})
-    search_filter = (args && args[:filter]) || 
+    search_filter = (args && args[:filter]) ||
       Net::LDAP::Filter.eq("objectclass", "*")
     search_filter = Net::LDAP::Filter.construct(search_filter) if search_filter.is_a?(String)
     search_base = (args && args[:base]) || "dc=example, dc=com"
@@ -1397,7 +1403,7 @@ class Net::LDAP::Connection #:nodoc:
       result_code = 0
       controls = []
 
-      while (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be))
+      while (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = make_pdu(be))
         case pdu.app_tag
         when 4 # search-data
           n_results += 1
@@ -1488,7 +1494,7 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [ next_msgid.to_ber, request ].to_ber_sequence
     @conn.write pkt
 
-    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 7) or raise Net::LDAP::LdapError, "response missing or invalid"
+    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = make_pdu(be)) && (pdu.app_tag == 7) or raise Net::LDAP::LdapError, "response missing or invalid"
     pdu.result_code
   end
 
@@ -1510,7 +1516,7 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [next_msgid.to_ber, request].to_ber_sequence
     @conn.write pkt
 
-    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 9) or raise Net::LDAP::LdapError, "response missing or invalid"
+    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = make_pdu(be)) && (pdu.app_tag == 9) or raise Net::LDAP::LdapError, "response missing or invalid"
     pdu.result_code
   end
 
@@ -1521,15 +1527,15 @@ class Net::LDAP::Connection #:nodoc:
     old_dn = args[:olddn] or raise "Unable to rename empty DN"
     new_rdn = args[:newrdn] or raise "Unable to rename to empty RDN"
     delete_attrs = args[:delete_attributes] ? true : false
-		new_superior = args[:new_superior]
+    new_superior = args[:new_superior]
 
-		request = [old_dn.to_ber, new_rdn.to_ber, delete_attrs.to_ber]
-		request << new_superior.to_ber unless new_superior == nil
-  	
+    request = [old_dn.to_ber, new_rdn.to_ber, delete_attrs.to_ber]
+    request << new_superior.to_ber unless new_superior == nil
+
     pkt = [next_msgid.to_ber, request.to_ber_appsequence(12)].to_ber_sequence
     @conn.write pkt
 
-    (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be )) && (pdu.app_tag == 13) or raise LdapError.new( "response missing or invalid" )
+    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = make_pdu(be)) && (pdu.app_tag == 13) or raise Net::LDAP::LdapError.new( "response missing or invalid" )
     pdu.result_code
   end
 
@@ -1543,7 +1549,12 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [next_msgid.to_ber, request].to_ber_sequence
     @conn.write pkt
 
-    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 11) or raise Net::LDAP::LdapError, "response missing or invalid"
+    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = make_pdu(be)) && (pdu.app_tag == 11) or raise Net::LDAP::LdapError, "response missing or invalid"
     pdu.result_code
+  end
+
+  # Creates a Net::LDAP::PDU object for the given be
+  def make_pdu(be)
+    Net::LDAP::PDU.new(be, @encoding)
   end
 end # class Connection
