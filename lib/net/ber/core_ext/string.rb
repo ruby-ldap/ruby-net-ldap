@@ -12,7 +12,9 @@ module Net::BER::Extensions::String
   # User code should call either #to_ber_application_string or
   # #to_ber_contextspecific.
   def to_ber(code = 0x04)
-    [code].pack('C') + length.to_ber_length_encoding + self
+    raw_string = self.dup.force_encoding("ASCII-8BIT")
+    raw_length = raw_string.length
+    [code].pack('C') + raw_length.to_ber_length_encoding + raw_string
   end
 
   ##
@@ -34,15 +36,15 @@ module Net::BER::Extensions::String
   def read_ber(syntax = nil)
     StringIO.new(self).read_ber(syntax)
   end
-  
+
   ##
-  # Destructively reads a BER object from the string. 
+  # Destructively reads a BER object from the string.
   def read_ber!(syntax = nil)
     io = StringIO.new(self)
 
     result = io.read_ber(syntax)
     self.slice!(0...io.pos)
-    
+
     return result
   end
 end
