@@ -134,8 +134,8 @@ class Net::LDAP::PDU
     sequence.length >= 3 or raise Net::LDAP::PDU::Error, "Invalid LDAP result length."
     @ldap_result = {
       :resultCode => sequence[0],
-      :matchedDN => sequence[1].force_encoding(@encoding),
-      :errorMessage => sequence[2].force_encoding(@encoding)
+      :matchedDN => encode(sequence[1]),
+      :errorMessage => encode(sequence[2])
     }
   end
   private :parse_ldap_result
@@ -174,7 +174,7 @@ class Net::LDAP::PDU
   # be a good idea. Maybe this should be configurable.
   def parse_search_return(sequence)
     sequence.length >= 2 or raise Net::LDAP::PDU::Error, "Invalid Search Response length."
-    dn = sequence[0].force_encoding(@encoding)
+    dn = encode(sequence[0])
     @search_entry = Net::LDAP::Entry.new(dn)
     sequence[1].each { |seq| @search_entry[seq[0]] = encode(seq[1]) }
   end
@@ -183,7 +183,7 @@ class Net::LDAP::PDU
   # If necessary, encodes val, or it's contents if it is an array,
   # according to the @encoding attribute.
   def encode(val)
-      if val.kind_of?(String)
+      if val.kind_of?(String) && val.respond_to?(:force_encoding)
         val.force_encoding(@encoding)
       elsif val.kind_of?(Array)
         val.map! {|item| encode(item)}
