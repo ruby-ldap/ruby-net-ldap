@@ -75,6 +75,21 @@ describe "BER encoding of" do
       end 
     end
   end
+  if "Ruby 1.9".respond_to?(:encoding)
+    context "strings" do
+      it "should properly encode UTF-8 strings" do
+        "\u00e5".force_encoding("UTF-8").to_ber.should ==
+          "\x04\x02\xC3\xA5"
+      end
+      it "should properly encode strings encodable as UTF-8" do
+        "teststring".encode("US-ASCII").to_ber.should == "\x04\nteststring"
+      end
+      it "should fail on strings that can not be converted to UTF-8" do
+        error = Encoding::UndefinedConversionError
+        lambda {"\x81".to_ber }.should raise_exception(error)
+      end
+    end
+  end
 end
 
 describe "BER decoding of" do
