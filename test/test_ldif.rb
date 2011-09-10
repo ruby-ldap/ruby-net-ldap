@@ -42,6 +42,11 @@ class TestLdif < Test::Unit::TestCase
     assert_equal(true, ds2.has_key?("abcdefghij  klmn"))
   end
 
+  def test_ldif_tab_is_not_continuation
+    ds = Net::LDAP::Dataset::read_ldif(StringIO.new("dn: key\r\n\tnotcontinued\r\n\r\n"))
+    assert_equal(true, ds.has_key?("key"))
+  end
+
   # TODO, INADEQUATE. We need some more tests
   # to verify the content.
   def test_ldif
