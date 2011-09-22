@@ -619,7 +619,7 @@ class Net::LDAP
     end
 
     args[:base] ||= @base
-    result_set = (args and args[:return_result] == false) ? nil : []
+    result_set = args[:return_result] == false ? nil : []
 
     if @open_connection
       @result = @open_connection.search(args) { |entry|
@@ -642,7 +642,11 @@ class Net::LDAP
       end
     end
 
-    result_set || @result == 0
+    if args[:return_result]
+      @result == 0 ? result_set : nil
+    else
+      @result == 0
+    end
   end
 
   # #bind connects to an LDAP server and requests authentication based on
