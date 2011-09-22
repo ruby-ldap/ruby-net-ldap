@@ -15,8 +15,7 @@ describe Net::LDAP, "search method" do
 
   context "when returning result set" do
     it "should return nil upon error" do
-      result_set = @connection.search(:return_result => true) do
-      end
+      result_set = @connection.search(:return_result => true)
       result_set.should be_nil
     end
   end
