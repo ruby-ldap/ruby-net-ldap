@@ -1320,7 +1320,7 @@ class Net::LDAP::Connection #:nodoc:
   # in the protocol.
   #++
   def search(args = {})
-    search_filter = (args && args[:filter]) || 
+    search_filter = (args && args[:filter]) ||
       Net::LDAP::Filter.eq("objectclass", "*")
     search_filter = Net::LDAP::Filter.construct(search_filter) if search_filter.is_a?(String)
     search_base = (args && args[:base]) || "dc=example, dc=com"
@@ -1521,15 +1521,17 @@ class Net::LDAP::Connection #:nodoc:
     old_dn = args[:olddn] or raise "Unable to rename empty DN"
     new_rdn = args[:newrdn] or raise "Unable to rename to empty RDN"
     delete_attrs = args[:delete_attributes] ? true : false
-		new_superior = args[:new_superior]
+    new_superior = args[:new_superior]
 
-		request = [old_dn.to_ber, new_rdn.to_ber, delete_attrs.to_ber]
-		request << new_superior.to_ber unless new_superior == nil
-  	
+    request = [old_dn.to_ber, new_rdn.to_ber, delete_attrs.to_ber]
+    request << new_superior.to_ber unless new_superior == nil
+
     pkt = [next_msgid.to_ber, request.to_ber_appsequence(12)].to_ber_sequence
     @conn.write pkt
 
-    (be = @conn.read_ber(AsnSyntax)) && (pdu = LdapPdu.new( be )) && (pdu.app_tag == 13) or raise LdapError.new( "response missing or invalid" )
+    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) &&
+    (pdu = Net::LDAP::PDU.new( be )) && (pdu.app_tag == 13) or
+    raise Net::LDAP::LdapError.new( "response missing or invalid" )
     pdu.result_code
   end
 
