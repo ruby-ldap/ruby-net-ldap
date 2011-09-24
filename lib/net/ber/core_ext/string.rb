@@ -12,8 +12,20 @@ module Net::BER::Extensions::String
   # User code should call either #to_ber_application_string or
   # #to_ber_contextspecific.
   def to_ber(code = 0x04)
-    [code].pack('C') + length.to_ber_length_encoding + self
+    raw_string = raw_utf8_encoded
+    [code].pack('C') + raw_string.length.to_ber_length_encoding + raw_string
   end
+
+  def raw_utf8_encoded
+    if self.respond_to?(:encode)
+      # Strings should be UTF-8 encoded according to LDAP.
+      # However, the BER code is not necessarily valid UTF-8
+      self.encode('UTF-8').force_encoding('ASCII-8BIT')
+    else
+      self
+    end
+  end
+  private :raw_utf8_encoded
 
   ##
   # Creates an application-specific BER string encoded value with the
