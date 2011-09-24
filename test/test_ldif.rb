@@ -31,8 +31,20 @@ class TestLdif < Test::Unit::TestCase
   end
 
   def test_ldif_with_continuation_lines
-    ds = Net::LDAP::Dataset::read_ldif(StringIO.new("dn: abcdefg\r\n   hijklmn\r\n\r\n"))
-    assert_equal(true, ds.has_key?("abcdefg hijklmn"))
+    ds = Net::LDAP::Dataset::read_ldif(StringIO.new("dn: abcdefg\r\n hijklmn\r\n\r\n"))
+    assert_equal(true, ds.has_key?("abcdefghijklmn"))
+  end
+
+  def test_ldif_with_continuation_lines_and_extra_whitespace
+    ds1 = Net::LDAP::Dataset::read_ldif(StringIO.new("dn: abcdefg\r\n   hijklmn\r\n\r\n"))
+    assert_equal(true, ds1.has_key?("abcdefg  hijklmn"))
+    ds2 = Net::LDAP::Dataset::read_ldif(StringIO.new("dn: abcdefg\r\n hij  klmn\r\n\r\n"))
+    assert_equal(true, ds2.has_key?("abcdefghij  klmn"))
+  end
+
+  def test_ldif_tab_is_not_continuation
+    ds = Net::LDAP::Dataset::read_ldif(StringIO.new("dn: key\r\n\tnotcontinued\r\n\r\n"))
+    assert_equal(true, ds.has_key?("key"))
   end
 
   # TODO, INADEQUATE. We need some more tests
