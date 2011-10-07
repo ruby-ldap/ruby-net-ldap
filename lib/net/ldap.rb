@@ -619,7 +619,8 @@ class Net::LDAP
     end
 
     args[:base] ||= @base
-    result_set = args[:return_result] == false ? nil : []
+    return_result_set = args[:return_result] != false
+    result_set = return_result_set ? [] : nil
 
     if @open_connection
       @result = @open_connection.search(args) { |entry|
@@ -642,7 +643,7 @@ class Net::LDAP
       end
     end
 
-    if args[:return_result]
+    if return_result_set
       @result == 0 ? result_set : nil
     else
       @result == 0
