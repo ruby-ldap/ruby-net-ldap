@@ -334,8 +334,9 @@ class Net::LDAP
     68 => "Entry Already Exists"
   }
 
-  module LdapControls
-    PagedResults = "1.2.840.113556.1.4.319" # Microsoft evil from RFC 2696
+  module LDAPControls
+    PAGED_RESULTS = "1.2.840.113556.1.4.319" # Microsoft evil from RFC 2696
+    DELETE_TREE   = "1.2.840.113556.1.4.805"
   end
 
   def self.result2string(code) #:nodoc:
@@ -552,7 +553,7 @@ class Net::LDAP
     # anything with the bind results. We then pass self to the caller's
     # block, where he will execute his LDAP operations. Of course they will
     # all generate auth failures if the bind was unsuccessful.
-    raise Net::LDAP::LdapError, "Open already in progress" if @open_connection
+    raise LdapError, "Open already in progress" if @open_connection
 
     begin
       @open_connection = Net::LDAP::Connection.new(:host => @host,
@@ -1033,7 +1034,7 @@ class Net::LDAP
   #  dn = "mail=deleteme@example.com, ou=people, dc=example, dc=com"
   #  ldap.delete_tree :dn => dn
   def delete_tree(args)
-    delete(args.merge(:control_codes => [['1.2.840.113556.1.4.805',true]]))
+    delete(args.merge(:control_codes => [[LDAPControls::DELETE_TREE, true]]))
   end
   # This method is experimental and subject to change. Return the rootDSE
   # record from the LDAP server as a Net::LDAP::Entry, or an empty Entry if
@@ -1105,7 +1106,7 @@ class Net::LDAP
   #++
   def paged_searches_supported?
     @server_caps ||= search_root_dse
-    @server_caps[:supportedcontrol].include?(Net::LDAP::LdapControls::PagedResults)
+    @server_caps[:supportedcontrol].include?(LDAPControls::PAGED_RESULTS)
   end
 end # class LDAP
 
@@ -1402,7 +1403,7 @@ class Net::LDAP::Connection #:nodoc:
       controls = []
       controls <<
         [
-          Net::LDAP::LdapControls::PagedResults.to_ber,
+          LDAPControls::PAGED_RESULTS.to_ber,
           # Criticality MUST be false to interoperate with normal LDAPs.
           false.to_ber,
           rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber
@@ -1450,7 +1451,7 @@ class Net::LDAP::Connection #:nodoc:
       more_pages = false
       if result_code == 0 and controls
         controls.each do |c|
-          if c.oid == Net::LDAP::LdapControls::PagedResults
+          if c.oid == LDAPControls::PAGED_RESULTS
             # just in case some bogus server sends us more than 1 of these.
             more_pages = false
             if c.value and c.value.length > 0

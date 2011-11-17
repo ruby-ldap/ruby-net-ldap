@@ -11,4 +11,14 @@ describe Array, "when extended with BER core extensions" do
     res = [['1.2.3', true],['1.7.9',false]].to_ber_control
     res.should eq(control_codes)
   end
+
+  it "should wrap the array in another array if a nested array is not passed" do
+    result1 = ['1.2.3', true].to_ber_control
+    result2 = [['1.2.3', true]].to_ber_control
+    result1.should eq(result2)
+  end
+
+  it "should return an empty string if an empty array is passed" do
+    [].to_ber_control.should be_empty
+  end
 end
