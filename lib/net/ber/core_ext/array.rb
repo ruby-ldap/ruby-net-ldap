@@ -79,4 +79,18 @@ module Net::BER::Extensions::Array
     oid = ary.pack("w*")
     [6, oid.length].pack("CC") + oid
   end
+
+  ##
+  # Converts an array into a set of ber control codes
+  # The expected format is [[control_oid, criticality, control_value(optional)]]
+  #   [['1.2.840.113556.1.4.805',true]]
+  #
+  def to_ber_control
+    #if our array does not contain at least one array then wrap it in an array before going forward
+    ary = self[0].kind_of?(Array) ? self : [self]
+    ary = ary.collect do |control_sequence|
+      control_sequence.collect{|element| element.to_ber}.to_ber_sequence.reject_empty_ber_arrays
+    end
+    ary.to_ber_sequence.reject_empty_ber_arrays
+  end
 end

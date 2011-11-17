@@ -46,15 +46,19 @@ module Net::BER::Extensions::String
   def read_ber(syntax = nil)
     StringIO.new(self).read_ber(syntax)
   end
-  
+
   ##
-  # Destructively reads a BER object from the string. 
+  # Destructively reads a BER object from the string.
   def read_ber!(syntax = nil)
     io = StringIO.new(self)
 
     result = io.read_ber(syntax)
     self.slice!(0...io.pos)
-    
+
     return result
+  end
+
+  def reject_empty_ber_arrays
+    self.gsub(/0\000/n,'')
   end
 end
