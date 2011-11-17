@@ -1022,6 +1022,19 @@ class Net::LDAP
     @result == 0
   end
 
+  # Delete an entry from the LDAP directory along with all subordinate entries.
+  # the regular delete method will fail to delete an entry if it has subordinate
+  # entries. This method sends an extra control code to tell the LDAP server
+  # to do a tree delete. ('1.2.840.113556.1.4.805')
+  #
+  # Returns True or False to indicate whether the delete succeeded. Extended
+  # status information is available by calling #get_operation_result.
+  #
+  #  dn = "mail=deleteme@example.com, ou=people, dc=example, dc=com"
+  #  ldap.delete_tree :dn => dn
+  def delete_tree(args)
+    delete(args.merge(:control_codes => [['1.2.840.113556.1.4.805',true]]))
+  end
   # This method is experimental and subject to change. Return the rootDSE
   # record from the LDAP server as a Net::LDAP::Entry, or an empty Entry if
   # the server doesn't return the record.
@@ -1545,9 +1558,9 @@ class Net::LDAP::Connection #:nodoc:
   #++
   def delete(args)
     dn = args[:dn] or raise "Unable to delete empty DN"
-
+    controls = args.include?(:control_codes) ? args[:control_codes].to_ber_control : nil #use nil so we can compact later
     request = dn.to_s.to_ber_application_string(10)
-    pkt = [next_msgid.to_ber, request].to_ber_sequence
+    pkt = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
     @conn.write pkt
 
     (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 11) or raise Net::LDAP::LdapError, "response missing or invalid"
