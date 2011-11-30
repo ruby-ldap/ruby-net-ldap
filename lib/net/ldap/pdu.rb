@@ -128,6 +128,14 @@ class Net::LDAP::PDU
     result_code == 0 ? :success : :failure
   end
 
+  def success?
+    status == :success
+  end
+
+  def failure?
+    !success?
+  end
+
   ##
   # Return serverSaslCreds, which are only present in BindResponse packets.
   #--
