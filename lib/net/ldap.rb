@@ -334,8 +334,9 @@ class Net::LDAP
     68 => "Entry Already Exists"
   }
 
-  module LdapControls
-    PagedResults = "1.2.840.113556.1.4.319" # Microsoft evil from RFC 2696
+  module LDAPControls
+    PAGED_RESULTS = "1.2.840.113556.1.4.319" # Microsoft evil from RFC 2696
+    DELETE_TREE   = "1.2.840.113556.1.4.805"
   end
 
   def self.result2string(code) #:nodoc:
@@ -628,11 +629,10 @@ class Net::LDAP
         yield entry if block_given?
       }
     else
-      @result = 0
       begin
         conn = Net::LDAP::Connection.new(:host => @host, :port => @port,
                                          :encryption => @encryption)
-        if (@result = conn.bind(args[:auth] || @auth)) == 0
+        if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
           @result = conn.search(args) { |entry|
             result_set << entry if result_set
             yield entry if block_given?
@@ -644,9 +644,9 @@ class Net::LDAP
     end
 
     if return_result_set
-      @result == 0 ? result_set : nil
+      (!@result.nil? && @result.result_code == 0) ? result_set : nil
     else
-      @result == 0
+      @result
     end
   end
 
@@ -720,7 +720,7 @@ class Net::LDAP
       end
     end
 
-    @result == 0
+    @result
   end
 
   # #bind_as is for testing authentication credentials.
@@ -815,14 +815,14 @@ class Net::LDAP
       begin
         conn = Connection.new(:host => @host, :port => @port,
                               :encryption => @encryption)
-        if (@result = conn.bind(args[:auth] || @auth)) == 0
+        if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
           @result = conn.add(args)
         end
       ensure
         conn.close if conn
       end
     end
-    @result == 0
+    @result
   end
 
   # Modifies the attribute values of a particular entry on the LDAP
@@ -913,14 +913,15 @@ class Net::LDAP
       begin
         conn = Connection.new(:host => @host, :port => @port,
                               :encryption => @encryption)
-        if (@result = conn.bind(args[:auth] || @auth)) == 0
+        if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
           @result = conn.modify(args)
         end
       ensure
         conn.close if conn
       end
     end
-    @result == 0
+
+    @result
   end
 
   # Add a value to an attribute. Takes the full DN of the entry to modify,
@@ -984,14 +985,14 @@ class Net::LDAP
       begin
         conn = Connection.new(:host => @host, :port => @port,
                               :encryption => @encryption)
-        if (@result = conn.bind(args[:auth] || @auth)) == 0
+        if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
           @result = conn.rename(args)
         end
       ensure
         conn.close if conn
       end
     end
-    @result == 0
+    @result
   end
   alias_method :modify_rdn, :rename
 
@@ -1012,16 +1013,29 @@ class Net::LDAP
       begin
         conn = Connection.new(:host => @host, :port => @port,
                               :encryption => @encryption)
-        if (@result = conn.bind(args[:auth] || @auth)) == 0
+        if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
           @result = conn.delete(args)
         end
       ensure
         conn.close
       end
     end
-    @result == 0
+    @result
   end
 
+  # Delete an entry from the LDAP directory along with all subordinate entries.
+  # the regular delete method will fail to delete an entry if it has subordinate
+  # entries. This method sends an extra control code to tell the LDAP server
+  # to do a tree delete. ('1.2.840.113556.1.4.805')
+  #
+  # Returns True or False to indicate whether the delete succeeded. Extended
+  # status information is available by calling #get_operation_result.
+  #
+  #  dn = "mail=deleteme@example.com, ou=people, dc=example, dc=com"
+  #  ldap.delete_tree :dn => dn
+  def delete_tree(args)
+    delete(args.merge(:control_codes => [[Net::LDAP::LDAPControls::DELETE_TREE, true]]))
+  end
   # This method is experimental and subject to change. Return the rootDSE
   # record from the LDAP server as a Net::LDAP::Entry, or an empty Entry if
   # the server doesn't return the record.
@@ -1092,7 +1106,7 @@ class Net::LDAP
   #++
   def paged_searches_supported?
     @server_caps ||= search_root_dse
-    @server_caps[:supportedcontrol].include?(Net::LDAP::LdapControls::PagedResults)
+    @server_caps[:supportedcontrol].include?(Net::LDAP::LDAPControls::PAGED_RESULTS)
   end
 end # class LDAP
 
@@ -1236,7 +1250,7 @@ class Net::LDAP::Connection #:nodoc:
 
     (be = @conn.read_ber(Net::LDAP::AsnSyntax) and pdu = Net::LDAP::PDU.new(be)) or raise Net::LDAP::LdapError, "no bind result"
 
-    pdu.result_code
+    pdu
   end
 
   #--
@@ -1274,7 +1288,7 @@ class Net::LDAP::Connection #:nodoc:
       @conn.write request_pkt
 
       (be = @conn.read_ber(Net::LDAP::AsnSyntax) and pdu = Net::LDAP::PDU.new(be)) or raise Net::LDAP::LdapError, "no bind result"
-      return pdu.result_code unless pdu.result_code == 14 # saslBindInProgress
+      return pdu unless pdu.result_code == 14 # saslBindInProgress
       raise Net::LDAP::LdapError, "sasl-challenge overflow" if ((n += 1) > MaxSaslChallenges)
 
       cred = chall.call(pdu.result_server_sasl_creds)
@@ -1360,7 +1374,7 @@ class Net::LDAP::Connection #:nodoc:
     # to do a root-DSE record search and not do a paged search if the LDAP
     # doesn't support it. Yuck.
     rfc2696_cookie = [126, ""]
-    result_code = 0
+    result_pdu = nil
     n_results = 0
 
     loop {
@@ -1389,7 +1403,7 @@ class Net::LDAP::Connection #:nodoc:
       controls = []
       controls <<
         [
-          Net::LDAP::LdapControls::PagedResults.to_ber,
+          Net::LDAP::LDAPControls::PAGED_RESULTS.to_ber,
           # Criticality MUST be false to interoperate with normal LDAPs.
           false.to_ber,
           rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber
@@ -1399,7 +1413,7 @@ class Net::LDAP::Connection #:nodoc:
       pkt = [next_msgid.to_ber, request, controls].to_ber_sequence
       @conn.write pkt
 
-      result_code = 0
+      result_pdu = nil
       controls = []
 
       while (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be))
@@ -1416,7 +1430,7 @@ class Net::LDAP::Connection #:nodoc:
             end
           end
         when 5 # search-result
-          result_code = pdu.result_code
+          result_pdu = pdu
           controls = pdu.result_controls
           break
         else
@@ -1435,9 +1449,9 @@ class Net::LDAP::Connection #:nodoc:
       # of type OCTET STRING, covered in the default syntax supported by
       # read_ber, so I guess we're ok.
       more_pages = false
-      if result_code == 0 and controls
+      if result_pdu.result_code == 0 and controls
         controls.each do |c|
-          if c.oid == Net::LDAP::LdapControls::PagedResults
+          if c.oid == Net::LDAP::LDAPControls::PAGED_RESULTS
             # just in case some bogus server sends us more than 1 of these.
             more_pages = false
             if c.value and c.value.length > 0
@@ -1454,7 +1468,7 @@ class Net::LDAP::Connection #:nodoc:
       break unless more_pages
     } # loop
 
-    result_code
+    result_pdu || OpenStruct.new(:status => :failure, :result_code => 1, :message => "Invalid search")
   end
 
   MODIFY_OPERATIONS = { #:nodoc:
@@ -1494,7 +1508,8 @@ class Net::LDAP::Connection #:nodoc:
     @conn.write pkt
 
     (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 7) or raise Net::LDAP::LdapError, "response missing or invalid"
-    pdu.result_code
+
+    pdu
   end
 
   #--
@@ -1515,8 +1530,12 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [next_msgid.to_ber, request].to_ber_sequence
     @conn.write pkt
 
-    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 9) or raise Net::LDAP::LdapError, "response missing or invalid"
-    pdu.result_code
+    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) &&
+      (pdu = Net::LDAP::PDU.new(be)) &&
+      (pdu.app_tag == 9) or
+      raise Net::LDAP::LdapError, "response missing or invalid"
+
+    pdu
   end
 
   #--
@@ -1537,7 +1556,8 @@ class Net::LDAP::Connection #:nodoc:
     (be = @conn.read_ber(Net::LDAP::AsnSyntax)) &&
     (pdu = Net::LDAP::PDU.new( be )) && (pdu.app_tag == 13) or
     raise Net::LDAP::LdapError.new( "response missing or invalid" )
-    pdu.result_code
+
+    pdu
   end
 
   #--
@@ -1545,12 +1565,13 @@ class Net::LDAP::Connection #:nodoc:
   #++
   def delete(args)
     dn = args[:dn] or raise "Unable to delete empty DN"
-
+    controls = args.include?(:control_codes) ? args[:control_codes].to_ber_control : nil #use nil so we can compact later
     request = dn.to_s.to_ber_application_string(10)
-    pkt = [next_msgid.to_ber, request].to_ber_sequence
+    pkt = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
     @conn.write pkt
 
     (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 11) or raise Net::LDAP::LdapError, "response missing or invalid"
-    pdu.result_code
+
+    pdu
   end
 end # class Connection

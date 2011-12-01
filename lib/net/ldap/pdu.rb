@@ -112,12 +112,28 @@ class Net::LDAP::PDU
     @ldap_result || {}
   end
 
+  def error_message
+    result[:errorMessage] || ""
+  end
+
   ##
   # This returns an LDAP result code taken from the PDU, but it will be nil
   # if there wasn't a result code. That can easily happen depending on the
   # type of packet.
   def result_code(code = :resultCode)
     @ldap_result and @ldap_result[code]
+  end
+
+  def status
+    result_code == 0 ? :success : :failure
+  end
+
+  def success?
+    status == :success
+  end
+
+  def failure?
+    !success?
   end
 
   ##
