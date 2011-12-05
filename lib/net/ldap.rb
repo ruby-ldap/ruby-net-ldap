@@ -1394,9 +1394,9 @@ class Net::LDAP::Connection #:nodoc:
           false.to_ber,
           rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber
         ].to_ber_sequence if paged_searches_supported
-      controls = controls.to_ber_contextspecific(0)
+      controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
 
-      pkt = [next_msgid.to_ber, request, controls].to_ber_sequence
+      pkt = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
       @conn.write pkt
 
       result_code = 0
