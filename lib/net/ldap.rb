@@ -317,6 +317,7 @@ class Net::LDAP
     2 => "Protocol Error",
     3 => "Time Limit Exceeded",
     4 => "Size Limit Exceeded",
+    10 => "Referral",
     12 => "Unavailable crtical extension",
     14 => "saslBindInProgress",
     16 => "No Such Attribute",
@@ -1418,6 +1419,13 @@ class Net::LDAP::Connection #:nodoc:
         when 5 # search-result
           result_code = pdu.result_code
           controls = pdu.result_controls
+          if return_referrals && result_code == 10
+            if block_given?
+              se = Net::LDAP::Entry.new
+              se[:search_referrals] = (pdu.search_referrals || [])
+              yield se
+            end
+          end
           break
         else
           raise Net::LDAP::LdapError, "invalid response-type in search: #{pdu.app_tag}"

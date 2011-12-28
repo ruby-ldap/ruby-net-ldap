@@ -136,6 +136,7 @@ class Net::LDAP::PDU
       :matchedDN => sequence[1],
       :errorMessage => sequence[2]
     }
+    parse_search_referral(sequence[3]) if @ldap_result[:resultCode] == 10
   end
   private :parse_ldap_result
 
