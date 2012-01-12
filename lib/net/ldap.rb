@@ -336,6 +336,8 @@ class Net::LDAP
 
   module LDAPControls
     PAGED_RESULTS = "1.2.840.113556.1.4.319" # Microsoft evil from RFC 2696
+    SORT_REQUEST  = "1.2.840.113556.1.4.473"
+    SORT_RESPONSE = "1.2.840.113556.1.4.474"
     DELETE_TREE   = "1.2.840.113556.1.4.805"
   end
 
@@ -1328,6 +1330,35 @@ class Net::LDAP::Connection #:nodoc:
   end
   private :bind_gss_spnego
 
+
+  #--
+  # Allow the caller to specify a sort control
+  #
+  # The format of the sort control needs to be:
+  #
+  # :sort_control => ["cn"]  # just a string
+  # or
+  # :sort_control => [["cn", "matchingRule", true]] #attribute, matchingRule, direction (true / false)
+  # or
+  # :sort_control => ["givenname","sn"] #multiple strings or arrays
+  #
+  def encode_sort_controls(sort_definitions)
+    return sort_definitions unless sort_definitions
+
+    sort_control_values = sort_definitions.map do |control|
+      control = Array(control) # if there is only an attribute name as a string then infer the orderinrule and reverseorder
+      control[0] = String(control[0]).to_ber,
+      control[1] = String(control[1]).to_ber,
+      control[2] = (control[2] == true).to_ber
+      control.to_ber_sequence
+    end
+    sort_control = [
+      Net::LDAP::LDAPControls::SORT_REQUEST.to_ber,
+      false.to_ber,
+      sort_control_values.to_ber_sequence.to_s.to_ber
+    ].to_ber_sequence
+  end
+
   #--
   # Alternate implementation, this yields each search entry to the caller as
   # it are received.
@@ -1353,6 +1384,7 @@ class Net::LDAP::Connection #:nodoc:
     scope = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
     raise Net::LDAP::LdapError, "invalid search scope" unless Net::LDAP::SearchScopes.include?(scope)
 
+    sort_control = encode_sort_controls(args.fetch(:sort_controls){ false })
     # An interesting value for the size limit would be close to A/D's
     # built-in page limit of 1000 records, but openLDAP newer than version
     # 2.2.0 chokes on anything bigger than 126. You get a silent error that
@@ -1408,6 +1440,8 @@ class Net::LDAP::Connection #:nodoc:
           false.to_ber,
           rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber
         ].to_ber_sequence if paged_searches_supported
+
+      controls << sort_control if sort_control
       controls = controls.to_ber_contextspecific(0)
 
       pkt = [next_msgid.to_ber, request, controls].to_ber_sequence
