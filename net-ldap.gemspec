@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{net-ldap}
-  s.version = "0.2.20110317223539"
+  s.version = "0.3.20110317223539"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Francis Cianfrocca", "Emiel van de Laar", "Rory O'Connell", "Kaspar Schiess", "Austin Ziegler"]
