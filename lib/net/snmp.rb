@@ -2,7 +2,7 @@
 # :stopdoc:
 module Net
     class SNMP
-      VERSION = '0.2.2'
+      VERSION = '0.3.0'
 
 	AsnSyntax = Net::BER.compile_syntax({
 	    :application => {

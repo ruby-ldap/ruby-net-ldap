@@ -106,7 +106,7 @@ module Net # :nodoc:
   # <tr><th>BMPString</th><th>C</th><td>30: 62 (0x3e, 0b00111110)</td></tr>
   # </table>
   module BER
-    VERSION = '0.2.2'
+    VERSION = '0.3.0'
 
     ##
     # Used for BER-encoding the length and content bytes of a Fixnum integer
