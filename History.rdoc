@@ -1,7 +1,11 @@
+=== Net::LDAP 0.3.1 / 2012-02-15
+* Bug Fixes:
+  * Bundler should now work again
+
 === Net::LDAP 0.3.0 / 2012-02-14
 * Major changes:
   * Now uses UTF-8 strings instead of ASCII-8 per the LDAP RFC
-Major Enhancements:
+* Major Enhancements:
   * Adding continuation reference processing
 * Bug Fixes:
   * Fixes usupported object type #139
