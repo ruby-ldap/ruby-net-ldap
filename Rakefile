@@ -20,7 +20,7 @@ Hoe.spec 'net-ldap' do |spec|
   spec.remote_rdoc_dir = ''
   spec.rsync_args << ' --exclude=statsvn/'
 
-  spec.url = %W(http://net-ldap.rubyforge.org/ https://github.com/ruby-ldap/ruby-net-ldap)
+  spec.url = %W(http://rubyldap.com/ https://github.com/ruby-ldap/ruby-net-ldap)
 
   spec.history_file = 'History.rdoc'
   spec.readme_file = 'README.rdoc'
