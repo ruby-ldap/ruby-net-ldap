@@ -1542,7 +1542,7 @@ class Net::LDAP::Connection #:nodoc:
   #--
   # TODO: need to support a time limit, in case the server fails to respond.
   #++
-  def rename args
+  def rename(args)
     old_dn = args[:olddn] or raise "Unable to rename empty DN"
     new_rdn = args[:newrdn] or raise "Unable to rename to empty RDN"
     delete_attrs = args[:delete_attributes] ? true : false
