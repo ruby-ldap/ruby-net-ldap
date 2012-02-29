@@ -1589,7 +1589,7 @@ class Net::LDAP::Connection #:nodoc:
     new_superior = args[:new_superior]
 
     request = [old_dn.to_ber, new_rdn.to_ber, delete_attrs.to_ber]
-    request << new_superior.to_ber unless new_superior == nil
+    request << new_superior.to_ber_contextspecific(0) unless new_superior == nil
 
     pkt = [next_msgid.to_ber, request.to_ber_appsequence(12)].to_ber_sequence
     @conn.write pkt
