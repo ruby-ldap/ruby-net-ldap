@@ -3,8 +3,7 @@
 describe Net::LDAP, "search method" do
   class FakeConnection
     def search(args)
-      error_code = 1
-      return error_code
+      OpenStruct.new(:result_code => 1, :message => "error")
     end
   end
 
@@ -22,8 +21,8 @@ describe Net::LDAP, "search method" do
 
   context "when :return_result => false" do
     it "should return false upon error" do
-      success = @connection.search(:return_result => false)
-      success.should == false
+      result = @connection.search(:return_result => false)
+      result.result_code.should == 1
     end
   end
 
