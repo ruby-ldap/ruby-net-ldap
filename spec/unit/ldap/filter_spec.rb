@@ -51,6 +51,39 @@ describe Net::LDAP::Filter do
     end 
   end
 
+  describe "allowed characters" do
+    # http://tools.ietf.org/html/rfc2254#page-5
+    [ "{", "}", "-", ".", "+", "@", "=", ",", "#", "$", "€", "%", "&",
+      "!", "'", "ö", "ä",
+      "\\2a", # *
+      "*", # star is allowed as unescaped too (wildcard selector)
+      "\\28", # (
+      "\\29", # )
+      "\\5c", # \
+      "\\00", # NUL
+    ].each do |c|
+      it "should allow '#{ c }' character in filter syntax" do
+        Net::LDAP::Filter.construct("uid=#{ c }").to_rfc2254.should == "(uid=#{ c })"
+      end
+    end
+
+    [ "(",
+      ")",
+      "\\",
+      "\0",
+    ].each do |c|
+      it "should not allow '#{ c }' character in filter syntax" do
+
+        lambda {
+          Net::LDAP::Filter.construct("uid=#{ c }").to_rfc2254
+        }.should raise_error Net::LDAP::LdapError, "Invalid filter syntax."
+
+      end
+    end
+
+
+  end
+
   describe "convenience filter constructors" do
     def eq(attribute, value)
       described_class.eq(attribute, value)
