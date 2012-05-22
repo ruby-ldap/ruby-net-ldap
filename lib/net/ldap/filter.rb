@@ -733,7 +733,14 @@ class Net::LDAP::Filter
         scanner.scan(/\s*/)
         if op = scanner.scan(/<=|>=|!=|:=|=/)
           scanner.scan(/\s*/)
-          if value = scanner.scan(/(?:[-\w*.+@=,#\$%&!'\s]|\\[a-fA-F\d]{2})+/)
+          # Filter value matching. Use negation to get all allowed characters
+          # including escaped characters defined in
+          # http://tools.ietf.org/html/rfc2254#page-5
+          if value = scanner.scan(/[^\(\)\0]+/)
+            # With previous scan the string might still contain some
+            # unwanted '\' characters. Bail out if there is one.
+            no_escaped_chars = value.gsub(/\\[a-fA-F\d]{2}/, "")
+            return if no_escaped_chars.include?("\\")
             # 20100313 AZ: Assumes that "(uid=george*)" is the same as
             # "(uid=george* )". The standard doesn't specify, but I can find
             # no examples that suggest otherwise.
