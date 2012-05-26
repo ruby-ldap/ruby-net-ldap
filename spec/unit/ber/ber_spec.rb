@@ -84,6 +84,11 @@ describe "BER encoding of" do
       it "should properly encode strings encodable as UTF-8" do
         "teststring".encode("US-ASCII").to_ber.should == "\x04\nteststring"
       end
+			it "should properly encode binary data strings using to_ber_bin" do
+				# This is used for searching for GUIDs in Active Directory
+				["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").to_ber_bin.should == 
+					"\x04\x10" + "j1\xB4\xA1*\xA2zA\xAC\xA9`?'\xDDQ\x16"
+			end
       it "should fail on strings that can not be converted to UTF-8" do
         error = Encoding::UndefinedConversionError
         lambda {"\x81".to_ber }.should raise_exception(error)
