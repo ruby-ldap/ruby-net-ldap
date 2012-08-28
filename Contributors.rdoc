@@ -19,3 +19,4 @@ Contributions since:
 * Derek Harmel (derekharmel)
 * Erik Hetzner (egh)
 * nowhereman
+* David J. Lee (DavidJLee)
