@@ -523,15 +523,17 @@ class Net::LDAP
   # response codes instead of a simple numeric code.
   #++
   def get_operation_result
+    result = @result
+    result = result.result if result.is_a?(Net::LDAP::PDU)
     os = OpenStruct.new
-    if @result.is_a?(Hash)
+    if result.is_a?(Hash)
       # We might get a hash of LDAP response codes instead of a simple
       # numeric code.
-      os.code = (@result[:resultCode] || "").to_i
-      os.error_message = @result[:errorMessage]
-      os.matched_dn = @result[:matchedDN]
-    elsif @result
-      os.code = @result
+      os.code = (result[:resultCode] || "").to_i
+      os.error_message = result[:errorMessage]
+      os.matched_dn = result[:matchedDN]
+    elsif result
+      os.code = result
     else
       os.code = 0
     end
@@ -653,7 +655,7 @@ class Net::LDAP
     if return_result_set
       (!@result.nil? && @result.result_code == 0) ? result_set : nil
     else
-      @result
+      @result.success?
     end
   end
 
@@ -727,7 +729,7 @@ class Net::LDAP
       end
     end
 
-    @result
+    @result.success?
   end
 
   # #bind_as is for testing authentication credentials.
@@ -829,7 +831,7 @@ class Net::LDAP
         conn.close if conn
       end
     end
-    @result
+    @result.success?
   end
 
   # Modifies the attribute values of a particular entry on the LDAP
@@ -928,7 +930,7 @@ class Net::LDAP
       end
     end
 
-    @result
+    @result.success?
   end
 
   # Add a value to an attribute. Takes the full DN of the entry to modify,
@@ -999,7 +1001,7 @@ class Net::LDAP
         conn.close if conn
       end
     end
-    @result
+    @result.success?
   end
   alias_method :modify_rdn, :rename
 
@@ -1027,7 +1029,7 @@ class Net::LDAP
         conn.close
       end
     end
-    @result
+    @result.success?
   end
 
   # Delete an entry from the LDAP directory along with all subordinate entries.
