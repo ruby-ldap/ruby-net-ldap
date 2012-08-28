@@ -323,6 +323,7 @@ class Net::LDAP
     14 => "saslBindInProgress",
     16 => "No Such Attribute",
     17 => "Undefined Attribute Type",
+    19 => "Constraint Violation",
     20 => "Attribute or Value Exists",
     32 => "No Such Object",
     34 => "Invalid DN Syntax",
