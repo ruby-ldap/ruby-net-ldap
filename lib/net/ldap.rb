@@ -1002,7 +1002,7 @@ class Net::LDAP
         conn = Connection.new(:host => @host, :port => @port,
                               :encryption => @encryption)
 	      if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
-			@result = conn.rename(args)
+	        @result = conn.rename(args)
         end
       ensure
         conn.close if conn
