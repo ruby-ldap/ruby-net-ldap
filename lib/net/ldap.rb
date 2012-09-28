@@ -598,6 +598,8 @@ class Net::LDAP
   #   Net::LDAP::SearchScope_WholeSubtree. Default is WholeSubtree.)
   # * :size (an integer indicating the maximum number of search entries to
   #   return. Default is zero, which signifies no limit.)
+  # * :deref (one of: Net::LDAP::DerefAliases_Never, Net::LDAP::DerefAliases_Search,
+  #   Net::LDAP::DerefAliases_Find, Net::LDAP::DerefAliases_Always. Default is Never.)
   #
   # #search queries the LDAP server and passes <i>each entry</i> to the
   # caller-supplied block, as an object of type Net::LDAP::Entry. If the
@@ -1001,8 +1003,8 @@ class Net::LDAP
       begin
         conn = Connection.new(:host => @host, :port => @port,
                               :encryption => @encryption)
-	      if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
-	        @result = conn.rename(args)
+        if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
+          @result = conn.rename(args)
         end
       ensure
         conn.close if conn
@@ -1402,7 +1404,7 @@ class Net::LDAP::Connection #:nodoc:
     scope = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
     raise Net::LDAP::LdapError, "invalid search scope" unless Net::LDAP::SearchScopes.include?(scope)
 
-	sort_control = encode_sort_controls(args.fetch(:sort_controls){ false })
+    sort_control = encode_sort_controls(args.fetch(:sort_controls){ false })
 
 	deref = args[:deref] || Net::LDAP::DerefAliases_Never
 	raise Net::LDAP::LdapError.new( "invalid alias dereferencing value" ) unless Net::LDAP::DerefAliasesArray.include?(deref)
