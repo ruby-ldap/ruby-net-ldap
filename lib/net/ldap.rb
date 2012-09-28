@@ -1001,9 +1001,9 @@ class Net::LDAP
       begin
         conn = Connection.new(:host => @host, :port => @port,
                               :encryption => @encryption)
-		if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
-          @result = conn.rename(args)
-        end
+	  if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
+        @result = conn.rename(args)
+      end
       ensure
         conn.close if conn
       end
@@ -1402,10 +1402,11 @@ class Net::LDAP::Connection #:nodoc:
     scope = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
     raise Net::LDAP::LdapError, "invalid search scope" unless Net::LDAP::SearchScopes.include?(scope)
 
-	deref = args[:deref] || Net::LDAP::DerefAliases_Never
-	raise LdapError.new( "invalid alias dereferencing value" ) unless Net::LDAP::DerefAliasesArray.include?(deref)
-
 	sort_control = encode_sort_controls(args.fetch(:sort_controls){ false })
+
+	deref = args[:deref] || Net::LDAP::DerefAliases_Never
+	raise Net::LDAP::LdapError.new( "invalid alias dereferencing value" ) unless Net::LDAP::DerefAliasesArray.include?(deref)
+
 	
     # An interesting value for the size limit would be close to A/D's
     # built-in page limit of 1000 records, but openLDAP newer than version
