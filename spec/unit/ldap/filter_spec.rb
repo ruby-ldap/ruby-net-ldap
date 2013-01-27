@@ -81,4 +81,35 @@ describe Net::LDAP::Filter do
       Net::LDAP::Filter.escape("\0*()\\").should == "\\00\\2A\\28\\29\\5C"
     end 
   end
+
+  context 'with a well-known BER string' do
+    ber = "\xa4\x2d" \
+      "\x04\x0b" "objectclass" \
+      "\x30\x1e" \
+      "\x80\x08" "foo" "*\\" "bar" \
+      "\x81\x08" "foo" "*\\" "bar" \
+      "\x82\x08" "foo" "*\\" "bar"
+
+    describe "<- .to_ber" do
+      [
+        "foo" "\\2A\\5C" "bar",
+        "foo" "\\2a\\5c" "bar",
+        "foo" "\\2A\\5c" "bar",
+        "foo" "\\2a\\5C" "bar"
+      ].each do |escaped|
+        it 'unescapes escaped characters' do
+          filter = Net::LDAP::Filter.eq("objectclass", "#{escaped}*#{escaped}*#{escaped}")
+          filter.to_ber.should == ber
+        end
+      end
+    end
+
+    describe '<- .parse_ber' do
+      it 'escapes characters' do
+        escaped = Net::LDAP::Filter.escape("foo" "*\\" "bar")
+        filter = Net::LDAP::Filter.parse_ber(ber.read_ber(Net::LDAP::AsnSyntax))
+        filter.to_s.should == "(objectclass=#{escaped}*#{escaped}*#{escaped})"
+      end
+    end
+  end
 end

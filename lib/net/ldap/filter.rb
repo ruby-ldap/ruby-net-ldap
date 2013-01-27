@@ -291,11 +291,11 @@ class Net::LDAP::Filter
           case b.ber_identifier
           when 0x80 # context-specific primitive 0, SubstringFilter "initial"
             raise Net::LDAP::LdapError, "Unrecognized substring filter; bad initial value." if str.length > 0
-            str += b
+            str += escape(b)
           when 0x81 # context-specific primitive 0, SubstringFilter "any"
-            str += "*#{b}"
+            str += "*#{escape(b)}"
           when 0x82 # context-specific primitive 0, SubstringFilter "final"
-            str += "*#{b}"
+            str += "*#{escape(b)}"
             final = true
           end
         }
@@ -509,17 +509,17 @@ class Net::LDAP::Filter
           first = nil
           ary.shift
         else
-          first = ary.shift.to_ber_contextspecific(0)
+          first = unescape(ary.shift).to_ber_contextspecific(0)
         end
 
         if ary.last.empty?
           last = nil
           ary.pop
         else
-          last = ary.pop.to_ber_contextspecific(2)
+          last = unescape(ary.pop).to_ber_contextspecific(2)
         end
 
-        seq = ary.map { |e| e.to_ber_contextspecific(1) }
+        seq = ary.map { |e| unescape(e).to_ber_contextspecific(1) }
         seq.unshift first if first
         seq.push last if last
 
