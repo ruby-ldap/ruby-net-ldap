@@ -16,13 +16,13 @@ module Net::BER::Extensions::String
     [code].pack('C') + raw_string.length.to_ber_length_encoding + raw_string
   end
 
-	##
-	# Converts a string to a BER string but does *not* encode to UTF-8 first.
-	# This is required for proper representation of binary data for Microsoft
-	# Active Directory
-	def to_ber_bin(code = 0x04)
-		[code].pack('C') + length.to_ber_length_encoding + self
-	end
+  ##
+  # Converts a string to a BER string but does *not* encode to UTF-8 first.
+  # This is required for proper representation of binary data for Microsoft
+  # Active Directory
+  def to_ber_bin(code = 0x04)
+    [code].pack('C') + length.to_ber_length_encoding + self
+  end
 
   def raw_utf8_encoded
     if self.respond_to?(:encode)
