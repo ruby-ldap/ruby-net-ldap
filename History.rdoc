@@ -1,3 +1,6 @@
+=== Net::LDAP 0.4.0.cv / 2013-01-31
+* Merge our (CloudVolumes) changes with upstream 4.0 changes
+
 === Net::LDAP 0.3.1.sv1 / 2012-05-15
 * Fixed unicode string encoding over LDAP.
 
