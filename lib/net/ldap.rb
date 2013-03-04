@@ -1131,13 +1131,28 @@ class Net::LDAP::Connection #:nodoc:
   MaxSaslChallenges = 10
 
   def initialize(server)
-    begin
-      @conn = TCPSocket.new(server[:host], server[:port])
-    rescue SocketError
-      raise Net::LDAP::LdapError, "No such address or other socket error."
-    rescue Errno::ECONNREFUSED
-      raise Net::LDAP::LdapError, "Server #{server[:host]} refused connection on port #{server[:port]}."
+    errors = []
+
+    hosts = server[:host].split(/\s+/)
+    if server[:port].respond_to? :split
+      ports = server[:port].split(/\s+/)
+    else
+      ports = [server[:port]] * hosts.length
     end
+
+    hosts.zip(ports).each do |host, port|
+      begin
+        @conn = TCPSocket.new(host, port)
+        errors = [] # We succeeded, no errors
+        break
+      rescue SocketError
+        errors << "No such address or other socket error: #{host}:#{port}"
+      rescue Errno::ECONNREFUSED
+        errors << "Server #{host} refused connection on port #{port}."
+      end
+    end
+
+    raise Net::LDAP::LdapError, errors.join(" -- ") if errors.length > 0
 
     if server[:encryption]
       setup_encryption server[:encryption]
