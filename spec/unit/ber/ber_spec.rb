@@ -89,9 +89,9 @@ describe "BER encoding of" do
 				["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").to_ber_bin.should == 
 					"\x04\x10" + "j1\xB4\xA1*\xA2zA\xAC\xA9`?'\xDDQ\x16"
 			end
-      it "should fail on strings that can not be converted to UTF-8" do
+      it "should not fail on strings that can not be converted to UTF-8" do
         error = Encoding::UndefinedConversionError
-        lambda {"\x81".to_ber }.should raise_exception(error)
+        lambda {"\x81".to_ber }.should_not raise_exception(error)
       end
     end
   end
