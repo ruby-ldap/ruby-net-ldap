@@ -29,7 +29,7 @@ class Net::LDAP::Password
             srand; salt = (rand * 1000).to_i.to_s 
             attribute_value = '{SSHA}' + Base64.encode64(Digest::SHA1.digest(str + salt) + salt).chomp!
          else
-            raise Net::LDAP::LdapError, "Unsupported password-hash type (#{type})"
+            raise Net::LDAP::HashTypeUnsupportedError, "Unsupported password-hash type (#{type})"
          end
       return attribute_value
     end
