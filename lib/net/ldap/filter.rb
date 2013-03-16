@@ -27,7 +27,7 @@ class Net::LDAP::Filter
 
   def initialize(op, left, right) #:nodoc:
     unless FilterTypes.include?(op)
-      raise Net::LDAP::LdapError, "Invalid or unsupported operator #{op.inspect} in LDAP Filter."
+      raise Net::LDAP::OperatorError, "Invalid or unsupported operator #{op.inspect} in LDAP Filter."
     end
     @op = op
     @left = left
@@ -290,7 +290,7 @@ class Net::LDAP::Filter
         ber.last.each { |b|
           case b.ber_identifier
           when 0x80 # context-specific primitive 0, SubstringFilter "initial"
-            raise Net::LDAP::LdapError, "Unrecognized substring filter; bad initial value." if str.length > 0
+            raise Net::LDAP::SubstringFilterError, "Unrecognized substring filter; bad initial value." if str.length > 0
             str += b
           when 0x81 # context-specific primitive 0, SubstringFilter "any"
             str += "*#{b}"
@@ -309,7 +309,7 @@ class Net::LDAP::Filter
         # call to_s to get rid of the BER-identifiedness of the incoming string.
         present?(ber.to_s)
       when 0xa9 # context-specific constructed 9, "extensible comparison"
-        raise Net::LDAP::LdapError, "Invalid extensible search filter, should be at least two elements" if ber.size<2
+        raise Net::LDAP::SearchFilterError, "Invalid extensible search filter, should be at least two elements" if ber.size<2
         
         # Reassembles the extensible filter parts 
         # (["sn", "2.4.6.8.10", "Barbara Jones", '1'])
@@ -330,7 +330,7 @@ class Net::LDAP::Filter
         
         ex(attribute, value)
       else
-        raise Net::LDAP::LdapError, "Invalid BER tag-value (#{ber.ber_identifier}) in search filter."
+        raise Net::LDAP::BERInvalidError, "Invalid BER tag-value (#{ber.ber_identifier}) in search filter."
       end
     end
 
@@ -357,7 +357,7 @@ class Net::LDAP::Filter
       when 0xa3 # equalityMatch. context-specific constructed 3.
         eq(obj[0], obj[1])
       else
-        raise Net::LDAP::LdapError, "Unknown LDAP search-filter type: #{obj.ber_identifier}"
+        raise Net::LDAP::SearchFilterTypeUnknownError, "Unknown LDAP search-filter type: #{obj.ber_identifier}"
       end
     end
   end
@@ -534,7 +534,7 @@ class Net::LDAP::Filter
       seq = []
 
       unless @left =~ /^([-;\w]*)(:dn)?(:(\w+|[.\w]+))?$/
-        raise Net::LDAP::LdapError, "Bad attribute #{@left}"
+        raise Net::LDAP::BadAttributeError, "Bad attribute #{@left}"
       end
       type, dn, rule = $1, $2, $4
 
@@ -641,7 +641,7 @@ class Net::LDAP::Filter
         l = entry[@left] and l = Array(l) and l.index(@right)
       end
     else
-      raise Net::LDAP::LdapError, "Unknown filter type in match: #{@op}"
+      raise Net::LDAP::FilterTypeUnknownError, "Unknown filter type in match: #{@op}"
     end
   end
 
@@ -674,7 +674,7 @@ class Net::LDAP::Filter
     def initialize(str)
       require 'strscan' # Don't load strscan until we need it.
       @filter = parse(StringScanner.new(str))
-      raise Net::LDAP::LdapError, "Invalid filter syntax." unless @filter
+      raise Net::LDAP::FilterSyntaxInvalidError, "Invalid filter syntax." unless @filter
     end
 
     ##
