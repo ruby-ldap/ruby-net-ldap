@@ -5,7 +5,7 @@ describe Net::LDAP::Filter::FilterParser do
 
   describe "#parse" do
     context "Given ASCIIs as filter string" do
-      let(:filter_string) { "(&(objectCategory=person)(objectClass=user))" }
+      let(:filter_string) { "(cn=name)" }
       specify "should generate filter object" do
         expect(Net::LDAP::Filter::FilterParser.parse(filter_string)).to be_a Net::LDAP::Filter
       end
