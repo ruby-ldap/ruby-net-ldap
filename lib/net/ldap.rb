@@ -1494,7 +1494,7 @@ class Net::LDAP::Connection #:nodoc:
         when 5 # search-result
           result_pdu = pdu
           controls = pdu.result_controls
-          if return_referrals && result_code == 10
+          if return_referrals && pdu.result_code == 10
             if block_given?
               se = Net::LDAP::Entry.new
               se[:search_referrals] = (pdu.search_referrals || [])
