@@ -23,6 +23,7 @@ require 'net/ldap/filter'
 require 'net/ldap/dataset'
 require 'net/ldap/password'
 require 'net/ldap/entry'
+require 'net/ldap/version'
 
 # == Quick-start for the Impatient
 # === Quick Example of a user-authentication against an LDAP directory:
@@ -241,7 +242,6 @@ require 'net/ldap/entry'
 # and then keeps it open while it executes a user-supplied block.
 # Net::LDAP#open closes the connection on completion of the block.
 class Net::LDAP
-  VERSION = "0.4.0"
 
   class LdapError < StandardError; end
 
