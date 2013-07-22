@@ -251,6 +251,12 @@ class Net::LDAP
   SearchScopes = [ SearchScope_BaseObject, SearchScope_SingleLevel,
     SearchScope_WholeSubtree ]
 
+  DerefAliases_Never = 0
+  DerefAliases_Search = 1
+  DerefAliases_Find = 2
+  DerefAliases_Always = 3
+  DerefAliasesArray = [ DerefAliases_Never, DerefAliases_Search, DerefAliases_Find, DerefAliases_Always ]
+  
   primitive = { 2 => :null } # UnbindRequest body
   constructed = {
     0 => :array, # BindRequest
@@ -592,6 +598,8 @@ class Net::LDAP
   #   Net::LDAP::SearchScope_WholeSubtree. Default is WholeSubtree.)
   # * :size (an integer indicating the maximum number of search entries to
   #   return. Default is zero, which signifies no limit.)
+  # * :deref (one of: Net::LDAP::DerefAliases_Never, Net::LDAP::DerefAliases_Search,
+  #   Net::LDAP::DerefAliases_Find, Net::LDAP::DerefAliases_Always. Default is Never.)
   #
   # #search queries the LDAP server and passes <i>each entry</i> to the
   # caller-supplied block, as an object of type Net::LDAP::Entry. If the
@@ -1397,6 +1405,11 @@ class Net::LDAP::Connection #:nodoc:
     raise Net::LDAP::LdapError, "invalid search scope" unless Net::LDAP::SearchScopes.include?(scope)
 
     sort_control = encode_sort_controls(args.fetch(:sort_controls){ false })
+
+	deref = args[:deref] || Net::LDAP::DerefAliases_Never
+	raise Net::LDAP::LdapError.new( "invalid alias dereferencing value" ) unless Net::LDAP::DerefAliasesArray.include?(deref)
+
+	
     # An interesting value for the size limit would be close to A/D's
     # built-in page limit of 1000 records, but openLDAP newer than version
     # 2.2.0 chokes on anything bigger than 126. You get a silent error that
@@ -1436,7 +1449,7 @@ class Net::LDAP::Connection #:nodoc:
       request = [
         search_base.to_ber,
         scope.to_ber_enumerated,
-        0.to_ber_enumerated,
+        deref.to_ber_enumerated,
         query_limit.to_ber, # size limit
         0.to_ber,
         attributes_only.to_ber,
