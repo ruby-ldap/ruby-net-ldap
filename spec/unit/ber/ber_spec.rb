@@ -112,3 +112,30 @@ describe "BER decoding of" do
     end 
   end
 end
+
+describe Net::BER::BerIdentifiedString do
+  describe "initialize" do
+    subject { Net::BER::BerIdentifiedString.new(data) }
+
+    context "binary data" do
+      let(:data) { ["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").force_encoding("ASCII-8BIT") }
+
+      its(:valid_encoding?) { should be_true }
+      specify { subject.encoding.name.should == "ASCII-8BIT" }
+    end
+
+    context "ascii data in UTF-8" do
+      let(:data) { "some text".force_encoding("UTF-8") }
+
+      its(:valid_encoding?) { should be_true }
+      specify { subject.encoding.name.should == "UTF-8" }
+    end
+
+    context "UTF-8 data in UTF-8" do
+      let(:data) { ["e4b8ad"].pack("H*").force_encoding("UTF-8") }
+      
+      its(:valid_encoding?) { should be_true }
+      specify { subject.encoding.name.should == "UTF-8" }
+    end
+  end
+end
