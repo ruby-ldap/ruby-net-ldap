@@ -1,4 +1,4 @@
-= Net::LDAP for Ruby
+= Net::LDAP for Ruby {<img src="https://travis-ci.org/ruby-ldap/ruby-net-ldap.png" />}[https://travis-ci.org/ruby-ldap/ruby-net-ldap]
 
 == Description
 
