@@ -1,4 +1,6 @@
 # -*- ruby encoding: utf-8 -*-
+require 'net/ldap/version'
+
 module Net # :nodoc:
   ##
   # == Basic Encoding Rules (BER) Support Module
@@ -106,7 +108,7 @@ module Net # :nodoc:
   # <tr><th>BMPString</th><th>C</th><td>30: 62 (0x3e, 0b00111110)</td></tr>
   # </table>
   module BER
-    VERSION = '0.4.0'
+    VERSION = Net::LDAP::VERSION
 
     ##
     # Used for BER-encoding the length and content bytes of a Fixnum integer
