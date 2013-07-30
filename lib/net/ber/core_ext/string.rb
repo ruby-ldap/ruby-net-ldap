@@ -25,7 +25,7 @@ module Net::BER::Extensions::String
 	end
 
   def raw_utf8_encoded
-    if self.respond_to?(:encode)
+    if self.respond_to?(:encode) && self.encoding.to_s != 'ASCII-8BIT'
       # Strings should be UTF-8 encoded according to LDAP.
       # However, the BER code is not necessarily valid UTF-8
       begin
