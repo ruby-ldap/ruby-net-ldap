@@ -1510,6 +1510,11 @@ class Net::LDAP::Connection #:nodoc:
         end
       end
 
+      unless result_pdu
+        debugger if defined?(DEBUG) && DEBUG
+        break
+      end
+
       # When we get here, we have seen a type-5 response. If there is no
       # error AND there is an RFC-2696 cookie, then query again for the next
       # page of results. If not, we're done. Don't screw this up or we'll
