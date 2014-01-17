@@ -84,14 +84,14 @@ describe "BER encoding of" do
       it "should properly encode strings encodable as UTF-8" do
         "teststring".encode("US-ASCII").to_ber.should == "\x04\nteststring"
       end
-      it "should properly encode binary data strings using to_ber_bin" do
-        # This is used for searching for GUIDs in Active Directory
-        ["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").to_ber_bin.should ==
-          "\x04\x10" + "j1\xB4\xA1*\xA2zA\xAC\xA9`?'\xDDQ\x16"
-      end
-      it "should fail on strings that can not be converted to UTF-8" do
+			it "should properly encode binary data strings using to_ber_bin" do
+				# This is used for searching for GUIDs in Active Directory
+				["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").to_ber_bin.should == 
+					"\x04\x10" + "j1\xB4\xA1*\xA2zA\xAC\xA9`?'\xDDQ\x16"
+			end
+      it "should not fail on strings that can not be converted to UTF-8" do
         error = Encoding::UndefinedConversionError
-        lambda {"\x81".to_ber }.should raise_exception(error)
+        lambda {"\x81".to_ber }.should_not raise_exception(error)
       end
     end
   end
@@ -110,5 +110,32 @@ describe "BER decoding of" do
         read_ber(Net::LDAP::AsnSyntax).should ==
           [1, [3, "Administrator", "ad_is_bogus"]]
     end 
+  end
+end
+
+describe Net::BER::BerIdentifiedString do
+  describe "initialize" do
+    subject { Net::BER::BerIdentifiedString.new(data) }
+
+    context "binary data" do
+      let(:data) { ["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").force_encoding("ASCII-8BIT") }
+
+      its(:valid_encoding?) { should be_true }
+      specify { subject.encoding.name.should == "ASCII-8BIT" }
+    end
+
+    context "ascii data in UTF-8" do
+      let(:data) { "some text".force_encoding("UTF-8") }
+
+      its(:valid_encoding?) { should be_true }
+      specify { subject.encoding.name.should == "UTF-8" }
+    end
+
+    context "UTF-8 data in UTF-8" do
+      let(:data) { ["e4b8ad"].pack("H*").force_encoding("UTF-8") }
+      
+      its(:valid_encoding?) { should be_true }
+      specify { subject.encoding.name.should == "UTF-8" }
+    end
   end
 end

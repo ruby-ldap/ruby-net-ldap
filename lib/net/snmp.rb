@@ -1,8 +1,10 @@
 # -*- ruby encoding: utf-8 -*-
+require 'net/ldap/version'
+
 # :stopdoc:
 module Net
     class SNMP
-      VERSION = '0.4.0.cv'
+      VERSION = Net::LDAP::VERSION
 
 	AsnSyntax = Net::BER.compile_syntax({
 	    :application => {

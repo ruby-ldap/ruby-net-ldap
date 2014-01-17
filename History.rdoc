@@ -1,3 +1,15 @@
+=== Net::LDAP 0.5.0 / 2013-07-22
+* Major changes:
+  * Required Ruby version is >=1.9.3
+* Major enhancements:
+  * Added alias dereferencing (@ngwilson)
+  * BER now unescapes characters that are already escaped in the source string (@jzinn)
+  * BerIdentifiedString will now fall back to ASCII-8 encoding if the source Ruby object cannot be encoded in UTF-8 (@lfu)
+* Bug fixes:
+  * Fixed nil variable error when following a reference response (@cmdrclueless)
+  * Fixed FilterParser unable to parse multibyte strings (@satoryu)
+  * Return ConverterNotFound when dealing with a potentially corrupt data response (@jamuc)
+
 === Net::LDAP 0.4.0.cv / 2013-01-31
 * Merge our (CloudVolumes) changes with upstream 4.0 changes
 

@@ -32,6 +32,8 @@ module Net::BER::Extensions::String
         self.encode('UTF-8').force_encoding('ASCII-8BIT')
       rescue Encoding::UndefinedConversionError
         self
+      rescue Encoding::ConverterNotFoundError
+        return self
       end
     else
       self

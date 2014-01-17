@@ -1,4 +1,4 @@
-= Net::LDAP for Ruby
+= Net::LDAP for Ruby {<img src="https://travis-ci.org/ruby-ldap/ruby-net-ldap.png" />}[https://travis-ci.org/ruby-ldap/ruby-net-ldap]
 
 == Description
 
@@ -30,7 +30,7 @@ See Net::LDAP for documentation and usage samples.
 
 == Requirements
 
-Net::LDAP requires a Ruby 1.8.7 interpreter or better.
+Net::LDAP requires a Ruby 1.9.3 compatible interpreter or better.
 
 == Install
 
@@ -41,11 +41,6 @@ sources.
   gem install net-ldap
 
 Simply require either 'net-ldap' or 'net/ldap'.
-
-For non-RubyGems installations of Net::LDAP, you can use Minero Aoki's
-{setup.rb}[http://i.loveruby.net/en/projects/setup/] as the layout of
-Net::LDAP is compliant. The setup installer is not included in the
-Net::LDAP repository.
 
 :include: Contributors.rdoc
 
