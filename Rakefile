@@ -8,7 +8,7 @@ Hoe.plugin :git
 Hoe.plugin :gemspec
 
 Hoe.spec 'net-ldap' do |spec|
-  spec.rubyforge_name = spec.name
+  # spec.rubyforge_name = spec.name
 
   spec.developer("Francis Cianfrocca", "blackhedd@rubyforge.org")
   spec.developer("Emiel van de Laar", "gemiel@gmail.com")
@@ -19,7 +19,8 @@ Hoe.spec 'net-ldap' do |spec|
   spec.remote_rdoc_dir = ''
   spec.rsync_args << ' --exclude=statsvn/'
 
-  spec.url = %W(http://rubyldap.com/ https://github.com/ruby-ldap/ruby-net-ldap)
+  spec.urls = ['http://rubyldap.com/ https://github.com/ruby-ldap/ruby-net-ldap']
+  spec.licenses = ['MIT']
 
   spec.history_file = 'History.rdoc'
   spec.readme_file = 'README.rdoc'
@@ -29,7 +30,7 @@ Hoe.spec 'net-ldap' do |spec|
   spec.extra_dev_deps << [ "hoe-git", "~> 1" ]
   spec.extra_dev_deps << [ "hoe-gemspec", "~> 1" ]
   spec.extra_dev_deps << [ "metaid", "~> 1" ]
-  spec.extra_dev_deps << [ "flexmock", "~> 0.9.0" ]
+  spec.extra_dev_deps << [ "flexmock", "~> 1.3.0" ]
   spec.extra_dev_deps << [ "rspec", "~> 2.0" ]
 
   spec.clean_globs << "coverage"

@@ -1,6 +1,8 @@
 .autotest
 .rspec
+.travis.yml
 Contributors.rdoc
+Gemfile
 Hacking.rdoc
 History.rdoc
 License.rdoc
@@ -32,10 +34,13 @@ spec/integration/ssl_ber_spec.rb
 spec/spec.opts
 spec/spec_helper.rb
 spec/unit/ber/ber_spec.rb
+spec/unit/ber/core_ext/array_spec.rb
 spec/unit/ber/core_ext/string_spec.rb
 spec/unit/ldap/dn_spec.rb
 spec/unit/ldap/entry_spec.rb
+spec/unit/ldap/filter_parser_spec.rb
 spec/unit/ldap/filter_spec.rb
+spec/unit/ldap/search_spec.rb
 spec/unit/ldap_spec.rb
 test/common.rb
 test/test_entry.rb
