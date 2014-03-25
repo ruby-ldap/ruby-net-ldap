@@ -65,22 +65,22 @@ class Net::LDAP::Filter
       new(:eq, attribute, value)
     end
 
-		##
-		# Creates a Filter object indicating a binary comparison.
-		# this prevents the search data from being forced into a UTF-8 string.
-		#
-		# This is primarily used for Microsoft Active Directory to compare
-		# GUID values.
-		#
-		#    # for guid represented as hex charecters
-		#    guid = "6a31b4a12aa27a41aca9603f27dd5116"
-		#    guid_bin = [guid].pack("H*")
-		#    f = Net::LDAP::Filter.bineq("objectGUID", guid_bin)
-		#
-		# This filter does not perform any escaping.
-		def bineq(attribute, value)
-			new(:bineq, attribute, value)
-		end
+    ##
+    # Creates a Filter object indicating a binary comparison.
+    # this prevents the search data from being forced into a UTF-8 string.
+    #
+    # This is primarily used for Microsoft Active Directory to compare
+    # GUID values.
+    #
+    #    # for guid represented as hex charecters
+    #    guid = "6a31b4a12aa27a41aca9603f27dd5116"
+    #    guid_bin = [guid].pack("H*")
+    #    f = Net::LDAP::Filter.bineq("objectGUID", guid_bin)
+    #
+    # This filter does not perform any escaping.
+    def bineq(attribute, value)
+      new(:bineq, attribute, value)
+    end
 
     ##
     # Creates a Filter object indicating extensible comparison. This Filter
@@ -414,10 +414,8 @@ class Net::LDAP::Filter
     case @op
     when :ne
       "!(#{@left}=#{@right})"
-    when :eq
+    when :eq, :bineq
       "#{@left}=#{@right}"
-		when :bineq
-			"#{@left}=#{@right}"
     when :ex
       "#{@left}:=#{@right}"
     when :ge
@@ -527,9 +525,9 @@ class Net::LDAP::Filter
       else # equality
         [@left.to_s.to_ber, unescape(@right).to_ber].to_ber_contextspecific(3)
       end
-		when :bineq
-			# make sure data is not forced to UTF-8
-			[@left.to_s.to_ber, unescape(@right).to_ber_bin].to_ber_contextspecific(3)
+    when :bineq
+      # make sure data is not forced to UTF-8
+      [@left.to_s.to_ber, unescape(@right).to_ber_bin].to_ber_contextspecific(3)
     when :ex
       seq = []
 
