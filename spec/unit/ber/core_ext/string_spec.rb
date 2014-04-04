@@ -6,7 +6,7 @@ describe String, "when extended with BER core extensions" do
     context "when passed an ldap bind request and some extra data" do
       attr_reader :str, :result
       before(:each) do
-        @str = "0$\002\001\001`\037\002\001\003\004\rAdministrator\200\vad_is_bogus UNCONSUMED" 
+        @str = raw_string("0$\002\001\001`\037\002\001\003\004\rAdministrator\200\vad_is_bogus UNCONSUMED")
         @result = str.read_ber!(Net::LDAP::AsnSyntax)
       end
       
@@ -22,7 +22,7 @@ describe String, "when extended with BER core extensions" do
         before(:each) do
           stub_exception_class = Class.new(StandardError)
           
-          @initial_value = "0$\002\001\001`\037\002\001\003\004\rAdministrator\200\vad_is_bogus" 
+          @initial_value = raw_string("0$\002\001\001`\037\002\001\003\004\rAdministrator\200\vad_is_bogus")
           @str = initial_value.dup 
 
           # Defines a string
