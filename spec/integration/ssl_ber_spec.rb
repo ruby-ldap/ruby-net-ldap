@@ -1,15 +1,18 @@
 require 'spec_helper'
 
 require 'net/ldap'
+require 'timeout'
 
 describe "BER serialisation (SSL)" do
   # Transmits str to #to and reads it back from #from. 
   #
   def transmit(str)
-    to.write(str)
-    to.close
-    
-    from.read
+    Timeout::timeout(1) do
+      to.write(str)
+      to.close
+
+      from.read
+    end
   end
     
   attr_reader :to, :from
