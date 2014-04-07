@@ -2,7 +2,7 @@
 require 'digest/sha1'
 require 'digest/md5'
 require 'base64'
-require 'secure_random'
+require 'securerandom'
 
 class Net::LDAP::Password
   class << self
