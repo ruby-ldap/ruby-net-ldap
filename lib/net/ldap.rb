@@ -456,9 +456,8 @@ class Net::LDAP
   # additional capabilities are added, more configuration values will be
   # added here.
   #
-  # Currently, the only supported argument is { :method => :simple_tls }.
-  # (Equivalently, you may pass the symbol :simple_tls all by itself,
-  # without enclosing it in a Hash.)
+  # The supported methods are { :method => :simple_tls } and { :method =>
+  # :start_tls }.
   #
   # The :simple_tls encryption method encrypts <i>all</i> communications
   # with the LDAP server. It completely establishes SSL/TLS encryption with
@@ -479,9 +478,13 @@ class Net::LDAP
   # standard port for simple-TLS encrypted connections is 636. Be sure you
   # are using the correct port.
   #
-  # <i>[Note: a future version of Net::LDAP will support the STARTTLS LDAP
-  # control, which will enable encrypted communications on the same TCP port
-  # used for unencrypted connections.]</i>
+  # Using :start_tls you are able to verify the peer in the TLS
+  # negotiation.  To verify the peer, you can add the :cafile element
+  # with the path to a file containing one or more valid PEM formatted
+  # CA certificates. For example:
+  # { :method => :start_tls, :cafile => '/etc/ssl/cafile.pem' }
+  # Net::Ldap will raise an exception if the CA file doesn't exist, or if
+  # the peer fails TLS verification.
   def encryption(args)
     case args
     when :simple_tls, :start_tls
