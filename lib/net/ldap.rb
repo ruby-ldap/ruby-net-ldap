@@ -1160,9 +1160,19 @@ class Net::LDAP::Connection #:nodoc:
     end
   end
 
-  def self.wrap_with_ssl(io)
+  def self.wrap_with_ssl(io,*args)
+
     raise Net::LDAP::LdapError, "OpenSSL is unavailable" unless Net::LDAP::HasOpenSSL
     ctx = OpenSSL::SSL::SSLContext.new
+    # If we've been given a cafile in the arguments hash, then we want to
+    # actually verify the TLS connection rather than just the default of
+    # NO_VERIFY.
+    if args.last.instance_of?(Hash) && args.last.has_key?(:cafile)
+        cafile = args.last[:cafile]
+        ctx.verify_mode = OpenSSL::SSL::VERIFY_PEER
+        raise "CA file '#{cafile}' doesn't exist" unless File.exists? cafile
+        ctx.ca_file = cafile
+    end
     conn = OpenSSL::SSL::SSLSocket.new(io, ctx)
     conn.connect
     conn.sync_close = true
@@ -1213,8 +1223,11 @@ class Net::LDAP::Connection #:nodoc:
       raise Net::LDAP::LdapError, "no start_tls result" if be.nil?
       pdu = Net::LDAP::PDU.new(be)
       raise Net::LDAP::LdapError, "no start_tls result" if pdu.nil?
+
+      a = { :cafile => args[:cafile] } if args[:cafile]
+
       if pdu.result_code.zero?
-        @conn = self.class.wrap_with_ssl(@conn)
+        @conn = self.class.wrap_with_ssl(@conn,a)
       else
         raise Net::LDAP::LdapError, "start_tls failed: #{pdu.result_code}"
       end
