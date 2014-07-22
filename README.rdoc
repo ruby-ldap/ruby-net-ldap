@@ -16,13 +16,8 @@ the most recent LDAP RFCs (4510–4519, plus portions of 4520–4532).
 
 == Where
 
-* {RubyForge}[http://rubyforge.org/projects/net-ldap]
 * {GitHub}[https://github.com/ruby-ldap/ruby-net-ldap]
 * {ruby-ldap@googlegroups.com}[http://groups.google.com/group/ruby-ldap]
-* {Documentation}[http://net-ldap.rubyforge.org/]
-
-The Net::LDAP for Ruby documentation, project description, and main downloads
-can currently be found on {RubyForge}[http://rubyforge.org/projects/net-ldap].
 
 == Synopsis
 
