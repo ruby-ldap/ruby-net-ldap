@@ -486,9 +486,9 @@ class Net::LDAP
   # standard port for simple-TLS encrypted connections is 636. Be sure you
   # are using the correct port.
   #
-  # <i>[Note: a future version of Net::LDAP will support the STARTTLS LDAP
-  # control, which will enable encrypted communications on the same TCP port
-  # used for unencrypted connections.]</i>
+  # The :start_tls like the :simple_tls encryption method also encrypts all 
+  # communcations with the LDAP server. With the exception that it operates
+  # over the standard TCP port.
   def encryption(args)
     case args
     when :simple_tls, :start_tls
