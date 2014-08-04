@@ -33,7 +33,9 @@ module Net::BER::Extensions::String
       rescue Encoding::UndefinedConversionError
         self
       rescue Encoding::ConverterNotFoundError
-        return self
+        self
+      rescue Encoding::InvalidByteSequenceError
+        self
       end
     else
       self
