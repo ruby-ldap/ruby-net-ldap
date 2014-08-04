@@ -1160,14 +1160,24 @@ class Net::LDAP::Connection #:nodoc:
     end
   end
 
+  module FixSSLSocketSyncClose
+    def close
+      super
+      io.close
+    end
+  end
+
   def self.wrap_with_ssl(io)
     raise Net::LDAP::LdapError, "OpenSSL is unavailable" unless Net::LDAP::HasOpenSSL
     ctx = OpenSSL::SSL::SSLContext.new
     conn = OpenSSL::SSL::SSLSocket.new(io, ctx)
     conn.connect
-    conn.sync_close = true
+
+    # Doesn't work:
+    # conn.sync_close = true
 
     conn.extend(GetbyteForSSLSocket) unless conn.respond_to?(:getbyte)
+    conn.extend(FixSSLSocketSyncClose)
 
     conn
   end

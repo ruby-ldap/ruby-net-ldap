@@ -33,28 +33,28 @@ describe "BER encoding of" do
   context "numbers" do
     # Sample based
     {
-      0           => "\x02\x01\x00", 
-      1           => "\x02\x01\x01", 
-      127         => "\x02\x01\x7F", 
-      128         => "\x02\x01\x80", 
-      255         => "\x02\x01\xFF", 
-      256         => "\x02\x02\x01\x00", 
-      65535       => "\x02\x02\xFF\xFF", 
-      65536       => "\x02\x03\x01\x00\x00", 
-      16_777_215  => "\x02\x03\xFF\xFF\xFF", 
-      0x01000000  => "\x02\x04\x01\x00\x00\x00", 
-      0x3FFFFFFF  => "\x02\x04\x3F\xFF\xFF\xFF", 
-      0x4FFFFFFF  => "\x02\x04\x4F\xFF\xFF\xFF", 
-      
+      0           => raw_string("\x02\x01\x00"),
+      1           => raw_string("\x02\x01\x01"),
+      127         => raw_string("\x02\x01\x7F"),
+      128         => raw_string("\x02\x01\x80"),
+      255         => raw_string("\x02\x01\xFF"),
+      256         => raw_string("\x02\x02\x01\x00"),
+      65535       => raw_string("\x02\x02\xFF\xFF"),
+      65536       => raw_string("\x02\x03\x01\x00\x00"),
+      16_777_215  => raw_string("\x02\x03\xFF\xFF\xFF"),
+      0x01000000  => raw_string("\x02\x04\x01\x00\x00\x00"),
+      0x3FFFFFFF  => raw_string("\x02\x04\x3F\xFF\xFF\xFF"),
+      0x4FFFFFFF  => raw_string("\x02\x04\x4F\xFF\xFF\xFF"),
+
       # Some odd samples...
-      5           => "\002\001\005", 
-      500         => "\002\002\001\364", 
-      50_000      => "\x02\x02\xC3P", 
-      5_000_000_000  => "\002\005\001*\005\362\000"
-    }.each do |number, expected_encoding| 
+      5           => raw_string("\002\001\005"),
+      500         => raw_string("\002\002\001\364"),
+      50_000      => raw_string("\x02\x02\xC3P"),
+      5_000_000_000  => raw_string("\002\005\001*\005\362\000")
+    }.each do |number, expected_encoding|
       it "should encode #{number} as #{expected_encoding.inspect}" do
         number.to_ber.should == expected_encoding
-      end 
+      end
     end
 
     # Round-trip encoding: This is mostly to be sure to cover Bignums well.
@@ -79,7 +79,7 @@ describe "BER encoding of" do
     context "strings" do
       it "should properly encode UTF-8 strings" do
         "\u00e5".force_encoding("UTF-8").to_ber.should ==
-          "\x04\x02\xC3\xA5"
+          raw_string("\x04\x02\xC3\xA5")
       end
       it "should properly encode strings encodable as UTF-8" do
         "teststring".encode("US-ASCII").to_ber.should == "\x04\nteststring"
@@ -87,7 +87,7 @@ describe "BER encoding of" do
 			it "should properly encode binary data strings using to_ber_bin" do
 				# This is used for searching for GUIDs in Active Directory
 				["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").to_ber_bin.should == 
-					"\x04\x10" + "j1\xB4\xA1*\xA2zA\xAC\xA9`?'\xDDQ\x16"
+					raw_string("\x04\x10" + "j1\xB4\xA1*\xA2zA\xAC\xA9`?'\xDDQ\x16")
 			end
       it "should not fail on strings that can not be converted to UTF-8" do
         error = Encoding::UndefinedConversionError

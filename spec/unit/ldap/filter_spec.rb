@@ -83,12 +83,12 @@ describe Net::LDAP::Filter do
   end
 
   context 'with a well-known BER string' do
-    ber = "\xa4\x2d" \
+    ber = raw_string("\xa4\x2d" \
       "\x04\x0b" "objectclass" \
       "\x30\x1e" \
       "\x80\x08" "foo" "*\\" "bar" \
       "\x81\x08" "foo" "*\\" "bar" \
-      "\x82\x08" "foo" "*\\" "bar"
+      "\x82\x08" "foo" "*\\" "bar")
 
     describe "<- .to_ber" do
       [
