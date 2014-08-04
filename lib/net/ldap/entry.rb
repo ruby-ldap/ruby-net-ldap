@@ -114,6 +114,14 @@ class Net::LDAP::Entry
   end
 
   ##
+  # Read the first value for the provided attribute. The attribute name
+  # is canonicalized prior to reading. Returns nil if the attribute does 
+  # not exist.
+  def first(name)
+    self[name].first
+  end
+
+  ##
   # Returns the first distinguished name (dn) of the Entry as a \String.
   def dn
     self[:dn].first.to_s
