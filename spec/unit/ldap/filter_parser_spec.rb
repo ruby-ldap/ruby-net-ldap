@@ -16,5 +16,11 @@ describe Net::LDAP::Filter::FilterParser do
         expect(Net::LDAP::Filter::FilterParser.parse(filter_string)).to be_a Net::LDAP::Filter
       end
     end
+    context "Given string including colons ':'" do
+      let(:filter_string) { "(ismemberof=cn=edu:berkeley:app:calmessages:deans,ou=campus groups,dc=berkeley,dc=edu)" }
+      specify "should generate filter object" do
+        expect(Net::LDAP::Filter::FilterParser.parse(filter_string)).to be_a Net::LDAP::Filter
+      end
+    end
   end
 end
