@@ -147,7 +147,7 @@ class Net::LDAP::Entry
     Net::LDAP::Dataset.from_entry(self).to_ldif_string
   end
 
-  def respond_to?(sym) #:nodoc:
+  def respond_to?(sym, include_all = false) #:nodoc:
     return true if valid_attribute?(self.class.attribute_name(sym))
     return super
   end
