@@ -858,7 +858,7 @@ class Net::LDAP
   # The LDAP protocol provides a full and well thought-out set of operations
   # for changing the values of attributes, but they are necessarily somewhat
   # complex and not always intuitive. If these instructions are confusing or
-  # incomplete, please send us email or create a bug report on rubyforge.
+  # incomplete, please send us email or create an issue on GitHub.
   #
   # The :operations parameter to #modify takes an array of
   # operation-descriptors. Each individual operation is specified in one

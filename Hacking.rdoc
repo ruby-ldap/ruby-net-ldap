@@ -25,7 +25,7 @@ patches being accepted, we recommend that you follow the guidelines below:
 
 == Documentation
 
-* Documentation: {net-ldap}[http://net-ldap.rubyforge.org/]
+* Documentation: {net-ldap}[http://rubydoc.info/gems/net-ldap]
 
 It is very important that, if you add new methods or objects, your code is
 well-documented. The purpose of the changes should be clearly described so that
@@ -63,6 +63,5 @@ installed using RubyGems.
 
 == Participation
 
-* RubyForge: {net-ldap}[http://rubyforge.org/projects/net-ldap]
 * GitHub: {ruby-ldap/ruby-net-ldap}[https://github.com/ruby-ldap/ruby-net-ldap/]
 * Group: {ruby-ldap}[http://groups.google.com/group/ruby-ldap]
