@@ -1243,8 +1243,8 @@ class Net::LDAP::Connection #:nodoc:
     @conn = nil
   end
 
-  def read
-    @conn.read_ber(Net::LDAP::AsnSyntax)
+  def read(syntax = Net::LDAP::AsnSyntax)
+    @conn.read_ber(syntax)
   end
   private :read
 
