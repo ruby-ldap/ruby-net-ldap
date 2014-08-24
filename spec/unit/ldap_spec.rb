@@ -1,5 +1,35 @@
 require 'spec_helper'
 
+describe Net::LDAP do
+  describe "initialize" do
+    context "on instrumentation_service configuration" do
+      before do
+        @tcp_socket = flexmock(:connection)
+        @tcp_socket.should_receive(:close)
+        flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
+        @service = MockInstrumentationService.new
+      end
+
+      it "should set the service object and instrument network calls" do
+        ldap = Net::LDAP.new(:server => 'test.mocked.com', :port => 636,
+                             :instrumentation_service => @service)
+
+        @tcp_socket.should_receive(:write)
+
+        ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
+        ber.ber_identifier = 7
+        result = [2, ber]
+        @tcp_socket.should_receive(:read_ber).and_return(result)
+
+        ldap.bind.should be_true
+
+        # a write event, then a read event
+        @service.events.size.should == 2
+      end
+    end
+  end
+end
+
 describe Net::LDAP::Connection do
   describe "initialize" do
     context "when host is not responding" do
@@ -77,25 +107,11 @@ describe Net::LDAP::Connection do
   end
 
   context "instrumentation" do
-    class InstrumentationService
-      attr_reader :events
-
-      def initialize
-        @events = []
-      end
-
-      def instrument(event, payload)
-        result = yield
-        @events << [event, payload, result]
-        result
-      end
-    end
-
     before do
       @tcp_socket = flexmock(:connection)
       @tcp_socket.should_receive(:write)
       flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
-      @service = InstrumentationService.new
+      @service = MockInstrumentationService.new
     end
 
     subject do

@@ -8,3 +8,17 @@ RSpec.configure do |config|
     s.respond_to?(:b) ? s.b : s
   end
 end
+
+class MockInstrumentationService
+  attr_reader :events
+
+  def initialize
+    @events = []
+  end
+
+  def instrument(event, payload)
+    result = yield
+    @events << [event, payload, result]
+    result
+  end
+end
