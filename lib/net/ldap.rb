@@ -1218,8 +1218,8 @@ class Net::LDAP::Connection #:nodoc:
       msgid = next_msgid.to_ber
       request = [Net::LDAP::StartTlsOid.to_ber_contextspecific(0)].to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
       request_pkt = [msgid, request].to_ber_sequence
-      @conn.write request_pkt
-      be = @conn.read_ber(Net::LDAP::AsnSyntax)
+      write request_pkt
+      be = read
       raise Net::LDAP::LdapError, "no start_tls result" if be.nil?
       pdu = Net::LDAP::PDU.new(be)
       raise Net::LDAP::LdapError, "no start_tls result" if pdu.nil?
@@ -1242,6 +1242,16 @@ class Net::LDAP::Connection #:nodoc:
     @conn.close
     @conn = nil
   end
+
+  def read
+    @conn.read_ber(Net::LDAP::AsnSyntax)
+  end
+  private :read
+
+  def write(packet)
+    @conn.write(packet)
+  end
+  private :write
 
   def next_msgid
     @msgid ||= 0
@@ -1278,9 +1288,9 @@ class Net::LDAP::Connection #:nodoc:
     request = [LdapVersion.to_ber, user.to_ber,
       psw.to_ber_contextspecific(0)].to_ber_appsequence(0)
     request_pkt = [msgid, request].to_ber_sequence
-    @conn.write request_pkt
+    write request_pkt
 
-    (be = @conn.read_ber(Net::LDAP::AsnSyntax) and pdu = Net::LDAP::PDU.new(be)) or raise Net::LDAP::LdapError, "no bind result"
+    (be = read and pdu = Net::LDAP::PDU.new(be)) or raise Net::LDAP::LdapError, "no bind result"
 
     pdu
   end
@@ -1317,9 +1327,9 @@ class Net::LDAP::Connection #:nodoc:
       sasl = [mech.to_ber, cred.to_ber].to_ber_contextspecific(3)
       request = [LdapVersion.to_ber, "".to_ber, sasl].to_ber_appsequence(0)
       request_pkt = [msgid, request].to_ber_sequence
-      @conn.write request_pkt
+      write request_pkt
 
-      (be = @conn.read_ber(Net::LDAP::AsnSyntax) and pdu = Net::LDAP::PDU.new(be)) or raise Net::LDAP::LdapError, "no bind result"
+      (be = read and pdu = Net::LDAP::PDU.new(be)) or raise Net::LDAP::LdapError, "no bind result"
       return pdu unless pdu.result_code == 14 # saslBindInProgress
       raise Net::LDAP::LdapError, "sasl-challenge overflow" if ((n += 1) > MaxSaslChallenges)
 
@@ -1483,12 +1493,12 @@ class Net::LDAP::Connection #:nodoc:
       controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
 
       pkt = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
-      @conn.write pkt
+      write pkt
 
       result_pdu = nil
       controls = []
 
-      while (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be))
+      while (be = read) && (pdu = Net::LDAP::PDU.new(be))
         case pdu.app_tag
         when 4 # search-data
           n_results += 1
@@ -1584,9 +1594,9 @@ class Net::LDAP::Connection #:nodoc:
     request = [ modify_dn.to_ber,
       ops.to_ber_sequence ].to_ber_appsequence(6)
     pkt = [ next_msgid.to_ber, request ].to_ber_sequence
-    @conn.write pkt
+    write pkt
 
-    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 7) or raise Net::LDAP::LdapError, "response missing or invalid"
+    (be = read) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 7) or raise Net::LDAP::LdapError, "response missing or invalid"
 
     pdu
   end
@@ -1607,9 +1617,9 @@ class Net::LDAP::Connection #:nodoc:
 
     request = [add_dn.to_ber, add_attrs.to_ber_sequence].to_ber_appsequence(8)
     pkt = [next_msgid.to_ber, request].to_ber_sequence
-    @conn.write pkt
+    write pkt
 
-    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) &&
+    (be = read) &&
       (pdu = Net::LDAP::PDU.new(be)) &&
       (pdu.app_tag == 9) or
       raise Net::LDAP::LdapError, "response missing or invalid"
@@ -1630,9 +1640,9 @@ class Net::LDAP::Connection #:nodoc:
     request << new_superior.to_ber_contextspecific(0) unless new_superior == nil
 
     pkt = [next_msgid.to_ber, request.to_ber_appsequence(12)].to_ber_sequence
-    @conn.write pkt
+    write pkt
 
-    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) &&
+    (be = read) &&
     (pdu = Net::LDAP::PDU.new( be )) && (pdu.app_tag == 13) or
     raise Net::LDAP::LdapError.new( "response missing or invalid" )
 
@@ -1647,9 +1657,9 @@ class Net::LDAP::Connection #:nodoc:
     controls = args.include?(:control_codes) ? args[:control_codes].to_ber_control : nil #use nil so we can compact later
     request = dn.to_s.to_ber_application_string(10)
     pkt = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
-    @conn.write pkt
+    write pkt
 
-    (be = @conn.read_ber(Net::LDAP::AsnSyntax)) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 11) or raise Net::LDAP::LdapError, "response missing or invalid"
+    (be = read) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 11) or raise Net::LDAP::LdapError, "response missing or invalid"
 
     pdu
   end
