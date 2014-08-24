@@ -1139,6 +1139,8 @@ class Net::LDAP::Connection #:nodoc:
   MaxSaslChallenges = 10
 
   def initialize(server)
+    @instrumentation_service = server[:instrumentation_service]
+
     begin
       @conn = TCPSocket.new(server[:host], server[:port])
     rescue SocketError
@@ -1233,6 +1235,21 @@ class Net::LDAP::Connection #:nodoc:
     end
   end
 
+  # Internal: Instrument a block with the defined instrumentation service.
+  #
+  # Returns the return value of the block.
+  def instrument(event, payload = {})
+    return yield unless instrumentation_service
+
+    instrumentation_service.instrument(event, payload) do
+      yield
+    end
+  end
+  private :instrument
+
+  attr_reader :instrumentation_service
+  private     :instrumentation_service
+
   #--
   # This is provided as a convenience method to make sure a connection
   # object gets closed without waiting for a GC to happen. Clients shouldn't
@@ -1244,12 +1261,16 @@ class Net::LDAP::Connection #:nodoc:
   end
 
   def read(syntax = Net::LDAP::AsnSyntax)
-    @conn.read_ber(syntax)
+    instrument "read.net_ldap_connection", :syntax => syntax do
+      @conn.read_ber(syntax)
+    end
   end
   private :read
 
   def write(packet)
-    @conn.write(packet)
+    instrument "write.net_ldap_connection", :packet => packet do
+      @conn.write(packet)
+    end
   end
   private :write
 
