@@ -400,6 +400,8 @@ class Net::LDAP
       @auth[:password] = pr.call
     end
 
+    @instrumentation_service = args[:instrumentation_service]
+
     # This variable is only set when we are created with LDAP::open. All of
     # our internal methods will connect using it, or else they will create
     # their own.
@@ -572,10 +574,12 @@ class Net::LDAP
     raise Net::LDAP::LdapError, "Open already in progress" if @open_connection
 
     begin
-      @open_connection = Net::LDAP::Connection.new(:host => @host,
-                                                   :port => @port,
-                                                   :encryption =>
-                                                   @encryption)
+      @open_connection =
+        Net::LDAP::Connection.new \
+          :host                    => @host,
+          :port                    => @port,
+          :encryption              => @encryption,
+          :instrumentation_service => @instrumentation_service
       @open_connection.bind(@auth)
       yield self
     ensure
@@ -730,8 +734,11 @@ class Net::LDAP
       @result = @open_connection.bind(auth)
     else
       begin
-        conn = Connection.new(:host => @host, :port => @port,
-                              :encryption => @encryption)
+        conn = Connection.new \
+          :host                    => @host,
+          :port                    => @port,
+          :encryption              => @encryption,
+          :instrumentation_service => @instrumentation_service
         @result = conn.bind(auth)
       ensure
         conn.close if conn
