@@ -75,4 +75,53 @@ describe Net::LDAP::Connection do
       result.error_message.should == ""
     end
   end
+
+  context "instrumentation" do
+    class InstrumentationService
+      attr_reader :events
+
+      def initialize
+        @events = []
+      end
+
+      def instrument(event, payload)
+        result = yield
+        @events << [event, payload, result]
+        result
+      end
+    end
+
+    before do
+      @tcp_socket = flexmock(:connection)
+      @tcp_socket.should_receive(:write)
+      flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
+      @service = InstrumentationService.new
+    end
+
+    subject do
+      Net::LDAP::Connection.new(:server => 'test.mocked.com', :port => 636,
+                                :instrumentation_service => @service)
+    end
+
+    it "should publish a socket write event, followed by a socket read event" do
+      ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
+      ber.ber_identifier = 7
+      result = [2, ber]
+      @tcp_socket.should_receive(:read_ber).and_return(result)
+
+      result = subject.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]])
+      result.should be_success
+
+      # a write event, then a read event
+      @service.events.size.should == 2
+
+      event, payload, result = @service.events.shift
+      event.should == "write.net_ldap_connection"
+      payload.should have_key(:packet)
+
+      event, payload, result = @service.events.shift
+      event.should == "read.net_ldap_connection"
+      result.should == result
+    end
+  end
 end
