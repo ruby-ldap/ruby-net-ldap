@@ -17,7 +17,7 @@ class MockInstrumentationService
   end
 
   def instrument(event, payload)
-    result = yield
+    result = yield(payload)
     @events << [event, payload, result]
     result
   end
