@@ -652,8 +652,11 @@ class Net::LDAP
       }
     else
       begin
-        conn = Net::LDAP::Connection.new(:host => @host, :port => @port,
-                                         :encryption => @encryption)
+        conn = Net::LDAP::Connection.new \
+          :host                    => @host,
+          :port                    => @port,
+          :encryption              => @encryption,
+          :instrumentation_service => @instrumentation_service
         if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
           @result = conn.search(args) { |entry|
             result_set << entry if result_set
