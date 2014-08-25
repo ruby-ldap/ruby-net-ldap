@@ -1246,10 +1246,10 @@ class Net::LDAP::Connection #:nodoc:
   #
   # Returns the return value of the block.
   def instrument(event, payload = {})
-    return yield unless instrumentation_service
+    return yield(payload) unless instrumentation_service
 
-    instrumentation_service.instrument(event, payload) do
-      yield
+    instrumentation_service.instrument(event, payload) do |payload|
+      payload[:result] = yield(payload)
     end
   end
   private :instrument
