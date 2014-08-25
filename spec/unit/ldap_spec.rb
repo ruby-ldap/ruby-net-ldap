@@ -122,8 +122,8 @@ describe Net::LDAP::Connection do
     it "should publish a socket write event, followed by a socket read event" do
       ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
       ber.ber_identifier = 7
-      result = [2, ber]
-      @tcp_socket.should_receive(:read_ber).and_return(result)
+      read_result = [2, ber]
+      @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
       result = subject.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]])
       result.should be_success
@@ -133,11 +133,13 @@ describe Net::LDAP::Connection do
 
       event, payload, result = @service.events.shift
       event.should == "write.net_ldap_connection"
+      payload.should have_key(:result)
       payload.should have_key(:packet)
 
       event, payload, result = @service.events.shift
       event.should == "read.net_ldap_connection"
-      result.should == result
+      payload.should have_key(:result)
+      result.should == read_result
     end
   end
 end
