@@ -1488,108 +1488,124 @@ class Net::LDAP::Connection #:nodoc:
     result_pdu = nil
     n_results = 0
 
-    loop {
-      # should collect this into a private helper to clarify the structure
-      query_limit = 0
-      if sizelimit > 0
-        if paged_searches_supported
-          query_limit = (((sizelimit - n_results) < 126) ? (sizelimit -
-                                                            n_results) : 0)
-        else
-          query_limit = sizelimit
-        end
-      end
-
-      request = [
-        search_base.to_ber,
-        scope.to_ber_enumerated,
-        deref.to_ber_enumerated,
-        query_limit.to_ber, # size limit
-        0.to_ber,
-        attributes_only.to_ber,
-        search_filter.to_ber,
-        search_attributes.to_ber_sequence
-      ].to_ber_appsequence(3)
-
-			# rfc2696_cookie sometimes contains binary data from Microsoft Active Directory
-			# this breaks when calling to_ber. (Can't force binary data to UTF-8)
-			# we have to disable paging (even though server supports it) to get around this...
-
-      controls = []
-      controls <<
-        [
-          Net::LDAP::LDAPControls::PAGED_RESULTS.to_ber,
-          # Criticality MUST be false to interoperate with normal LDAPs.
-          false.to_ber,
-          rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber
-        ].to_ber_sequence if paged_searches_supported
-      controls << sort_control if sort_control
-      controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
-
-      pkt = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
-      write pkt
-
-      result_pdu = nil
-      controls = []
-
-      while (be = read) && (pdu = Net::LDAP::PDU.new(be))
-        case pdu.app_tag
-        when 4 # search-data
-          n_results += 1
-          yield pdu.search_entry if block_given?
-        when 19 # search-referral
-          if return_referrals
-            if block_given?
-              se = Net::LDAP::Entry.new
-              se[:search_referrals] = (pdu.search_referrals || [])
-              yield se
-            end
+    instrument "search.net_ldap_connection",
+               :filter     => search_filter,
+               :base       => search_base,
+               :scope      => scope,
+               :limit      => sizelimit,
+               :sort       => sort_control,
+               :referrals  => return_referrals,
+               :deref      => deref,
+               :attributes => search_attributes do |payload|
+      loop do
+        # should collect this into a private helper to clarify the structure
+        query_limit = 0
+        if sizelimit > 0
+          if paged_searches_supported
+            query_limit = (((sizelimit - n_results) < 126) ? (sizelimit -
+                                                              n_results) : 0)
+          else
+            query_limit = sizelimit
           end
-        when 5 # search-result
-          result_pdu = pdu
-          controls = pdu.result_controls
-          if return_referrals && pdu.result_code == 10
-            if block_given?
-              se = Net::LDAP::Entry.new
-              se[:search_referrals] = (pdu.search_referrals || [])
-              yield se
-            end
-          end
-          break
-        else
-          raise Net::LDAP::LdapError, "invalid response-type in search: #{pdu.app_tag}"
         end
-      end
 
-      # When we get here, we have seen a type-5 response. If there is no
-      # error AND there is an RFC-2696 cookie, then query again for the next
-      # page of results. If not, we're done. Don't screw this up or we'll
-      # break every search we do.
-      #
-      # Noticed 02Sep06, look at the read_ber call in this loop, shouldn't
-      # that have a parameter of AsnSyntax? Does this just accidentally
-      # work? According to RFC-2696, the value expected in this position is
-      # of type OCTET STRING, covered in the default syntax supported by
-      # read_ber, so I guess we're ok.
-      more_pages = false
-      if result_pdu.result_code == 0 and controls
-        controls.each do |c|
-          if c.oid == Net::LDAP::LDAPControls::PAGED_RESULTS
-            # just in case some bogus server sends us more than 1 of these.
-            more_pages = false
-            if c.value and c.value.length > 0
-              cookie = c.value.read_ber[1]
-              if cookie and cookie.length > 0
-                rfc2696_cookie[1] = cookie
-                more_pages = true
+        request = [
+          search_base.to_ber,
+          scope.to_ber_enumerated,
+          deref.to_ber_enumerated,
+          query_limit.to_ber, # size limit
+          0.to_ber,
+          attributes_only.to_ber,
+          search_filter.to_ber,
+          search_attributes.to_ber_sequence
+        ].to_ber_appsequence(3)
+
+  			# rfc2696_cookie sometimes contains binary data from Microsoft Active Directory
+  			# this breaks when calling to_ber. (Can't force binary data to UTF-8)
+  			# we have to disable paging (even though server supports it) to get around this...
+
+        controls = []
+        controls <<
+          [
+            Net::LDAP::LDAPControls::PAGED_RESULTS.to_ber,
+            # Criticality MUST be false to interoperate with normal LDAPs.
+            false.to_ber,
+            rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber
+          ].to_ber_sequence if paged_searches_supported
+        controls << sort_control if sort_control
+        controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
+
+        pkt = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
+        write pkt
+
+        result_pdu = nil
+        controls = []
+
+        while (be = read) && (pdu = Net::LDAP::PDU.new(be))
+          case pdu.app_tag
+          when 4 # search-data
+            n_results += 1
+            yield pdu.search_entry if block_given?
+          when 19 # search-referral
+            if return_referrals
+              if block_given?
+                se = Net::LDAP::Entry.new
+                se[:search_referrals] = (pdu.search_referrals || [])
+                yield se
+              end
+            end
+          when 5 # search-result
+            result_pdu = pdu
+            controls = pdu.result_controls
+            if return_referrals && pdu.result_code == 10
+              if block_given?
+                se = Net::LDAP::Entry.new
+                se[:search_referrals] = (pdu.search_referrals || [])
+                yield se
+              end
+            end
+            break
+          else
+            raise Net::LDAP::LdapError, "invalid response-type in search: #{pdu.app_tag}"
+          end
+        end
+
+        # count number of pages of results
+        payload[:page_count] ||= 0
+        payload[:page_count]  += 1
+
+        # When we get here, we have seen a type-5 response. If there is no
+        # error AND there is an RFC-2696 cookie, then query again for the next
+        # page of results. If not, we're done. Don't screw this up or we'll
+        # break every search we do.
+        #
+        # Noticed 02Sep06, look at the read_ber call in this loop, shouldn't
+        # that have a parameter of AsnSyntax? Does this just accidentally
+        # work? According to RFC-2696, the value expected in this position is
+        # of type OCTET STRING, covered in the default syntax supported by
+        # read_ber, so I guess we're ok.
+        more_pages = false
+        if result_pdu.result_code == 0 and controls
+          controls.each do |c|
+            if c.oid == Net::LDAP::LDAPControls::PAGED_RESULTS
+              # just in case some bogus server sends us more than 1 of these.
+              more_pages = false
+              if c.value and c.value.length > 0
+                cookie = c.value.read_ber[1]
+                if cookie and cookie.length > 0
+                  rfc2696_cookie[1] = cookie
+                  more_pages = true
+                end
               end
             end
           end
         end
-      end
 
-      break unless more_pages
-    } # loop
+        break unless more_pages
+      end # loop
+
+      payload[:result_count] = n_results
+    end # instrument
 
     result_pdu || OpenStruct.new(:status => :failure, :result_code => 1, :message => "Invalid search")
   end
