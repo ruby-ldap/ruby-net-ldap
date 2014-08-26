@@ -23,6 +23,7 @@ require 'net/ldap/filter'
 require 'net/ldap/dataset'
 require 'net/ldap/password'
 require 'net/ldap/entry'
+require 'net/ldap/instrumentation'
 require 'net/ldap/version'
 
 # == Quick-start for the Impatient
@@ -242,6 +243,7 @@ require 'net/ldap/version'
 # and then keeps it open while it executes a user-supplied block.
 # Net::LDAP#open closes the connection on completion of the block.
 class Net::LDAP
+  include Net::LDAP::Instrumentation
 
   class LdapError < StandardError; end
 
@@ -1145,6 +1147,8 @@ end # class LDAP
 # This is a private class used internally by the library. It should not
 # be called by user code.
 class Net::LDAP::Connection #:nodoc:
+  include Net::LDAP::Instrumentation
+
   LdapVersion = 3
   MaxSaslChallenges = 10
 
@@ -1244,21 +1248,6 @@ class Net::LDAP::Connection #:nodoc:
       raise Net::LDAP::LdapError, "unsupported encryption method #{args[:method]}"
     end
   end
-
-  # Internal: Instrument a block with the defined instrumentation service.
-  #
-  # Returns the return value of the block.
-  def instrument(event, payload = {})
-    return yield(payload) unless instrumentation_service
-
-    instrumentation_service.instrument(event, payload) do |payload|
-      payload[:result] = yield(payload)
-    end
-  end
-  private :instrument
-
-  attr_reader :instrumentation_service
-  private     :instrumentation_service
 
   #--
   # This is provided as a convenience method to make sure a connection
