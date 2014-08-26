@@ -1595,10 +1595,11 @@ class Net::LDAP::Connection #:nodoc:
         break unless more_pages
       end # loop
 
+      # track total result count
       payload[:result_count] = n_results
-    end # instrument
 
-    result_pdu || OpenStruct.new(:status => :failure, :result_code => 1, :message => "Invalid search")
+      result_pdu || OpenStruct.new(:status => :failure, :result_code => 1, :message => "Invalid search")
+    end # instrument
   end
 
   MODIFY_OPERATIONS = { #:nodoc:
