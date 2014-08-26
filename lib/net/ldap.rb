@@ -647,33 +647,35 @@ class Net::LDAP
     return_result_set = args[:return_result] != false
     result_set = return_result_set ? [] : nil
 
-    if @open_connection
-      @result = @open_connection.search(args) { |entry|
-        result_set << entry if result_set
-        yield entry if block_given?
-      }
-    else
-      begin
-        conn = Net::LDAP::Connection.new \
-          :host                    => @host,
-          :port                    => @port,
-          :encryption              => @encryption,
-          :instrumentation_service => @instrumentation_service
-        if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
-          @result = conn.search(args) { |entry|
-            result_set << entry if result_set
-            yield entry if block_given?
-          }
+    instrument "search.net_ldap", args do |payload|
+      if @open_connection
+        @result = @open_connection.search(args) { |entry|
+          result_set << entry if result_set
+          yield entry if block_given?
+        }
+      else
+        begin
+          conn = Net::LDAP::Connection.new \
+            :host                    => @host,
+            :port                    => @port,
+            :encryption              => @encryption,
+            :instrumentation_service => @instrumentation_service
+          if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
+            @result = conn.search(args) { |entry|
+              result_set << entry if result_set
+              yield entry if block_given?
+            }
+          end
+        ensure
+          conn.close if conn
         end
-      ensure
-        conn.close if conn
       end
-    end
 
-    if return_result_set
-      (!@result.nil? && @result.result_code == 0) ? result_set : nil
-    else
-      @result.success?
+      if return_result_set
+        (!@result.nil? && @result.result_code == 0) ? result_set : nil
+      else
+        @result.success?
+      end
     end
   end
 
