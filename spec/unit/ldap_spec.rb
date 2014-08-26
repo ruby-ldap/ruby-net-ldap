@@ -14,17 +14,25 @@ describe Net::LDAP do
         ldap = Net::LDAP.new(:server => 'test.mocked.com', :port => 636,
                              :instrumentation_service => @service)
 
-        @tcp_socket.should_receive(:write)
+        @tcp_socket.should_receive(:write).and_return(bytes_written = 1)
+
+        write_events = @service.subscribe "write.net_ldap_connection"
+        read_events  = @service.subscribe "read.net_ldap_connection"
 
         ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
         ber.ber_identifier = 7
-        result = [2, ber]
-        @tcp_socket.should_receive(:read_ber).and_return(result)
+        read_result = [2, ber]
+        @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
         ldap.bind.should be_true
 
-        # a write event, then a read event
-        @service.events.size.should == 2
+        # a write event
+        payload, result = write_events.pop
+        result.should == bytes_written
+
+        # then a read event
+        payload, result = read_events.pop
+        result.should == read_result
       end
     end
   end
@@ -125,19 +133,19 @@ describe Net::LDAP::Connection do
       read_result = [2, ber]
       @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
+      write_events = @service.subscribe "write.net_ldap_connection"
+      read_events  = @service.subscribe "read.net_ldap_connection"
+
       result = subject.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]])
       result.should be_success
 
-      # a write event, then a read event
-      @service.events.size.should == 2
-
-      event, payload, result = @service.events.shift
-      event.should == "write.net_ldap_connection"
+      # a write event
+      payload, result = write_events.pop
       payload.should have_key(:result)
       payload.should have_key(:packet)
 
-      event, payload, result = @service.events.shift
-      event.should == "read.net_ldap_connection"
+      # then a read event
+      payload, result = read_events.pop
       payload.should have_key(:result)
       result.should == read_result
     end

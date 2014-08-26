@@ -10,15 +10,19 @@ RSpec.configure do |config|
 end
 
 class MockInstrumentationService
-  attr_reader :events
-
   def initialize
-    @events = []
+    @events = {}
   end
 
   def instrument(event, payload)
     result = yield(payload)
-    @events << [event, payload, result]
+    @events[event] ||= []
+    @events[event] << [payload, result]
     result
+  end
+
+  def subscribe(event)
+    @events[event] ||= []
+    @events[event]
   end
 end
