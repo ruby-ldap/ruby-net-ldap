@@ -385,6 +385,8 @@ class Net::LDAP
   #   #encryption for details.
   # * :force_no_page => Set to true to prevent paged results even if your
   #   server says it supports them. This is a fix for MS Active Directory
+  # * :instrumentation_service => An object responsible for instrumenting
+  #   operations, compatible with ActiveSupport::Notifications' public API.
   #
   # Instantiating a Net::LDAP object does <i>not</i> result in network
   # traffic to the LDAP server. It simply stores the connection and binding
