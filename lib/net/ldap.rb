@@ -1281,7 +1281,7 @@ class Net::LDAP::Connection #:nodoc:
   def read(syntax = Net::LDAP::AsnSyntax)
     instrument "read.net_ldap_connection", :syntax => syntax do |payload|
       @conn.read_ber(syntax) do |id, content_length|
-        payload[:response_id]    = id
+        payload[:object_type_id] = id
         payload[:content_length] = content_length
       end
     end
