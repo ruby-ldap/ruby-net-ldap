@@ -4,6 +4,10 @@ module Net::LDAP::Instrumentation
 
   # Internal: Instrument a block with the defined instrumentation service.
   #
+  # Yields the event payload if a block is given.
+  #
+  # Skips instrumentation if no service is set.
+  #
   # Returns the return value of the block.
   def instrument(event, payload = {})
     if instrumentation_service
