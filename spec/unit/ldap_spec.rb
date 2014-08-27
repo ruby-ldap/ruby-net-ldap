@@ -20,7 +20,7 @@ describe Net::LDAP do
         read_events  = @service.subscribe "read.net_ldap_connection"
 
         ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
-        ber.ber_identifier = 7
+        ber.ber_identifier = Net::LDAP::PDU::BindResult
         read_result = [2, ber]
         @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
@@ -95,7 +95,7 @@ describe Net::LDAP::Connection do
 
     it "should get back error messages if operation fails" do
       ber = Net::BER::BerIdentifiedArray.new([53, "", "The provided password value was rejected by a password validator:  The provided password did not contain enough characters from the character set 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.  The minimum number of characters from that set that must be present in user passwords is 1"])
-      ber.ber_identifier = 7
+      ber.ber_identifier = Net::LDAP::PDU::ModifyResponse
       @tcp_socket.should_receive(:read_ber).and_return([2, ber])
 
       result = subject.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]])
@@ -105,7 +105,7 @@ describe Net::LDAP::Connection do
 
     it "shouldn't get back error messages if operation succeeds" do
       ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
-      ber.ber_identifier = 7
+      ber.ber_identifier = Net::LDAP::PDU::ModifyResponse
       @tcp_socket.should_receive(:read_ber).and_return([2, ber])
 
       result = subject.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]])
@@ -132,7 +132,7 @@ describe Net::LDAP::Connection do
 
     it "should publish a write.net_ldap_connection event" do
       ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
-      ber.ber_identifier = 7
+      ber.ber_identifier = Net::LDAP::PDU::BindResult
       read_result = [2, ber]
       @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
@@ -149,11 +149,11 @@ describe Net::LDAP::Connection do
 
     it "should publish a read.net_ldap_connection event" do
       ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
-      ber.ber_identifier = 7
+      ber.ber_identifier = Net::LDAP::PDU::BindResult
       read_result = [2, ber]
       @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
-      events  = @service.subscribe "read.net_ldap_connection"
+      events = @service.subscribe "read.net_ldap_connection"
 
       result = subject.bind(method: :anon)
       result.should be_success

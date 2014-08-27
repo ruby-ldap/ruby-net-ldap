@@ -1534,10 +1534,10 @@ class Net::LDAP::Connection #:nodoc:
 
         while (be = read) && (pdu = Net::LDAP::PDU.new(be))
           case pdu.app_tag
-          when 4 # search-data
+          when Net::LDAP::PDU::SearchReturnedData
             n_results += 1
             yield pdu.search_entry if block_given?
-          when 19 # search-referral
+          when Net::LDAP::PDU::SearchResultReferral
             if return_referrals
               if block_given?
                 se = Net::LDAP::Entry.new
@@ -1545,7 +1545,7 @@ class Net::LDAP::Connection #:nodoc:
                 yield se
               end
             end
-          when 5 # search-result
+          when Net::LDAP::PDU::SearchResult
             result_pdu = pdu
             controls = pdu.result_controls
             if return_referrals && pdu.result_code == 10
@@ -1638,7 +1638,7 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [ next_msgid.to_ber, request ].to_ber_sequence
     write pkt
 
-    (be = read) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 7) or raise Net::LDAP::LdapError, "response missing or invalid"
+    (be = read) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == Net::LDAP::PDU::ModifyResponse) or raise Net::LDAP::LdapError, "response missing or invalid"
 
     pdu
   end
@@ -1663,7 +1663,7 @@ class Net::LDAP::Connection #:nodoc:
 
     (be = read) &&
       (pdu = Net::LDAP::PDU.new(be)) &&
-      (pdu.app_tag == 9) or
+      (pdu.app_tag == Net::LDAP::PDU::AddResponse) or
       raise Net::LDAP::LdapError, "response missing or invalid"
 
     pdu
@@ -1685,7 +1685,7 @@ class Net::LDAP::Connection #:nodoc:
     write pkt
 
     (be = read) &&
-    (pdu = Net::LDAP::PDU.new( be )) && (pdu.app_tag == 13) or
+    (pdu = Net::LDAP::PDU.new( be )) && (pdu.app_tag == Net::LDAP::PDU::ModifyRDNResponse) or
     raise Net::LDAP::LdapError.new( "response missing or invalid" )
 
     pdu
@@ -1701,7 +1701,7 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
     write pkt
 
-    (be = read) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == 11) or raise Net::LDAP::LdapError, "response missing or invalid"
+    (be = read) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == Net::LDAP::PDU::DeleteResponse) or raise Net::LDAP::LdapError, "response missing or invalid"
 
     pdu
   end
