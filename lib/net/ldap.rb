@@ -845,8 +845,11 @@ class Net::LDAP
     else
       @result = 0
       begin
-        conn = Connection.new(:host => @host, :port => @port,
-                              :encryption => @encryption)
+        conn = Connection.new \
+          :host                    => @host,
+          :port                    => @port,
+          :encryption              => @encryption,
+          :instrumentation_service => @instrumentation_service
         if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
           @result = conn.add(args)
         end
@@ -943,8 +946,11 @@ class Net::LDAP
     else
       @result = 0
       begin
-        conn = Connection.new(:host => @host, :port => @port,
-                              :encryption => @encryption)
+        conn = Connection.new \
+          :host                    => @host,
+          :port                    => @port,
+          :encryption              => @encryption,
+          :instrumentation_service => @instrumentation_service
         if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
           @result = conn.modify(args)
         end
@@ -1015,8 +1021,11 @@ class Net::LDAP
     else
       @result = 0
       begin
-        conn = Connection.new(:host => @host, :port => @port,
-                              :encryption => @encryption)
+        conn = Connection.new \
+          :host                    => @host,
+          :port                    => @port,
+          :encryption              => @encryption,
+          :instrumentation_service => @instrumentation_service
         if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
           @result = conn.rename(args)
         end
@@ -1043,8 +1052,11 @@ class Net::LDAP
     else
       @result = 0
       begin
-        conn = Connection.new(:host => @host, :port => @port,
-                              :encryption => @encryption)
+        conn = Connection.new \
+          :host                    => @host,
+          :port                    => @port,
+          :encryption              => @encryption,
+          :instrumentation_service => @instrumentation_service
         if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
           @result = conn.delete(args)
         end
