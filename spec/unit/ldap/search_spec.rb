@@ -35,7 +35,7 @@ describe Net::LDAP, "search method" do
   end
 
   context "when instrumentation_service is configured" do
-    it "should emit a search.net_ldap event" do
+    it "should publish a search.net_ldap event" do
       events = @service.subscribe "search.net_ldap"
 
       @connection.search :filter => "test"

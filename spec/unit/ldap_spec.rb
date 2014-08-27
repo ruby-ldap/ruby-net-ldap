@@ -127,25 +127,35 @@ describe Net::LDAP::Connection do
                                 :instrumentation_service => @service)
     end
 
-    it "should publish a socket write event, followed by a socket read event" do
+    it "should publish a write.net_ldap_connection event" do
+      ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
+      ber.ber_identifier = 7
+      @tcp_socket.should_receive(:read_ber).and_return([2, ber])
+
+      events = @service.subscribe "write.net_ldap_connection"
+
+      result = subject.bind(method: :anon)
+      result.should be_success
+
+      # a write event
+      payload, result = events.pop
+      payload.should have_key(:result)
+      payload.should have_key(:packet)
+    end
+
+    it "should publish a read.net_ldap_connection event" do
       ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
       ber.ber_identifier = 7
       read_result = [2, ber]
       @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
-      write_events = @service.subscribe "write.net_ldap_connection"
-      read_events  = @service.subscribe "read.net_ldap_connection"
+      events  = @service.subscribe "read.net_ldap_connection"
 
-      result = subject.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]])
+      result = subject.bind(method: :anon)
       result.should be_success
 
-      # a write event
-      payload, result = write_events.pop
-      payload.should have_key(:result)
-      payload.should have_key(:packet)
-
-      # then a read event
-      payload, result = read_events.pop
+      # a read event
+      payload, result = events.pop
       payload.should have_key(:result)
       result.should == read_result
     end
