@@ -258,7 +258,7 @@ class Net::LDAP
   DerefAliases_Find = 2
   DerefAliases_Always = 3
   DerefAliasesArray = [ DerefAliases_Never, DerefAliases_Search, DerefAliases_Find, DerefAliases_Always ]
-  
+
   primitive = { 2 => :null } # UnbindRequest body
   constructed = {
     0 => :array, # BindRequest
@@ -1139,7 +1139,7 @@ class Net::LDAP
   def paged_searches_supported?
 		# active directory returns that it supports paged results. However
 		# it returns binary data in the rfc2696_cookie which throws an
-		# encoding exception breaking searching.		
+		# encoding exception breaking searching.
 		return false if @force_no_page
     @server_caps ||= search_root_dse
     @server_caps[:supportedcontrol].include?(Net::LDAP::LDAPControls::PAGED_RESULTS)
@@ -1454,7 +1454,7 @@ class Net::LDAP::Connection #:nodoc:
 	deref = args[:deref] || Net::LDAP::DerefAliases_Never
 	raise Net::LDAP::LdapError.new( "invalid alias dereferencing value" ) unless Net::LDAP::DerefAliasesArray.include?(deref)
 
-	
+
     # An interesting value for the size limit would be close to A/D's
     # built-in page limit of 1000 records, but openLDAP newer than version
     # 2.2.0 chokes on anything bigger than 126. You get a silent error that
