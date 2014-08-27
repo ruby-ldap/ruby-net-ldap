@@ -1295,8 +1295,8 @@ class Net::LDAP::Connection #:nodoc:
   # Returns the return value from writing to the connection, which in some
   # cases is the Integer number of bytes written to the socket.
   def write(packet)
-    instrument "write.net_ldap_connection", :packet => packet do
-      @conn.write(packet)
+    instrument "write.net_ldap_connection" do |payload|
+      payload[:content_length] = @conn.write(packet)
     end
   end
   private :write

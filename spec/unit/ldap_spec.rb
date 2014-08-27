@@ -144,7 +144,7 @@ describe Net::LDAP::Connection do
       # a write event
       payload, result = events.pop
       payload.should have_key(:result)
-      payload.should have_key(:packet)
+      payload.should have_key(:content_length)
     end
 
     it "should publish a read.net_ldap_connection event" do
