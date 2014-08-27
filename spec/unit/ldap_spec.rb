@@ -117,8 +117,11 @@ describe Net::LDAP::Connection do
   context "instrumentation" do
     before do
       @tcp_socket = flexmock(:connection)
+      # handle write
       @tcp_socket.should_receive(:write)
+      # return this mock
       flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
+
       @service = MockInstrumentationService.new
     end
 
@@ -130,7 +133,8 @@ describe Net::LDAP::Connection do
     it "should publish a write.net_ldap_connection event" do
       ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
       ber.ber_identifier = 7
-      @tcp_socket.should_receive(:read_ber).and_return([2, ber])
+      read_result = [2, ber]
+      @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
       events = @service.subscribe "write.net_ldap_connection"
 
@@ -158,6 +162,34 @@ describe Net::LDAP::Connection do
       payload, result = events.pop
       payload.should have_key(:result)
       result.should == read_result
+    end
+
+    it "should publish a search.net_ldap_connection event" do
+      # search data
+      search_data_ber = Net::BER::BerIdentifiedArray.new([2, [
+        "uid=user1,ou=OrgUnit2,ou=OrgUnitTop,dc=openldap,dc=ghe,dc=local",
+        [ ["uid", ["user1"]] ]
+      ]])
+      search_data_ber.ber_identifier = Net::LDAP::PDU::SearchReturnedData
+      search_data = [2, search_data_ber]
+      # search result (end of results)
+      search_result_ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
+      search_result_ber.ber_identifier = Net::LDAP::PDU::SearchResult
+      search_result = [2, search_result_ber]
+      @tcp_socket.should_receive(:read_ber).and_return(search_data).
+                                            and_return(search_result)
+
+      events = @service.subscribe "search.net_ldap_connection"
+
+      result = subject.search(filter: "(uid=user1)")
+      result.should be_success
+
+      # a search event
+      payload, result = events.pop
+      payload.should have_key(:result)
+      payload.should have_key(:filter)
+      payload[:filter].to_s.should == "(uid=user1)"
+      result.should be_truthy
     end
   end
 end
