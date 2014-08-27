@@ -6,10 +6,12 @@ module Net::LDAP::Instrumentation
   #
   # Returns the return value of the block.
   def instrument(event, payload = {})
-    return yield(payload) unless instrumentation_service
-
-    instrumentation_service.instrument(event, payload) do |payload|
-      payload[:result] = yield(payload)
+    if instrumentation_service
+      instrumentation_service.instrument(event, payload) do |payload|
+        payload[:result] = yield(payload) if block_given?
+      end
+    else
+      yield(payload) if block_given?
     end
   end
   private :instrument
