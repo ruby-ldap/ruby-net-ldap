@@ -1273,6 +1273,11 @@ class Net::LDAP::Connection #:nodoc:
     @conn = nil
   end
 
+  # Internal: Reads and parses data from the configured connection.
+  #
+  # - syntax: the BER syntax to use to parse the read data with
+  #
+  # Returns basic BER objects.
   def read(syntax = Net::LDAP::AsnSyntax)
     instrument "read.net_ldap_connection", :syntax => syntax do |payload|
       @conn.read_ber(syntax) do |id, content_length|
@@ -1283,6 +1288,12 @@ class Net::LDAP::Connection #:nodoc:
   end
   private :read
 
+  # Internal: Writes the given packet to the configured connection.
+  #
+  # - packet: the BER data packet to write on the socket.
+  #
+  # Returns the return value from writing to the connection, which in some
+  # cases is the Integer number of bytes written to the socket.
   def write(packet)
     instrument "write.net_ldap_connection", :packet => packet do
       @conn.write(packet)
