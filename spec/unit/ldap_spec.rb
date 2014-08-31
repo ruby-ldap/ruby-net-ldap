@@ -13,6 +13,7 @@ describe Net::LDAP do
       subject do
         Net::LDAP.new \
           :server => "test.mocked.com", :port => 636,
+          :force_no_page => true, # so server capabilities are not queried
           :instrumentation_service => @service
       end
 
@@ -27,6 +28,22 @@ describe Net::LDAP do
         payload, result = events.pop
         result.should be_true
         payload[:bind].should == bind_result
+      end
+
+      it "should instrument search" do
+        events = @service.subscribe "search.net_ldap"
+
+        @connection.should_receive(:bind).and_return(flexmock(:bind_result, :result_code => 0))
+        @connection.should_receive(:search).with(Hash, Proc).
+                    yields(entry = Net::LDAP::Entry.new("uid=user1,ou=users,dc=example,dc=com")).
+                    and_return(flexmock(:search_result, :success? => true, :result_code => 0))
+
+        subject.search(:filter => "(uid=user1)").should be_true
+
+        payload, result = events.pop
+        result.should == [entry]
+        payload[:result].should == [entry]
+        payload[:filter].should == "(uid=user1)"
       end
     end
   end
