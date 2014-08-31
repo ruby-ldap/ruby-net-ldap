@@ -19,9 +19,6 @@ describe Net::LDAP do
       it "should instrument bind" do
         events = @service.subscribe "bind.net_ldap"
 
-        # ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
-        # ber.ber_identifier = Net::LDAP::PDU::BindResult
-        # Net::LDAP::PDU.new([0, ber])
         bind_result = flexmock(:bind_result, :success? => true)
         @connection.should_receive(:bind).with(Hash).and_return(bind_result)
 
