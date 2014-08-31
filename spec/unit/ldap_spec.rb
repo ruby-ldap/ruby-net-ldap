@@ -4,9 +4,9 @@ describe Net::LDAP do
   describe "initialize" do
     context "when instrumentation is configured" do
       before do
-        @tcp_socket = flexmock(:connection)
-        @tcp_socket.should_receive(:close)
-        flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
+        @connection = flexmock(:connection, :close => true)
+        flexmock(Net::LDAP::Connection).should_receive(:new).and_return(@connection)
+
         @service = MockInstrumentationService.new
       end
 
@@ -16,26 +16,20 @@ describe Net::LDAP do
           :instrumentation_service => @service
       end
 
-      it "should set the service object and instrument network calls" do
-        @tcp_socket.should_receive(:write).and_return(bytes_written = 1)
+      it "should instrument bind" do
+        events = @service.subscribe "bind.net_ldap"
 
-        write_events = @service.subscribe "write.net_ldap_connection"
-        read_events  = @service.subscribe "read.net_ldap_connection"
-
-        ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
-        ber.ber_identifier = Net::LDAP::PDU::BindResult
-        read_result = [2, ber]
-        @tcp_socket.should_receive(:read_ber).and_return(read_result)
+        # ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
+        # ber.ber_identifier = Net::LDAP::PDU::BindResult
+        # Net::LDAP::PDU.new([0, ber])
+        bind_result = flexmock(:bind_result, :success? => true)
+        @connection.should_receive(:bind).with(Hash).and_return(bind_result)
 
         subject.bind.should be_true
 
-        # a write event
-        payload, result = write_events.pop
-        result.should == bytes_written
-
-        # then a read event
-        payload, result = read_events.pop
-        result.should == read_result
+        payload, result = events.pop
+        result.should be_true
+        payload[:bind].should == bind_result
       end
     end
   end
