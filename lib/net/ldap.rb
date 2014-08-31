@@ -849,24 +849,26 @@ class Net::LDAP
   #    ldap.add(:dn => dn, :attributes => attr)
   #  end
   def add(args)
-    if @open_connection
-      @result = @open_connection.add(args)
-    else
-      @result = 0
-      begin
-        conn = Connection.new \
-          :host                    => @host,
-          :port                    => @port,
-          :encryption              => @encryption,
-          :instrumentation_service => @instrumentation_service
-        if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
-          @result = conn.add(args)
+    instrument "add.net_ldap", args do |payload|
+      if @open_connection
+        @result = @open_connection.add(args)
+      else
+        @result = 0
+        begin
+          conn = Connection.new \
+            :host                    => @host,
+            :port                    => @port,
+            :encryption              => @encryption,
+            :instrumentation_service => @instrumentation_service
+          if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
+            @result = conn.add(args)
+          end
+        ensure
+          conn.close if conn
         end
-      ensure
-        conn.close if conn
       end
+      @result.success?
     end
-    @result.success?
   end
 
   # Modifies the attribute values of a particular entry on the LDAP
@@ -950,25 +952,27 @@ class Net::LDAP
   # simultaneously by the server. It bears repeating that this concurrency
   # does _not_ imply transactional atomicity, which LDAP does not provide.
   def modify(args)
-    if @open_connection
-      @result = @open_connection.modify(args)
-    else
-      @result = 0
-      begin
-        conn = Connection.new \
-          :host                    => @host,
-          :port                    => @port,
-          :encryption              => @encryption,
-          :instrumentation_service => @instrumentation_service
-        if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
-          @result = conn.modify(args)
+    instrument "modify.net_ldap", args do |payload|
+      if @open_connection
+        @result = @open_connection.modify(args)
+      else
+        @result = 0
+        begin
+          conn = Connection.new \
+            :host                    => @host,
+            :port                    => @port,
+            :encryption              => @encryption,
+            :instrumentation_service => @instrumentation_service
+          if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
+            @result = conn.modify(args)
+          end
+        ensure
+          conn.close if conn
         end
-      ensure
-        conn.close if conn
       end
-    end
 
-    @result.success?
+      @result.success?
+    end
   end
 
   # Add a value to an attribute. Takes the full DN of the entry to modify,
@@ -1025,24 +1029,26 @@ class Net::LDAP
   #
   # _Documentation_ _stub_
   def rename(args)
-    if @open_connection
-      @result = @open_connection.rename(args)
-    else
-      @result = 0
-      begin
-        conn = Connection.new \
-          :host                    => @host,
-          :port                    => @port,
-          :encryption              => @encryption,
-          :instrumentation_service => @instrumentation_service
-        if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
-          @result = conn.rename(args)
+    instrument "rename.net_ldap", args do |payload|
+      if @open_connection
+        @result = @open_connection.rename(args)
+      else
+        @result = 0
+        begin
+          conn = Connection.new \
+            :host                    => @host,
+            :port                    => @port,
+            :encryption              => @encryption,
+            :instrumentation_service => @instrumentation_service
+          if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
+            @result = conn.rename(args)
+          end
+        ensure
+          conn.close if conn
         end
-      ensure
-        conn.close if conn
       end
+      @result.success?
     end
-    @result.success?
   end
   alias_method :modify_rdn, :rename
 
@@ -1056,24 +1062,26 @@ class Net::LDAP
   #  dn = "mail=deleteme@example.com, ou=people, dc=example, dc=com"
   #  ldap.delete :dn => dn
   def delete(args)
-    if @open_connection
-      @result = @open_connection.delete(args)
-    else
-      @result = 0
-      begin
-        conn = Connection.new \
-          :host                    => @host,
-          :port                    => @port,
-          :encryption              => @encryption,
-          :instrumentation_service => @instrumentation_service
-        if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
-          @result = conn.delete(args)
+    instrument "delete.net_ldap", args do |payload|
+      if @open_connection
+        @result = @open_connection.delete(args)
+      else
+        @result = 0
+        begin
+          conn = Connection.new \
+            :host                    => @host,
+            :port                    => @port,
+            :encryption              => @encryption,
+            :instrumentation_service => @instrumentation_service
+          if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
+            @result = conn.delete(args)
+          end
+        ensure
+          conn.close
         end
-      ensure
-        conn.close
       end
+      @result.success?
     end
-    @result.success?
   end
 
   # Delete an entry from the LDAP directory along with all subordinate entries.
