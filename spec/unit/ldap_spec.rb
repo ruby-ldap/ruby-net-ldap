@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Net::LDAP do
   describe "initialize" do
-    context "on instrumentation_service configuration" do
+    context "when instrumentation is configured" do
       before do
         @tcp_socket = flexmock(:connection)
         @tcp_socket.should_receive(:close)
@@ -10,10 +10,13 @@ describe Net::LDAP do
         @service = MockInstrumentationService.new
       end
 
-      it "should set the service object and instrument network calls" do
-        ldap = Net::LDAP.new(:server => 'test.mocked.com', :port => 636,
-                             :instrumentation_service => @service)
+      subject do
+        Net::LDAP.new \
+          :server => "test.mocked.com", :port => 636,
+          :instrumentation_service => @service
+      end
 
+      it "should set the service object and instrument network calls" do
         @tcp_socket.should_receive(:write).and_return(bytes_written = 1)
 
         write_events = @service.subscribe "write.net_ldap_connection"
@@ -24,7 +27,7 @@ describe Net::LDAP do
         read_result = [2, ber]
         @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
-        ldap.bind.should be_true
+        subject.bind.should be_true
 
         # a write event
         payload, result = write_events.pop
