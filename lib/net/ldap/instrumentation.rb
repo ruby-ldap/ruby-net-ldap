@@ -10,6 +10,7 @@ module Net::LDAP::Instrumentation
   #
   # Returns the return value of the block.
   def instrument(event, payload = {})
+    payload = (payload || {}).dup
     if instrumentation_service
       instrumentation_service.instrument(event, payload) do |payload|
         payload[:result] = yield(payload) if block_given?
