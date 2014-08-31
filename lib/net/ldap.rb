@@ -577,18 +577,21 @@ class Net::LDAP
     # all generate auth failures if the bind was unsuccessful.
     raise Net::LDAP::LdapError, "Open already in progress" if @open_connection
 
-    begin
-      @open_connection =
-        Net::LDAP::Connection.new \
-          :host                    => @host,
-          :port                    => @port,
-          :encryption              => @encryption,
-          :instrumentation_service => @instrumentation_service
-      @open_connection.bind(@auth)
-      yield self
-    ensure
-      @open_connection.close if @open_connection
-      @open_connection = nil
+    instrument "open.net_ldap" do |payload|
+      begin
+        @open_connection =
+          Net::LDAP::Connection.new \
+            :host                    => @host,
+            :port                    => @port,
+            :encryption              => @encryption,
+            :instrumentation_service => @instrumentation_service
+        payload[:connection] = @open_connection
+        payload[:bind]       = @open_connection.bind(@auth)
+        yield self
+      ensure
+        @open_connection.close if @open_connection
+        @open_connection = nil
+      end
     end
   end
 
