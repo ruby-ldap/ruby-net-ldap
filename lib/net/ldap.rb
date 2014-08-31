@@ -742,22 +742,26 @@ class Net::LDAP
   # the documentation for #auth, the password parameter can be a Ruby Proc
   # instead of a String.
   def bind(auth = @auth)
-    if @open_connection
-      @result = @open_connection.bind(auth)
-    else
-      begin
-        conn = Connection.new \
-          :host                    => @host,
-          :port                    => @port,
-          :encryption              => @encryption,
-          :instrumentation_service => @instrumentation_service
-        @result = conn.bind(auth)
-      ensure
-        conn.close if conn
+    instrument "bind.net_ldap" do |payload|
+      if @open_connection
+        payload[:connection] = @open_connection
+        payload[:bind]       = @result = @open_connection.bind(auth)
+      else
+        begin
+          conn = Connection.new \
+            :host                    => @host,
+            :port                    => @port,
+            :encryption              => @encryption,
+            :instrumentation_service => @instrumentation_service
+          payload[:connection] = conn
+          payload[:bind]       = @result = conn.bind(auth)
+        ensure
+          conn.close if conn
+        end
       end
-    end
 
-    @result.success?
+      @result.success?
+    end
   end
 
   # #bind_as is for testing authentication credentials.
