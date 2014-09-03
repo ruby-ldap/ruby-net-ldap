@@ -1324,15 +1324,17 @@ class Net::LDAP::Connection #:nodoc:
   end
 
   def bind(auth)
-    meth = auth[:method]
-    if [:simple, :anonymous, :anon].include?(meth)
-      bind_simple auth
-    elsif meth == :sasl
-      bind_sasl(auth)
-    elsif meth == :gss_spnego
-      bind_gss_spnego(auth)
-    else
-      raise Net::LDAP::LdapError, "Unsupported auth method (#{meth})"
+    instrument "bind.net_ldap_connection" do |payload|
+      payload[:method] = meth = auth[:method]
+      if [:simple, :anonymous, :anon].include?(meth)
+        bind_simple auth
+      elsif meth == :sasl
+        bind_sasl(auth)
+      elsif meth == :gss_spnego
+        bind_gss_spnego(auth)
+      else
+        raise Net::LDAP::LdapError, "Unsupported auth method (#{meth})"
+      end
     end
   end
 

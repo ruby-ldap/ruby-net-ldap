@@ -175,6 +175,23 @@ describe Net::LDAP::Connection do
       result.should == read_result
     end
 
+    it "should publish a bind.net_ldap_connection event" do
+      ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
+      ber.ber_identifier = Net::LDAP::PDU::BindResult
+      bind_result = [2, ber]
+      @tcp_socket.should_receive(:read_ber).and_return(bind_result)
+
+      events = @service.subscribe "bind.net_ldap_connection"
+
+      result = subject.bind(method: :anon)
+      result.should be_success
+
+      # a read event
+      payload, result = events.pop
+      payload.should have_key(:result)
+      result.should be_success
+    end
+
     it "should publish a search.net_ldap_connection event" do
       # search data
       search_data_ber = Net::BER::BerIdentifiedArray.new([2, [
