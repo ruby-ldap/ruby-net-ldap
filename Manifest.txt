@@ -25,6 +25,7 @@ lib/net/ldap/dataset.rb
 lib/net/ldap/dn.rb
 lib/net/ldap/entry.rb
 lib/net/ldap/filter.rb
+lib/net/ldap/instrumentation.rb
 lib/net/ldap/password.rb
 lib/net/ldap/pdu.rb
 lib/net/ldap/version.rb
