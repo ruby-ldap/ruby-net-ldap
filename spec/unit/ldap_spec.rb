@@ -23,10 +23,10 @@ describe Net::LDAP do
         bind_result = flexmock(:bind_result, :success? => true)
         @connection.should_receive(:bind).with(Hash).and_return(bind_result)
 
-        subject.bind.should be_true
+        subject.bind.should == true
 
         payload, result = events.pop
-        result.should be_true
+        result.should == true
         payload[:bind].should == bind_result
       end
 
@@ -38,7 +38,7 @@ describe Net::LDAP do
                     yields(entry = Net::LDAP::Entry.new("uid=user1,ou=users,dc=example,dc=com")).
                     and_return(flexmock(:search_result, :success? => true, :result_code => 0))
 
-        subject.search(:filter => "(uid=user1)").should be_true
+        subject.search(:filter => "(uid=user1)").should_not be_nil
 
         payload, result = events.pop
         result.should == [entry]
