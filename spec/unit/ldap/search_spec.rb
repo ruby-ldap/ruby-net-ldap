@@ -23,7 +23,7 @@ describe Net::LDAP, "search method" do
   context "when :return_result => false" do
     it "should return false upon error" do
       result = @connection.search(:return_result => false)
-      result.should be_false
+      result.should == false
     end
   end
 
