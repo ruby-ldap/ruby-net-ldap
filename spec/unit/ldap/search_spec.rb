@@ -8,7 +8,8 @@ describe Net::LDAP, "search method" do
   end
 
   before(:each) do
-    @connection = Net::LDAP.new
+    @service = MockInstrumentationService.new
+    @connection = Net::LDAP.new :instrumentation_service => @service
     @connection.instance_variable_set(:@open_connection, FakeConnection.new)
   end
 
@@ -22,7 +23,7 @@ describe Net::LDAP, "search method" do
   context "when :return_result => false" do
     it "should return false upon error" do
       result = @connection.search(:return_result => false)
-      result.should be_false
+      result.should == false
     end
   end
 
@@ -30,6 +31,19 @@ describe Net::LDAP, "search method" do
     it "should return nil upon error" do
       result_set = @connection.search
       result_set.should be_nil
+    end
+  end
+
+  context "when instrumentation_service is configured" do
+    it "should publish a search.net_ldap event" do
+      events = @service.subscribe "search.net_ldap"
+
+      @connection.search :filter => "test"
+
+      payload, result = events.pop
+      payload.should have_key(:result)
+      payload.should have_key(:filter)
+      payload[:filter].should == "test"
     end
   end
 end

@@ -90,8 +90,7 @@ describe "BER encoding of" do
 					raw_string("\x04\x10" + "j1\xB4\xA1*\xA2zA\xAC\xA9`?'\xDDQ\x16")
 			end
       it "should not fail on strings that can not be converted to UTF-8" do
-        error = Encoding::UndefinedConversionError
-        lambda {"\x81".to_ber }.should_not raise_exception(error)
+        expect { "\x81".to_ber }.not_to raise_error
       end
     end
   end
@@ -120,21 +119,21 @@ describe Net::BER::BerIdentifiedString do
     context "binary data" do
       let(:data) { ["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").force_encoding("ASCII-8BIT") }
 
-      its(:valid_encoding?) { should be_true }
+      specify { subject.valid_encoding?.should == true }
       specify { subject.encoding.name.should == "ASCII-8BIT" }
     end
 
     context "ascii data in UTF-8" do
       let(:data) { "some text".force_encoding("UTF-8") }
 
-      its(:valid_encoding?) { should be_true }
+      specify { subject.valid_encoding?.should == true }
       specify { subject.encoding.name.should == "UTF-8" }
     end
 
     context "UTF-8 data in UTF-8" do
       let(:data) { ["e4b8ad"].pack("H*").force_encoding("UTF-8") }
-      
-      its(:valid_encoding?) { should be_true }
+
+      specify { subject.valid_encoding?.should == true }
       specify { subject.encoding.name.should == "UTF-8" }
     end
   end
