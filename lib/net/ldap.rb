@@ -894,9 +894,10 @@ class Net::LDAP
   # operations in order.
   #
   # Each of the operations appearing in the Array must itself be an Array
-  # with exactly three elements: an operator:: must be :add, :replace, or
-  # :delete an attribute name:: the attribute name (string or symbol) to
-  # modify a value:: either a string or an array of strings.
+  # with exactly three elements:
+  # an operator :: must be :add, :replace, or :delete
+  # an attribute name :: the attribute name (string or symbol) to modify
+  # a value :: either a string or an array of strings.
   #
   # The :add operator will, unsurprisingly, add the specified values to the
   # specified attribute. If the attribute does not already exist, :add will
@@ -939,13 +940,13 @@ class Net::LDAP
   # may not get extended information that will tell you which one failed.
   # #modify has no notion of an atomic transaction. If you specify a chain
   # of modifications in one call to #modify, and one of them fails, the
-  # preceding ones will usually not be "rolled back, " resulting in a
+  # preceding ones will usually not be "rolled back", resulting in a
   # partial update. This is a limitation of the LDAP protocol, not of
   # Net::LDAP.
   #
   # The lack of transactional atomicity in LDAP means that you're usually
   # better off using the convenience methods #add_attribute,
-  # #replace_attribute, and #delete_attribute, which are are wrappers over
+  # #replace_attribute, and #delete_attribute, which are wrappers over
   # #modify. However, certain LDAP servers may provide concurrency
   # semantics, in which the several operations contained in a single #modify
   # call are not interleaved with other modification-requests received
