@@ -13,6 +13,12 @@ class TestLdif < Test::Unit::TestCase
     assert_equal(true, ds.empty?)
   end
 
+  def test_ldif_with_version
+    io = StringIO.new("version: 1")
+    ds = Net::LDAP::Dataset.read_ldif(io)
+    assert_equal "1", ds.version
+  end
+
   def test_ldif_with_comments
     str = ["# Hello from LDIF-land", "# This is an unterminated comment"]
     io = StringIO.new(str[0] + "\r\n" + str[1])
@@ -75,5 +81,12 @@ class TestLdif < Test::Unit::TestCase
     }
     assert_equal(entries.size, ds.size)
     assert_equal(entries.sort, ds.to_ldif.grep(/^dn:\s*/) { $'.chomp })
+  end
+
+  def test_to_ldif_with_version
+    ds = Net::LDAP::Dataset.new
+    ds.version = "1"
+
+    assert_equal "version: 1", ds.to_ldif_string.chomp
   end
 end
