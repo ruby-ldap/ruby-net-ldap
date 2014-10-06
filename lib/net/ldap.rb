@@ -609,6 +609,7 @@ class Net::LDAP
   #   Net::LDAP::SearchScope_WholeSubtree. Default is WholeSubtree.)
   # * :size (an integer indicating the maximum number of search entries to
   #   return. Default is zero, which signifies no limit.)
+  # * :time (an integer restricting the maximum time in seconds allowed for a search RFC 4511 4.5.1.5)
   # * :deref (one of: Net::LDAP::DerefAliases_Never, Net::LDAP::DerefAliases_Search,
   #   Net::LDAP::DerefAliases_Find, Net::LDAP::DerefAliases_Always. Default is Never.)
   #
@@ -1485,6 +1486,7 @@ class Net::LDAP::Connection #:nodoc:
     search_attributes = ((args && args[:attributes]) || []).map { |attr| attr.to_s.to_ber}
     return_referrals = args && args[:return_referrals] == true
     sizelimit = (args && args[:size].to_i) || 0
+    timelimit = (args && args[:time].to_i) || 0
     raise Net::LDAP::LdapError, "invalid search-size" unless sizelimit >= 0
     paged_searches_supported = (args && args[:paged_searches_supported])
 
@@ -1548,7 +1550,7 @@ class Net::LDAP::Connection #:nodoc:
           scope.to_ber_enumerated,
           deref.to_ber_enumerated,
           query_limit.to_ber, # size limit
-          0.to_ber,
+          timelimit.to_ber,
           attributes_only.to_ber,
           search_filter.to_ber,
           search_attributes.to_ber_sequence
