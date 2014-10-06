@@ -141,10 +141,10 @@ class Net::LDAP::Connection #:nodoc:
   end
   private :write
 
-  # Internal: Convert `request` and `controls` to a BER data packet with the
-  # next message id and call `#write` on it.
+  # Internal: Convert BER formatted `request` and `controls` to a BER data
+  # packet with the next message id (`#next_msgid`) and call `#write` on it.
   def write_request(request, controls = nil)
-    write([next_msgid, request, controls].compact.to_ber_sequence)
+    write([next_msgid.to_ber, request, controls].compact.to_ber_sequence)
   end
 
   def next_msgid
