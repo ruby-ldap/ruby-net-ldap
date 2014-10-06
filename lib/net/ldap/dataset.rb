@@ -4,11 +4,13 @@
 # to and from LDIF strings and Net::LDAP::Entry objects.
 class Net::LDAP::Dataset < Hash
   ##
-  # Dataset object comments.
-  attr_reader :comments
+  # Dataset object version, comments.
+  attr_accessor :version
+  attr_reader   :comments
 
   def initialize(*args, &block) # :nodoc:
     super
+    @version  = nil
     @comments = []
   end
 
@@ -17,6 +19,12 @@ class Net::LDAP::Dataset < Hash
   # entries.
   def to_ldif
     ary = []
+
+    if version
+      ary << "version: #{version}"
+      ary << ""
+    end
+
     ary += @comments unless @comments.empty?
     keys.sort.each do |dn|
       ary << "dn: #{dn}"
@@ -125,6 +133,9 @@ class Net::LDAP::Dataset < Hash
           if line =~ /^#/
             ds.comments << line
             yield :comment, line if block_given?
+          elsif line =~ /^version:[\s]*([0-9]+)$/i
+            ds.version = $1
+            yield :version, line if block_given?
           elsif line =~ /^dn:[\s]*/i
             dn = $'
             ds[dn] = Hash.new { |k,v| k[v] = [] }
