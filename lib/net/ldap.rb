@@ -609,7 +609,7 @@ class Net::LDAP
   #   Net::LDAP::SearchScope_WholeSubtree. Default is WholeSubtree.)
   # * :size (an integer indicating the maximum number of search entries to
   #   return. Default is zero, which signifies no limit.)
-  # * :time (an integer restricting the maximum time in seconds allowed for a search RFC 4511 4.5.1.5)
+  # * :time (an integer restricting the maximum time in seconds allowed for a search. Default is zero, no time limit RFC 4511 4.5.1.5)
   # * :deref (one of: Net::LDAP::DerefAliases_Never, Net::LDAP::DerefAliases_Search,
   #   Net::LDAP::DerefAliases_Find, Net::LDAP::DerefAliases_Always. Default is Never.)
   #
