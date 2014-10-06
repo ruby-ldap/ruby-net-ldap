@@ -146,6 +146,7 @@ class Net::LDAP::Connection #:nodoc:
   def write_request(request, controls = nil)
     write([next_msgid.to_ber, request, controls].compact.to_ber_sequence)
   end
+  private :write_request
 
   def next_msgid
     @msgid ||= 0
