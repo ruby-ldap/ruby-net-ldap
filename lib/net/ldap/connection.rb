@@ -10,7 +10,7 @@ class Net::LDAP::Connection #:nodoc:
     @instrumentation_service = server[:instrumentation_service]
 
     begin
-      @conn = TCPSocket.new(server[:host], server[:port])
+      @conn = server[:socket] || TCPSocket.new(server[:host], server[:port])
     rescue SocketError
       raise Net::LDAP::LdapError, "No such address or other socket error."
     rescue Errno::ECONNREFUSED
