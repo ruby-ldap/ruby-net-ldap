@@ -1529,6 +1529,7 @@ class Net::LDAP::Connection #:nodoc:
                :base       => search_base,
                :scope      => scope,
                :limit      => sizelimit,
+               :timelimit  => timelimit,
                :sort       => sort_control,
                :referrals  => return_referrals,
                :deref      => deref,
