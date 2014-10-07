@@ -22,26 +22,26 @@ class TestLDAP < Test::Unit::TestCase
     assert_equal(expected, result)
   end
 
-  def test_write_request
+  def test_write
     mock = Minitest::Mock.new
     mock.expect(:write, true, [[1.to_ber, "request"].to_ber_sequence])
     conn = Net::LDAP::Connection.new(:socket => mock)
-    conn.send(:write_request, "request")
+    conn.send(:write, "request")
   end
 
-  def test_write_request_with_controls
+  def test_write_with_controls
     mock = Minitest::Mock.new
     mock.expect(:write, true, [[1.to_ber, "request", "controls"].to_ber_sequence])
     conn = Net::LDAP::Connection.new(:socket => mock)
-    conn.send(:write_request, "request", "controls")
+    conn.send(:write, "request", "controls")
   end
 
-  def test_write_request_increments_msgid
+  def test_write_increments_msgid
     mock = Minitest::Mock.new
     mock.expect(:write, true, [[1.to_ber, "request1"].to_ber_sequence])
     mock.expect(:write, true, [[2.to_ber, "request2"].to_ber_sequence])
     conn = Net::LDAP::Connection.new(:socket => mock)
-    conn.send(:write_request, "request1")
-    conn.send(:write_request, "request2")
+    conn.send(:write, "request1")
+    conn.send(:write, "request2")
   end
 end

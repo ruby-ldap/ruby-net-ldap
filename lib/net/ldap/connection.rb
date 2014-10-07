@@ -86,7 +86,7 @@ class Net::LDAP::Connection #:nodoc:
       # go here.
     when :start_tls
       request = [Net::LDAP::StartTlsOid.to_ber_contextspecific(0)].to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
-      write_request(request)
+      write(request)
       be = read
       raise Net::LDAP::LdapError, "no start_tls result" if be.nil?
       pdu = Net::LDAP::PDU.new(be)
@@ -126,25 +126,21 @@ class Net::LDAP::Connection #:nodoc:
   end
   private :read
 
-  # Internal: Writes the given packet to the configured connection.
+  # Internal: Write a BER formatted packet with the next message id to the
+  # configured connection.
   #
-  # - packet: the BER data packet to write on the socket.
+  # - request: required BER formatted request
+  # - controls: optional BER formatted controls
   #
   # Returns the return value from writing to the connection, which in some
   # cases is the Integer number of bytes written to the socket.
-  def write(packet)
+  def write(request, controls = nil)
     instrument "write.net_ldap_connection" do |payload|
+      packet = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
       payload[:content_length] = @conn.write(packet)
     end
   end
   private :write
-
-  # Internal: Convert BER formatted `request` and `controls` to a BER data
-  # packet with the next message id (`#next_msgid`) and call `#write` on it.
-  def write_request(request, controls = nil)
-    write([next_msgid.to_ber, request, controls].compact.to_ber_sequence)
-  end
-  private :write_request
 
   def next_msgid
     @msgid ||= 0
@@ -181,7 +177,7 @@ class Net::LDAP::Connection #:nodoc:
 
     request = [LdapVersion.to_ber, user.to_ber,
       psw.to_ber_contextspecific(0)].to_ber_appsequence(0)
-    write_request(request)
+    write(request)
 
     (be = read and pdu = Net::LDAP::PDU.new(be)) or raise Net::LDAP::LdapError, "no bind result"
 
@@ -218,7 +214,7 @@ class Net::LDAP::Connection #:nodoc:
     loop {
       sasl = [mech.to_ber, cred.to_ber].to_ber_contextspecific(3)
       request = [LdapVersion.to_ber, "".to_ber, sasl].to_ber_appsequence(0)
-      write_request(request)
+      write(request)
 
       (be = read and pdu = Net::LDAP::PDU.new(be)) or raise Net::LDAP::LdapError, "no bind result"
       return pdu unless pdu.result_code == 14 # saslBindInProgress
@@ -392,7 +388,7 @@ class Net::LDAP::Connection #:nodoc:
         controls << sort_control if sort_control
         controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
 
-        write_request(request, controls)
+        write(request, controls)
 
         result_pdu = nil
         controls = []
@@ -500,7 +496,7 @@ class Net::LDAP::Connection #:nodoc:
     ops = self.class.modify_ops args[:operations]
     request = [ modify_dn.to_ber,
       ops.to_ber_sequence ].to_ber_appsequence(6)
-    write_request(request)
+    write(request)
 
     (be = read) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == Net::LDAP::PDU::ModifyResponse) or raise Net::LDAP::LdapError, "response missing or invalid"
 
@@ -522,7 +518,7 @@ class Net::LDAP::Connection #:nodoc:
     }
 
     request = [add_dn.to_ber, add_attrs.to_ber_sequence].to_ber_appsequence(8)
-    write_request(request)
+    write(request)
 
     (be = read) &&
       (pdu = Net::LDAP::PDU.new(be)) &&
@@ -544,7 +540,7 @@ class Net::LDAP::Connection #:nodoc:
     request = [old_dn.to_ber, new_rdn.to_ber, delete_attrs.to_ber]
     request << new_superior.to_ber_contextspecific(0) unless new_superior == nil
 
-    write_request(request.to_ber_appsequence(12))
+    write(request.to_ber_appsequence(12))
 
     (be = read) &&
     (pdu = Net::LDAP::PDU.new( be )) && (pdu.app_tag == Net::LDAP::PDU::ModifyRDNResponse) or
@@ -560,7 +556,7 @@ class Net::LDAP::Connection #:nodoc:
     dn = args[:dn] or raise "Unable to delete empty DN"
     controls = args.include?(:control_codes) ? args[:control_codes].to_ber_control : nil #use nil so we can compact later
     request = dn.to_s.to_ber_application_string(10)
-    write_request(request, controls)
+    write(request, controls)
 
     (be = read) && (pdu = Net::LDAP::PDU.new(be)) && (pdu.app_tag == Net::LDAP::PDU::DeleteResponse) or raise Net::LDAP::LdapError, "response missing or invalid"
 
