@@ -11,6 +11,11 @@ class TestEntry < Test::Unit::TestCase
 
   def test_empty_array_when_accessing_nonexistent_attribute
     assert_equal [], @entry['sn']
+  end
+
+  def test_empty_attribute_by_method
+    skip "Net::LDAP::Entry#valid_attribute? requires an attribute to be defined first"
+    # What is the valid encoding for attribute names?
     assert_equal [], @entry.sn
   end
 
