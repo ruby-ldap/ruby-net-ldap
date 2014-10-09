@@ -13,12 +13,6 @@ class TestEntry < Test::Unit::TestCase
     assert_equal [], @entry['sn']
   end
 
-  def test_empty_attribute_by_method
-    skip "Net::LDAP::Entry#valid_attribute? requires an attribute to be defined first"
-    # What is the valid encoding for attribute names?
-    assert_equal [], @entry.sn
-  end
-
   def test_attribute_assignment
     @entry['sn'] = 'Jensen'
     assert_equal ['Jensen'], @entry['sn']
