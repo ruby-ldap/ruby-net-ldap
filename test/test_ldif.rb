@@ -47,6 +47,18 @@ class TestLdif < Test::Unit::TestCase
     assert_equal(true, ds.has_key?("key"))
   end
 
+  def test_ldif_with_base64_dn
+    str = "dn:: Q049QmFzZTY0IGRuIHRlc3QsT1U9VGVzdCxPVT1Vbml0cyxEQz1leGFtcGxlLERDPWNvbQ==\r\n\r\n"
+    ds = Net::LDAP::Dataset::read_ldif(StringIO.new(str))
+    assert_equal(true, ds.has_key?("CN=Base64 dn test,OU=Test,OU=Units,DC=example,DC=com"))
+  end
+
+  def test_ldif_with_base64_dn_and_continuation_lines
+    str = "dn:: Q049QmFzZTY0IGRuIHRlc3Qgd2l0aCBjb250aW51YXRpb24gbGluZSxPVT1UZXN0LE9VPVVua\r\n XRzLERDPWV4YW1wbGUsREM9Y29t\r\n\r\n"
+    ds = Net::LDAP::Dataset::read_ldif(StringIO.new(str))
+    assert_equal(true, ds.has_key?("CN=Base64 dn test with continuation line,OU=Test,OU=Units,DC=example,DC=com"))
+  end
+
   # TODO, INADEQUATE. We need some more tests
   # to verify the content.
   def test_ldif
