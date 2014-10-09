@@ -9,10 +9,10 @@ describe String, "when extended with BER core extensions" do
         @str = raw_string("0$\002\001\001`\037\002\001\003\004\rAdministrator\200\vad_is_bogus UNCONSUMED")
         @result = str.read_ber!(Net::LDAP::AsnSyntax)
       end
-      
+
       it "should correctly parse the ber message" do
         result.should == [1, [3, "Administrator", "ad_is_bogus"]]
-      end 
+      end
       it "should leave unconsumed part of message in place" do
         str.should == " UNCONSUMED"
       end
@@ -21,9 +21,9 @@ describe String, "when extended with BER core extensions" do
         attr_reader :initial_value
         before(:each) do
           stub_exception_class = Class.new(StandardError)
-          
+
           @initial_value = raw_string("0$\002\001\001`\037\002\001\003\004\rAdministrator\200\vad_is_bogus")
-          @str = initial_value.dup 
+          @str = initial_value.dup
 
           # Defines a string
           io = StringIO.new(initial_value)
@@ -32,16 +32,16 @@ describe String, "when extended with BER core extensions" do
             raise stub_exception_class
           end
           flexmock(StringIO).should_receive(:new).and_return(io)
-          
+
           begin
-            str.read_ber!(Net::LDAP::AsnSyntax)            
+            str.read_ber!(Net::LDAP::AsnSyntax)
           rescue stub_exception_class
             # EMPTY ON PURPOSE
           else
             raise "The stub code should raise an exception!"
           end
         end
-        
+
         it "should not modify string" do
           str.should == initial_value
         end
