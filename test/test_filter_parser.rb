@@ -1,26 +1,16 @@
 # encoding: utf-8
-require 'spec_helper'
+require 'common'
 
-describe Net::LDAP::Filter::FilterParser do
+class TestFilterParser < Test::Unit::TestCase
+  def test_ascii
+    assert_kind_of Net::LDAP::Filter, Net::LDAP::Filter::FilterParser.parse("(cn=name)")
+  end
 
-  describe "#parse" do
-    context "Given ASCIIs as filter string" do
-      let(:filter_string) { "(cn=name)" }
-      specify "should generate filter object" do
-        expect(Net::LDAP::Filter::FilterParser.parse(filter_string)).to be_a Net::LDAP::Filter
-      end
-    end
-    context "Given string including multibyte chars as filter string" do
-      let(:filter_string) { "(cn=名前)" }
-      specify "should generate filter object" do
-        expect(Net::LDAP::Filter::FilterParser.parse(filter_string)).to be_a Net::LDAP::Filter
-      end
-    end
-    context "Given string including colons ':'" do
-      let(:filter_string) { "(ismemberof=cn=edu:berkeley:app:calmessages:deans,ou=campus groups,dc=berkeley,dc=edu)" }
-      specify "should generate filter object" do
-        expect(Net::LDAP::Filter::FilterParser.parse(filter_string)).to be_a Net::LDAP::Filter
-      end
-    end
+  def test_multibyte_characters
+    assert_kind_of Net::LDAP::Filter, Net::LDAP::Filter::FilterParser.parse("(cn=名前)")
+  end
+
+  def test_colons
+    assert_kind_of Net::LDAP::Filter, Net::LDAP::Filter::FilterParser.parse("(ismemberof=cn=edu:berkeley:app:calmessages:deans,ou=campus groups,dc=berkeley,dc=edu)")
   end
 end
