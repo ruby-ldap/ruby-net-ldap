@@ -1,6 +1,6 @@
 require 'common'
 
-class TestLDAP < Test::Unit::TestCase
+class TestLDAPConnection < Test::Unit::TestCase
   def test_modify_ops_delete
     args = { :operations => [ [ :delete, "mail" ] ] }
     result = Net::LDAP::Connection.modify_ops(args[:operations])
