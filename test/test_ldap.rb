@@ -6,7 +6,7 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
     flexmock(Net::LDAP::Connection).should_receive(:new).and_return(@connection)
 
     @service = MockInstrumentationService.new
-    @ldap = Net::LDAP.new \
+    @subject = Net::LDAP.new \
       :server => "test.mocked.com", :port => 636,
       :force_no_page => true, # so server capabilities are not queried
       :instrumentation_service => @service
@@ -16,9 +16,9 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
     events = @service.subscribe "bind.net_ldap"
 
     bind_result = flexmock(:bind_result, :success? => true)
-    @connection.should_receive(:bind).with(Hash).and_return(bind_result)
+    flexmock(@connection).should_receive(:bind).with(Hash).and_return(bind_result)
 
-    assert @ldap.bind
+    assert @subject.bind
 
     payload, result = events.pop
     assert result
@@ -28,12 +28,12 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
   def test_instrument_search
     events = @service.subscribe "search.net_ldap"
 
-    @connection.should_receive(:bind).and_return(flexmock(:bind_result, :result_code => 0))
-    @connection.should_receive(:search).with(Hash, Proc).
+    flexmock(@connection).should_receive(:bind).and_return(flexmock(:bind_result, :result_code => 0))
+    flexmock(@connection).should_receive(:search).with(Hash, Proc).
                 yields(entry = Net::LDAP::Entry.new("uid=user1,ou=users,dc=example,dc=com")).
                 and_return(flexmock(:search_result, :success? => true, :result_code => 0))
 
-    refute_nil @ldap.search(:filter => "(uid=user1)")
+    refute_nil @subject.search(:filter => "(uid=user1)")
 
     payload, result = events.pop
     assert_equal [entry], result
