@@ -7,4 +7,4 @@ rvm:
 matrix:
   allow_failures:
     - rvm: jruby-19mode
-script: bundle exec rake spec
+script: bundle exec rake
