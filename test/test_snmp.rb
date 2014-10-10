@@ -1,6 +1,6 @@
 # $Id: testsnmp.rb 231 2006-12-21 15:09:29Z blackhedd $
 
-require 'common'
+require 'test_helper'
 require 'net/snmp'
 
 class TestSnmp < Test::Unit::TestCase

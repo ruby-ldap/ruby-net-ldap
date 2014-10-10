@@ -1,5 +1,5 @@
 # -*- ruby encoding: utf-8 -*-
-require 'common'
+require 'test_helper'
 
 class TestSearch < Test::Unit::TestCase
   class FakeConnection

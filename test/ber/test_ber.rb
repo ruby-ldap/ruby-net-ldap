@@ -1,4 +1,4 @@
-require 'common'
+require 'test_helper'
 
 class TestBEREncoding < Test::Unit::TestCase
   def test_empty_array

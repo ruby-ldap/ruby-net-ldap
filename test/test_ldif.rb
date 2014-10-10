@@ -1,6 +1,6 @@
 # $Id: testldif.rb 61 2006-04-18 20:55:55Z blackhedd $
 
-require 'common'
+require 'test_helper'
 
 require 'digest/sha1'
 require 'base64'

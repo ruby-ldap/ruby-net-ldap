@@ -1,5 +1,5 @@
 # encoding: utf-8
-require 'common'
+require 'test_helper'
 
 class TestFilterParser < Test::Unit::TestCase
   def test_ascii

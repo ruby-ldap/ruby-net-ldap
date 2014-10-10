@@ -1,4 +1,4 @@
-require 'common'
+require 'test_helper'
 
 class TestFilter < Test::Unit::TestCase
   Filter = Net::LDAP::Filter

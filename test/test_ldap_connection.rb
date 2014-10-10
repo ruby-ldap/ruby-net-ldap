@@ -1,4 +1,4 @@
-require 'common'
+require 'test_helper'
 
 class TestLDAPConnection < Test::Unit::TestCase
   def test_unresponsive_host

@@ -1,4 +1,4 @@
-require 'common'
+require 'test_helper'
 
 class TestBERArrayExtension < Test::Unit::TestCase
   def test_control_code_array

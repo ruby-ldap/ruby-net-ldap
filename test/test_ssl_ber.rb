@@ -1,4 +1,4 @@
-require 'common'
+require 'test_helper'
 require 'timeout'
 
 class TestSSLBER < Test::Unit::TestCase

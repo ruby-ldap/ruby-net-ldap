@@ -1,4 +1,4 @@
-require 'common'
+require 'test_helper'
 require 'net/ldap/dn'
 
 class TestDN < Test::Unit::TestCase
