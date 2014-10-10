@@ -1,24 +1,22 @@
-require 'spec_helper'
-require 'metaid'
+require 'common'
 
-describe Array, "when extended with BER core extensions" do
-
-  it "should correctly convert a control code array" do
+class TestBERArrayExtension < Test::Unit::TestCase
+  def test_control_code_array
     control_codes = []
     control_codes << ['1.2.3'.to_ber, true.to_ber].to_ber_sequence
     control_codes << ['1.7.9'.to_ber, false.to_ber].to_ber_sequence
     control_codes = control_codes.to_ber_sequence
     res = [['1.2.3', true],['1.7.9',false]].to_ber_control
-    res.should eq(control_codes)
+    assert_equal control_codes, res
   end
 
-  it "should wrap the array in another array if a nested array is not passed" do
+  def test_wrap_array_if_not_nested
     result1 = ['1.2.3', true].to_ber_control
     result2 = [['1.2.3', true]].to_ber_control
-    result1.should eq(result2)
+    assert_equal result2, result1
   end
 
-  it "should return an empty string if an empty array is passed" do
-    [].to_ber_control.should be_empty
+  def test_empty_string_if_empty_array
+    assert_equal "", [].to_ber_control
   end
 end
