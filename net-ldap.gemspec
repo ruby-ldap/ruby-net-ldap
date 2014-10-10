@@ -40,14 +40,12 @@ the most recent LDAP RFCs (4510-4519, plutions of 4520-4532).}
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_development_dependency(%q<hoe-git>, ["~> 1"])
       s.add_development_dependency(%q<hoe-gemspec>, ["~> 1"])
-      s.add_development_dependency(%q<metaid>, ["~> 1"])
       s.add_development_dependency(%q<flexmock>, [">= 1.3.0"])
       s.add_development_dependency(%q<rspec>, ["~> 2.0"])
       s.add_development_dependency(%q<hoe>, [">= 2.9.1"])
     else
       s.add_dependency(%q<hoe-git>, ["~> 1"])
       s.add_dependency(%q<hoe-gemspec>, ["~> 1"])
-      s.add_dependency(%q<metaid>, ["~> 1"])
       s.add_dependency(%q<flexmock>, [">= 1.3.0"])
       s.add_dependency(%q<rspec>, ["~> 2.0"])
       s.add_dependency(%q<hoe>, [">= 2.9.1"])
@@ -55,7 +53,6 @@ the most recent LDAP RFCs (4510-4519, plutions of 4520-4532).}
   else
     s.add_dependency(%q<hoe-git>, ["~> 1"])
     s.add_dependency(%q<hoe-gemspec>, ["~> 1"])
-    s.add_dependency(%q<metaid>, ["~> 1"])
     s.add_dependency(%q<flexmock>, [">= 1.3.0"])
     s.add_dependency(%q<rspec>, ["~> 2.0"])
     s.add_dependency(%q<hoe>, [">= 2.9.1"])
