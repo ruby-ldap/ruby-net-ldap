@@ -40,3 +40,26 @@ class TestEntry < Test::Unit::TestCase
     assert_equal ['Jensen'], @entry['SN']
   end
 end
+
+class TestEntryLDIF < Test::Unit::TestCase
+  def setup
+    @entry = Net::LDAP::Entry.from_single_ldif_string(
+      %Q{dn: something
+foo: foo
+barAttribute: bar
+      })
+  end
+
+  def test_attribute
+    assert_equal ['foo'], @entry.foo
+    assert_equal ['foo'], @entry.Foo
+  end
+
+  def test_modify_attribute
+    @entry.foo = 'bar'
+    assert_equal ['bar'], @entry.foo
+
+    @entry.fOo= 'baz'
+    assert_equal ['baz'], @entry.foo
+  end
+end
