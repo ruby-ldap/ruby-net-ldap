@@ -32,7 +32,6 @@ lib/net/ldap/version.rb
 lib/net/snmp.rb
 net-ldap.gemspec
 spec/integration/ssl_ber_spec.rb
-spec/spec.opts
 spec/spec_helper.rb
 spec/unit/ber/ber_spec.rb
 spec/unit/ber/core_ext/array_spec.rb
