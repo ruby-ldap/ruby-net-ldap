@@ -7,7 +7,7 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
 
     @service = MockInstrumentationService.new
     @subject = Net::LDAP.new \
-      :server => "test.mocked.com", :port => 636,
+      :host => "test.mocked.com", :port => 636,
       :force_no_page => true, # so server capabilities are not queried
       :instrumentation_service => @service
   end
