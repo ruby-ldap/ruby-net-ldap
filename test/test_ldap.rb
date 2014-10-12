@@ -1,4 +1,4 @@
-require 'common'
+require 'test_helper'
 
 class TestLDAPInstrumentation < Test::Unit::TestCase
   def setup
