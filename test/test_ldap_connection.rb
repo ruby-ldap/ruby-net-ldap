@@ -3,14 +3,14 @@ require 'test_helper'
 class TestLDAPConnection < Test::Unit::TestCase
   def test_unresponsive_host
     assert_raise Net::LDAP::LdapError do
-      Net::LDAP::Connection.new(:server => 'test.mocked.com', :port => 636)
+      Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
     end
   end
 
   def test_blocked_port
     flexmock(TCPSocket).should_receive(:new).and_raise(SocketError)
     assert_raise Net::LDAP::LdapError do
-      Net::LDAP::Connection.new(:server => 'test.mocked.com', :port => 636)
+      Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
     end
   end
 
@@ -18,7 +18,7 @@ class TestLDAPConnection < Test::Unit::TestCase
     error = Class.new(StandardError)
     flexmock(TCPSocket).should_receive(:new).and_raise(error)
     assert_raise error do
-      Net::LDAP::Connection.new(:server => 'test.mocked.com', :port => 636)
+      Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
     end
   end
 
@@ -50,7 +50,7 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
     @tcp_socket = flexmock(:connection)
     @tcp_socket.should_receive(:write)
     flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
-    @connection = Net::LDAP::Connection.new(:server => 'test.mocked.com', :port => 636)
+    @connection = Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
   end
 
   def test_error_failed_operation
@@ -82,7 +82,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
 
     @service = MockInstrumentationService.new
     @connection = Net::LDAP::Connection.new \
-      :server => 'test.mocked.com',
+      :host => 'test.mocked.com',
       :port => 636,
       :instrumentation_service => @service
   end
