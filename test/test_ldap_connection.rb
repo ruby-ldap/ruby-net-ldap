@@ -74,7 +74,7 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
   end
 end
 
-class TestLDAPInstrumentation < Test::Unit::TestCase
+class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def setup
     @tcp_socket = flexmock(:connection)
     @tcp_socket.should_receive(:write)
