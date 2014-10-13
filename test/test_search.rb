@@ -1,7 +1,7 @@
 # -*- ruby encoding: utf-8 -*-
 require_relative '../test_helper'
 
-class TestSearch < Test::Unit::TestCase
+class TestSearch < Minitest::Test
   class FakeConnection
     def search(args)
       OpenStruct.new(:result_code => 1, :message => "error", :success? => false)

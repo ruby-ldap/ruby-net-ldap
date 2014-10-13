@@ -3,7 +3,7 @@
 require_relative '../test_helper'
 require 'net/snmp'
 
-class TestSnmp < Test::Unit::TestCase
+class TestSnmp < Minitest::Test
   def self.raw_string(s)
     # Conveniently, String#b only needs to be called when it exists
     s.respond_to?(:b) ? s.b : s

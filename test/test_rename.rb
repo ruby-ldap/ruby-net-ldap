@@ -3,7 +3,7 @@ require_relative '../test_helper'
 # Commented out since it assumes you have a live LDAP server somewhere. This
 # will be migrated to the integration specs, as soon as they are ready.
 =begin
-class TestRename < Test::Unit::TestCase
+class TestRename < Minitest::Test
   HOST= '10.10.10.71'
   PORT = 389
   BASE = "o=test"

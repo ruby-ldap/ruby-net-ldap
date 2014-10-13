@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class TestEntry < Test::Unit::TestCase
+class TestEntry < Minitest::Test
   def setup
     @entry = Net::LDAP::Entry.new 'cn=Barbara,o=corp'
   end
@@ -41,7 +41,7 @@ class TestEntry < Test::Unit::TestCase
   end
 end
 
-class TestEntryLDIF < Test::Unit::TestCase
+class TestEntryLDIF < Minitest::Test
   def setup
     @entry = Net::LDAP::Entry.from_single_ldif_string(
       %Q{dn: something
