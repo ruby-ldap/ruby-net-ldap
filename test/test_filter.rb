@@ -1,4 +1,4 @@
-require 'test_helper'
+require_relative '../test_helper'
 
 class TestFilter < Test::Unit::TestCase
   Filter = Net::LDAP::Filter
