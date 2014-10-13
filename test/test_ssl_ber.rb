@@ -19,6 +19,9 @@ class TestSSLBER < Test::Unit::TestCase
     # The production code operates on sockets, which do need #connect called
     # on them to work. Pipes are more robust for this test, so we'll skip
     # the #connect call since it fails.
+    #
+    # TODO: Replace test with real socket
+    # https://github.com/ruby-ldap/ruby-net-ldap/pull/121#discussion_r18746386
     flexmock(OpenSSL::SSL::SSLSocket).
       new_instances.should_receive(:connect => nil)
 
