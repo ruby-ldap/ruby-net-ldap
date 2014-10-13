@@ -5,7 +5,7 @@ require_relative '../test_helper'
 require 'digest/sha1'
 require 'base64'
 
-class TestLdif < Minitest::Test
+class TestLdif < Test::Unit::TestCase
   TestLdifFilename = "#{File.dirname(__FILE__)}/testdata.ldif"
 
   def test_empty_ldif

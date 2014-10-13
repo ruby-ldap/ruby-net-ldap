@@ -1,6 +1,6 @@
 require_relative '../../test_helper'
 
-class TestBERArrayExtension < Minitest::Test
+class TestBERArrayExtension < Test::Unit::TestCase
   def test_control_code_array
     control_codes = []
     control_codes << ['1.2.3'.to_ber, true.to_ber].to_ber_sequence

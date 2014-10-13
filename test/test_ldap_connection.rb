@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class TestLDAPConnection < Minitest::Test
+class TestLDAPConnection < Test::Unit::TestCase
   def test_unresponsive_host
     assert_raise Net::LDAP::LdapError do
       Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
@@ -45,7 +45,7 @@ class TestLDAPConnection < Minitest::Test
 end
 
 
-class TestLDAPConnectionErrors < Minitest::Test
+class TestLDAPConnectionErrors < Test::Unit::TestCase
   def setup
     @tcp_socket = flexmock(:connection)
     @tcp_socket.should_receive(:write)
@@ -74,7 +74,7 @@ class TestLDAPConnectionErrors < Minitest::Test
   end
 end
 
-class TestLDAPConnectionInstrumentation < Minitest::Test
+class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def setup
     @tcp_socket = flexmock(:connection)
     @tcp_socket.should_receive(:write)

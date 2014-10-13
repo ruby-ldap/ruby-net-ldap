@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class TestBEREncoding < Minitest::Test
+class TestBEREncoding < Test::Unit::TestCase
   def test_empty_array
     assert_equal [], [].to_ber.read_ber
   end
@@ -84,7 +84,7 @@ class TestBEREncoding < Minitest::Test
   end
 end
 
-class TestBERDecoding < Minitest::Test
+class TestBERDecoding < Test::Unit::TestCase
   def test_decode_number
     assert_equal 6, "\002\001\006".read_ber(Net::LDAP::AsnSyntax)
   end
@@ -98,7 +98,7 @@ class TestBERDecoding < Minitest::Test
   end
 end
 
-class TestBERIdentifiedString < Minitest::Test
+class TestBERIdentifiedString < Test::Unit::TestCase
   def test_binary_data
     data = ["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").force_encoding("ASCII-8BIT")
     bis = Net::BER::BerIdentifiedString.new(data)

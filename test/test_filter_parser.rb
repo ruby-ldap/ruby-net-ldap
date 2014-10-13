@@ -1,7 +1,7 @@
 # encoding: utf-8
 require_relative '../test_helper'
 
-class TestFilterParser < Minitest::Test
+class TestFilterParser < Test::Unit::TestCase
   def test_ascii
     assert_kind_of Net::LDAP::Filter, Net::LDAP::Filter::FilterParser.parse("(cn=name)")
   end

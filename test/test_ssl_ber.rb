@@ -1,7 +1,7 @@
 require_relative '../test_helper'
 require 'timeout'
 
-class TestSSLBER < Minitest::Test
+class TestSSLBER < Test::Unit::TestCase
   # Transmits str to @to and reads it back from @from.
   #
   def transmit(str)

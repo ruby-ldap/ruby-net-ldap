@@ -2,7 +2,7 @@
 
 require_relative '../test_helper'
 
-class TestPassword < Minitest::Test
+class TestPassword < Test::Unit::TestCase
 
   def test_psw
     assert_equal(

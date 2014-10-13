@@ -1,7 +1,7 @@
 require_relative '../test_helper'
 require 'net/ldap/dn'
 
-class TestDN < Minitest::Test
+class TestDN < Test::Unit::TestCase
   def test_escape
     assert_equal '\\,\\+\\"\\\\\\<\\>\\;', Net::LDAP::DN.escape(',+"\\<>;')
   end

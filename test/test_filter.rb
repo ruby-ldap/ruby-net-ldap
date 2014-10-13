@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class TestFilter < Minitest::Test
+class TestFilter < Test::Unit::TestCase
   Filter = Net::LDAP::Filter
 
   def test_bug_7534_rfc2254
@@ -123,7 +123,7 @@ end
 
 # tests ported over from rspec. Not sure if these overlap with the above
 # https://github.com/ruby-ldap/ruby-net-ldap/pull/121
-class TestFilterRSpec < Minitest::Test
+class TestFilterRSpec < Test::Unit::TestCase
   def test_ex_convert
     assert_equal '(foo:=bar)', Net::LDAP::Filter.ex('foo', 'bar').to_s
   end

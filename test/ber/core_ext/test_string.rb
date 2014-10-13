@@ -1,6 +1,6 @@
 require_relative '../../test_helper'
 
-class TestBERStringExtension < Minitest::Test
+class TestBERStringExtension < Test::Unit::TestCase
   def setup
     @bind_request = "0$\002\001\001`\037\002\001\003\004\rAdministrator\200\vad_is_bogus UNCONSUMED".b
     @result = @bind_request.read_ber!(Net::LDAP::AsnSyntax)
