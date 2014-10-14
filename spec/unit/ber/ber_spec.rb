@@ -4,23 +4,23 @@ require 'net/ber'
 require 'net/ldap'
 
 describe "BER encoding of" do
-  
-  RSpec::Matchers.define :properly_encode_and_decode do 
+
+  RSpec::Matchers.define :properly_encode_and_decode do
     match do |given|
       given.to_ber.read_ber.should == given
     end
   end
-   
+
   context "arrays" do
     it "should properly encode/decode []" do
       [].should properly_encode_and_decode
-    end 
+    end
     it "should properly encode/decode [1,2,3]" do
       ary = [1,2,3]
       encoded_ary = ary.map { |el| el.to_ber }.to_ber
-      
+
       encoded_ary.read_ber.should == ary
-    end 
+    end
   end
   context "booleans" do
     it "should encode true" do
@@ -62,17 +62,15 @@ describe "BER encoding of" do
       it "should correctly handle powers of two" do
         100.times do |p|
           n = 2 << p
-          
           n.should properly_encode_and_decode
         end
-      end 
+      end
       it "should correctly handle powers of ten" do
         100.times do |p|
           n = 5 * 10**p
-          
           n.should properly_encode_and_decode
         end
-      end 
+      end
     end
   end
   if "Ruby 1.9".respond_to?(:encoding)
@@ -84,11 +82,11 @@ describe "BER encoding of" do
       it "should properly encode strings encodable as UTF-8" do
         "teststring".encode("US-ASCII").to_ber.should == "\x04\nteststring"
       end
-			it "should properly encode binary data strings using to_ber_bin" do
-				# This is used for searching for GUIDs in Active Directory
-				["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").to_ber_bin.should == 
-					raw_string("\x04\x10" + "j1\xB4\xA1*\xA2zA\xAC\xA9`?'\xDDQ\x16")
-			end
+      it "should properly encode binary data strings using to_ber_bin" do
+        # This is used for searching for GUIDs in Active Directory
+        ["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").to_ber_bin.should ==
+          raw_string("\x04\x10" + "j1\xB4\xA1*\xA2zA\xAC\xA9`?'\xDDQ\x16")
+      end
       it "should not fail on strings that can not be converted to UTF-8" do
         expect { "\x81".to_ber }.not_to raise_error
       end
@@ -108,7 +106,7 @@ describe "BER decoding of" do
       "0$\002\001\001`\037\002\001\003\004\rAdministrator\200\vad_is_bogus".
         read_ber(Net::LDAP::AsnSyntax).should ==
           [1, [3, "Administrator", "ad_is_bogus"]]
-    end 
+    end
   end
 end
 

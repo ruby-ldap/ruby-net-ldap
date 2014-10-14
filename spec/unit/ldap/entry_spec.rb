@@ -14,12 +14,12 @@ barAttribute: bar
   describe "entry access" do
     it "should always respond to #dn" do
       entry.should respond_to(:dn)
-    end 
-    
+    end
+
     context "<- #foo" do
       it "should respond_to?" do
         entry.should respond_to(:foo)
-      end 
+      end
       it "should return 'foo'" do
         entry.foo.should == ['foo']
       end
@@ -27,25 +27,25 @@ barAttribute: bar
     context "<- #Foo" do
       it "should respond_to?" do
         entry.should respond_to(:Foo)
-      end 
+      end
       it "should return 'foo'" do
         entry.foo.should == ['foo']
-      end 
+      end
     end
     context "<- #foo=" do
       it "should respond_to?" do
         entry.should respond_to(:foo=)
-      end 
+      end
       it "should set 'foo'" do
         entry.foo= 'bar'
         entry.foo.should == ['bar']
-      end 
+      end
     end
     context "<- #fOo=" do
       it "should return 'foo'" do
         entry.fOo= 'bar'
         entry.fOo.should == ['bar']
-      end 
+      end
     end
   end
 end

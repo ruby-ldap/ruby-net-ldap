@@ -70,7 +70,7 @@ namespace :old do
   end
 end
 
-desc "Run a full set of integration and unit tests" 
+desc "Run a full set of integration and unit tests"
 task :cruise => [:test, :spec]
 
 # vim: syntax=ruby

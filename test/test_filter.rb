@@ -28,7 +28,7 @@ class TestFilter < Test::Unit::TestCase
     assert_equal("(uid=\\2A)", Filter.equals("uid", "*").to_s)
     assert_equal("(uid=\\28*)", Filter.begins("uid", "(").to_s)
     assert_equal("(uid=*\\29)", Filter.ends("uid", ")").to_s)
-    assert_equal("(uid=*\\5C*)", Filter.contains("uid", "\\").to_s)	
+    assert_equal("(uid=*\\5C*)", Filter.contains("uid", "\\").to_s)
   end
 
   def test_c2
