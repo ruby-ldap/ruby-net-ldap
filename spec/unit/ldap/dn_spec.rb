@@ -11,7 +11,7 @@ describe Net::LDAP::DN do
 
     it "should construct a Net::LDAP::DN" do
       dn.should be_an_instance_of(Net::LDAP::DN)
-    end 
+    end
 
     it "should escape all the required characters" do
       dn.to_s.should == 'cn=\\,\\+\\"\\\\\\<\\>\\;,ou=company'
@@ -75,6 +75,6 @@ describe Net::LDAP::DN do
   describe "<- .escape(str)" do
     it "should escape ,, +, \", \\, <, >, and ;" do
       Net::LDAP::DN.escape(',+"\\<>;').should == '\\,\\+\\"\\\\\\<\\>\\;'
-    end 
+    end
   end
 end

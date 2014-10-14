@@ -5,7 +5,7 @@ require 'net/ldap'
 
 describe "BER encoding of" do
 
-  RSpec::Matchers.define :properly_encode_and_decode do 
+  RSpec::Matchers.define :properly_encode_and_decode do
     match do |given|
       given.to_ber.read_ber.should == given
     end
@@ -64,13 +64,13 @@ describe "BER encoding of" do
           n = 2 << p
           n.should properly_encode_and_decode
         end
-      end 
+      end
       it "should correctly handle powers of ten" do
         100.times do |p|
           n = 5 * 10**p
           n.should properly_encode_and_decode
         end
-      end 
+      end
     end
   end
   if "Ruby 1.9".respond_to?(:encoding)
@@ -106,7 +106,7 @@ describe "BER decoding of" do
       "0$\002\001\001`\037\002\001\003\004\rAdministrator\200\vad_is_bogus".
         read_ber(Net::LDAP::AsnSyntax).should ==
           [1, [3, "Administrator", "ad_is_bogus"]]
-    end 
+    end
   end
 end
 
