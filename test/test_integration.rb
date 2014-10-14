@@ -3,7 +3,7 @@ require_relative 'test_helper'
 if !INTEGRATION
   puts "Skipping integration tests..."
 else
-  class TestLDAPInstrumentation < Test::Unit::TestCase
+  class TestLDAPIntegration < Test::Unit::TestCase
     def setup
       @service = MockInstrumentationService.new
       @ldap = Net::LDAP.new \
