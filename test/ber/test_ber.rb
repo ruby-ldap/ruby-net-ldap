@@ -103,7 +103,7 @@ class TestBERIdentifiedString < Test::Unit::TestCase
     data = ["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").force_encoding("ASCII-8BIT")
     bis = Net::BER::BerIdentifiedString.new(data)
 
-    assert_predicate bis, :valid_encoding?
+    assert bis.valid_encoding?, "should be a valid encoding"
     assert_equal "ASCII-8BIT", bis.encoding.name
   end
 
@@ -111,7 +111,7 @@ class TestBERIdentifiedString < Test::Unit::TestCase
     data = "some text".force_encoding("UTF-8")
     bis = Net::BER::BerIdentifiedString.new(data)
 
-    assert_predicate bis, :valid_encoding?
+    assert bis.valid_encoding?, "should be a valid encoding"
     assert_equal "UTF-8", bis.encoding.name
   end
 
@@ -119,7 +119,7 @@ class TestBERIdentifiedString < Test::Unit::TestCase
     data = ["e4b8ad"].pack("H*").force_encoding("UTF-8")
     bis = Net::BER::BerIdentifiedString.new(data)
 
-    assert_predicate bis, :valid_encoding?
+    assert bis.valid_encoding?, "should be a valid encoding"
     assert_equal "UTF-8", bis.encoding.name
   end
 end

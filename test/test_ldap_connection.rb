@@ -59,7 +59,7 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
     @tcp_socket.should_receive(:read_ber).and_return([2, ber])
 
     result = @connection.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]])
-    assert_predicate result, :failure?
+    assert result.failure?, "should be failure"
     assert_equal "The provided password value was rejected by a password validator:  The provided password did not contain enough characters from the character set 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.  The minimum number of characters from that set that must be present in user passwords is 1", result.error_message
   end
 
@@ -69,7 +69,7 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
     @tcp_socket.should_receive(:read_ber).and_return([2, ber])
 
     result = @connection.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]])
-    assert_predicate result, :success?
+    assert result.success?, "should be success"
     assert_equal "", result.error_message
   end
 end
@@ -96,7 +96,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     events = @service.subscribe "write.net_ldap_connection"
 
     result = @connection.bind(method: :anon)
-    assert_predicate result, :success?
+    assert result.success?, "should be success"
 
     # a write event
     payload, result = events.pop
@@ -113,7 +113,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     events = @service.subscribe "read.net_ldap_connection"
 
     result = @connection.bind(method: :anon)
-    assert_predicate result, :success?
+    assert result.success?, "should be success"
 
     # a read event
     payload, result = events.pop
@@ -130,12 +130,12 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     events = @service.subscribe "bind.net_ldap_connection"
 
     result = @connection.bind(method: :anon)
-    assert_predicate result, :success?
+    assert result.success?, "should be success"
 
     # a read event
     payload, result = events.pop
     assert payload.has_key?(:result)
-    assert_predicate result, :success?
+    assert result.success?, "should be success"
   end
 
   def test_search_net_ldap_connection_event
@@ -156,7 +156,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     events = @service.subscribe "search.net_ldap_connection"
 
     result = @connection.search(filter: "(uid=user1)")
-    assert_predicate result, :success?
+    assert result.success?, "should be success"
 
     # a search event
     payload, result = events.pop
