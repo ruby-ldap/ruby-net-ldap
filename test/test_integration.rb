@@ -20,8 +20,15 @@ else
       assert @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: "passworD1"), @ldap.get_operation_result.inspect
     end
 
-    def test_bind_success_anonymous
-      assert @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: ""), @ldap.get_operation_result.inspect
+    def test_bind_anonymous_fail
+      refute @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: ""), @ldap.get_operation_result.inspect
+
+      result = @ldap.get_operation_result
+      assert_equal 53, result.code
+      assert_equal "Unwilling to perform", result.message
+      assert_equal "unauthenticated bind (DN with no password) disallowed",
+        result.error_message
+      assert_equal "", result.matched_dn
     end
 
     def test_bind_fail
