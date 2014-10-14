@@ -3,6 +3,9 @@ require 'test/unit'
 require 'net/ldap'
 require 'flexmock/test_unit'
 
+# Whether integration tests should be run.
+INTEGRATION = ENV.fetch("INTEGRATION", "skip") != "skip"
+
 if RUBY_VERSION < "2.0"
   class String
     def b
