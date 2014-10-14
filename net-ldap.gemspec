@@ -25,6 +25,7 @@ the most recent LDAP RFCs (4510-4519, plutions of 4520-4532).}
   s.email = ["blackhedd@rubyforge.org", "gemiel@gmail.com", "rory.ocon@gmail.com", "kaspar.schiess@absurd.li", "austin@rubyforge.org"]
   s.extra_rdoc_files = ["Manifest.txt", "Contributors.rdoc", "Hacking.rdoc", "History.rdoc", "License.rdoc", "README.rdoc"]
   s.files = `git ls-files`.split $/
+  s.test_files = s.files.grep(%r{^test})
   s.homepage = %q{http://github.com/ruby-ldap/ruby-net-ldap}
   s.rdoc_options = ["--main", "README.rdoc"]
   s.require_paths = ["lib"]
@@ -40,24 +41,18 @@ the most recent LDAP RFCs (4510-4519, plutions of 4520-4532).}
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_development_dependency(%q<hoe-git>, ["~> 1"])
       s.add_development_dependency(%q<hoe-gemspec>, ["~> 1"])
-      s.add_development_dependency(%q<metaid>, ["~> 1"])
       s.add_development_dependency(%q<flexmock>, [">= 1.3.0"])
-      s.add_development_dependency(%q<rspec>, ["~> 2.0"])
       s.add_development_dependency(%q<hoe>, [">= 2.9.1"])
     else
       s.add_dependency(%q<hoe-git>, ["~> 1"])
       s.add_dependency(%q<hoe-gemspec>, ["~> 1"])
-      s.add_dependency(%q<metaid>, ["~> 1"])
       s.add_dependency(%q<flexmock>, [">= 1.3.0"])
-      s.add_dependency(%q<rspec>, ["~> 2.0"])
       s.add_dependency(%q<hoe>, [">= 2.9.1"])
     end
   else
     s.add_dependency(%q<hoe-git>, ["~> 1"])
     s.add_dependency(%q<hoe-gemspec>, ["~> 1"])
-    s.add_dependency(%q<metaid>, ["~> 1"])
     s.add_dependency(%q<flexmock>, [">= 1.3.0"])
-    s.add_dependency(%q<rspec>, ["~> 2.0"])
     s.add_dependency(%q<hoe>, [">= 2.9.1"])
   end
 end

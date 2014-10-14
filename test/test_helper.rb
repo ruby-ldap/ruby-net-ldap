@@ -1,11 +1,13 @@
+# Add 'lib' to load path.
+require 'test/unit'
 require 'net/ldap'
+require 'flexmock/test_unit'
 
-RSpec.configure do |config|
-  config.mock_with :flexmock
-
-  def raw_string(s)
-    # Conveniently, String#b only needs to be called when it exists
-    s.respond_to?(:b) ? s.b : s
+if RUBY_VERSION < "2.0"
+  class String
+    def b
+      self
+    end
   end
 end
 
