@@ -54,6 +54,6 @@ Commented out until I can make it a spec.
       assert_equal ['Jensen'], @entry['Sn']
       assert_equal ['Jensen'], @entry['SN']
     end
-	end
+  end
 end
 =end
