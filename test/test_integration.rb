@@ -17,15 +17,15 @@ else
     end
 
     def test_bind_success
-      assert @ldap.bind(method: :simple, username: "user1", password: "passworD1"), @ldap.get_operation_result.inspect
+      assert @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: "passworD1"), @ldap.get_operation_result.inspect
     end
 
     def test_bind_success_anonymous
-      assert @ldap.bind(method: :simple, username: "user1", password: ""), @ldap.get_operation_result.inspect
+      assert @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: ""), @ldap.get_operation_result.inspect
     end
 
     def test_bind_fail
-      refute @ldap.bind(method: :simple, username: "user1", password: "not my password"), @ldap.get_operation_result.inspect
+      refute @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: "not my password"), @ldap.get_operation_result.inspect
     end
   end
 end
