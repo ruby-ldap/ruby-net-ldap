@@ -31,3 +31,24 @@ class MockInstrumentationService
     @events[event]
   end
 end
+
+class LDAPIntegrationTestCase < Test::Unit::TestCase
+  # If integration tests aren't enabled, noop these tests.
+  if !INTEGRATION
+    def run(*)
+      self
+    end
+  end
+
+  def setup
+    @service = MockInstrumentationService.new
+    @ldap = Net::LDAP.new \
+      host:           'localhost',
+      port:           389,
+      admin_user:     'uid=admin,dc=rubyldap,dc=com',
+      admin_password: 'passworD1',
+      search_domains: %w(dc=rubyldap,dc=com),
+      uid:            'uid',
+      instrumentation_service: @service
+  end
+end
