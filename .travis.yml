@@ -8,6 +8,15 @@ rvm:
   - rbx-19mode
   - rbx-2
 
+env:
+  - INTEGRATION=openldap
+
+install:
+  - if [ "$INTEGRATION" = "openldap" ]; then ./script/install-openldap; fi
+  - bundle install
+
+script: bundle exec rake
+
 matrix:
   allow_failures:
     - rvm: jruby-19mode
@@ -15,4 +24,5 @@ matrix:
     - rvm: rbx-2
   fast_finish: true
 
-script: bundle exec rake
+notifications:
+  email: false
