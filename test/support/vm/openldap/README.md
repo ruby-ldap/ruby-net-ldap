@@ -1,6 +1,6 @@
 # Local OpenLDAP Integration Testing
 
-Set up a VM to run integration tests against OpenLDAP locally.
+Set up a [Vagrant](http://www.vagrantup.com/) VM to run integration tests against OpenLDAP locally.
 
 To run integration tests locally:
 
@@ -28,3 +28,5 @@ $ export INTEGRATION_HOST=$ip
 # now run tests without having to set ENV variables
 $ time bundle exec rake
 ```
+
+You may need to `gem install vagrant` first in order to provision the VM.
