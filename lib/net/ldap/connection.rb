@@ -119,13 +119,25 @@ class Net::LDAP::Connection #:nodoc:
   #
   # - syntax: the BER syntax to use to parse the read data with
   #
-  # Returns basic BER objects.
+  # Returns parsed Net::LDAP::PDU object.
   def read(syntax = Net::LDAP::AsnSyntax)
-    instrument "read.net_ldap_connection", :syntax => syntax do |payload|
-      @conn.read_ber(syntax) do |id, content_length|
-        payload[:object_type_id] = id
-        payload[:content_length] = content_length
+    ber_object =
+      instrument "read.net_ldap_connection", :syntax => syntax do |payload|
+        @conn.read_ber(syntax) do |id, content_length|
+          payload[:object_type_id] = id
+          payload[:content_length] = content_length
+        end
       end
+
+    return unless ber_object
+
+    instrument "parse_pdu.net_ldap_connection" do |payload|
+      pdu = payload[:pdu]  = Net::LDAP::PDU.new(ber_object)
+
+      payload[:message_id] = pdu.message_id
+      payload[:app_tag]    = pdu.app_tag
+
+      pdu
     end
   end
   private :read
