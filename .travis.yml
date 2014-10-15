@@ -7,9 +7,12 @@ rvm:
   - jruby-19mode
   - rbx-19mode
   - rbx-2
+
 matrix:
   allow_failures:
     - rvm: jruby-19mode
     - rvm: rbx-19mode
     - rvm: rbx-2
+  fast_finish: true
+
 script: bundle exec rake
