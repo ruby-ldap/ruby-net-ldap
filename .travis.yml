@@ -8,7 +8,6 @@ rvm:
   # - rbx-2
 
 env:
-  - INTEGRATION=skip
   - INTEGRATION=openldap
 
 install:
