@@ -42,6 +42,29 @@ class TestLDAPConnection < Test::Unit::TestCase
     expected = [ "0#\n\x01\x020\x1E\x04\x04mail1\x16\x04\x14testuser@example.com" ]
     assert_equal(expected, result)
   end
+
+  def test_write
+    mock = flexmock("socket")
+    mock.should_receive(:write).with([1.to_ber, "request"].to_ber_sequence).and_return(true)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+    conn.send(:write, "request")
+  end
+
+  def test_write_with_controls
+    mock = flexmock("socket")
+    mock.should_receive(:write).with([1.to_ber, "request", "controls"].to_ber_sequence).and_return(true)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+    conn.send(:write, "request", "controls")
+  end
+
+  def test_write_increments_msgid
+    mock = flexmock("socket")
+    mock.should_receive(:write).with([1.to_ber, "request1"].to_ber_sequence).and_return(true)
+    mock.should_receive(:write).with([2.to_ber, "request2"].to_ber_sequence).and_return(true)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+    conn.send(:write, "request1")
+    conn.send(:write, "request2")
+  end
 end
 
 
