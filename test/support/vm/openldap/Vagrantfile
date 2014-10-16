@@ -5,7 +5,7 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.hostname = "freeipa.ghe.local"
+  config.vm.hostname = "rubyldap.com"
 
   config.vm.box = "hashicorp/precise64"
 
