@@ -6,11 +6,20 @@ class Net::LDAP::Connection #:nodoc:
   LdapVersion = 3
   MaxSaslChallenges = 10
 
+  class << self
+    # Public: Returns the socket Class used to manage the network
+    # connection and perform network operations.
+    def socket_class
+      @socket_class ||= TCPSocket
+    end
+    attr_writer :socket_class
+  end
+
   def initialize(server)
     @instrumentation_service = server[:instrumentation_service]
 
     begin
-      @conn = TCPSocket.new(server[:host], server[:port])
+      @conn = self.class.socket_class.new(server[:host], server[:port])
     rescue SocketError
       raise Net::LDAP::LdapError, "No such address or other socket error."
     rescue Errno::ECONNREFUSED
