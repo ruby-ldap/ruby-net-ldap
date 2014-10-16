@@ -10,7 +10,7 @@ class Net::LDAP::Connection #:nodoc:
     @instrumentation_service = server[:instrumentation_service]
 
     begin
-      @conn = TCPSocket.new(server[:host], server[:port])
+      @conn = server[:socket] || TCPSocket.new(server[:host], server[:port])
     rescue SocketError
       raise Net::LDAP::LdapError, "No such address or other socket error."
     rescue Errno::ECONNREFUSED
@@ -87,10 +87,8 @@ class Net::LDAP::Connection #:nodoc:
       # additional branches requiring server validation and peer certs, etc.
       # go here.
     when :start_tls
-      msgid = next_msgid.to_ber
       request = [Net::LDAP::StartTlsOid.to_ber_contextspecific(0)].to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
-      request_pkt = [msgid, request].to_ber_sequence
-      write request_pkt
+      write(request)
       pdu = read
       raise Net::LDAP::LdapError, "no start_tls result" if pdu.nil?
       if pdu.result_code.zero?
@@ -140,14 +138,17 @@ class Net::LDAP::Connection #:nodoc:
   end
   private :read
 
-  # Internal: Writes the given packet to the configured connection.
+  # Internal: Write a BER formatted packet with the next message id to the
+  # configured connection.
   #
-  # - packet: the BER data packet to write on the socket.
+  # - request: required BER formatted request
+  # - controls: optional BER formatted controls
   #
   # Returns the return value from writing to the connection, which in some
   # cases is the Integer number of bytes written to the socket.
-  def write(packet)
+  def write(request, controls = nil)
     instrument "write.net_ldap_connection" do |payload|
+      packet = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
       payload[:content_length] = @conn.write(packet)
     end
   end
@@ -186,11 +187,9 @@ class Net::LDAP::Connection #:nodoc:
 
     raise Net::LDAP::LdapError, "Invalid binding information" unless (user && psw)
 
-    msgid = next_msgid.to_ber
     request = [LdapVersion.to_ber, user.to_ber,
       psw.to_ber_contextspecific(0)].to_ber_appsequence(0)
-    request_pkt = [msgid, request].to_ber_sequence
-    write request_pkt
+    write(request)
 
     pdu = read
     raise Net::LDAP::LdapError, "no bind result" unless pdu
@@ -226,11 +225,9 @@ class Net::LDAP::Connection #:nodoc:
 
     n = 0
     loop {
-      msgid = next_msgid.to_ber
       sasl = [mech.to_ber, cred.to_ber].to_ber_contextspecific(3)
       request = [LdapVersion.to_ber, "".to_ber, sasl].to_ber_appsequence(0)
-      request_pkt = [msgid, request].to_ber_sequence
-      write request_pkt
+      write(request)
 
       pdu = read
       raise Net::LDAP::LdapError, "no bind result" unless pdu
@@ -406,8 +403,7 @@ class Net::LDAP::Connection #:nodoc:
         controls << sort_control if sort_control
         controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
 
-        pkt = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
-        write pkt
+        write(request, controls)
 
         result_pdu = nil
         controls = []
@@ -515,8 +511,7 @@ class Net::LDAP::Connection #:nodoc:
     ops = self.class.modify_ops args[:operations]
     request = [ modify_dn.to_ber,
       ops.to_ber_sequence ].to_ber_appsequence(6)
-    pkt = [ next_msgid.to_ber, request ].to_ber_sequence
-    write pkt
+    write(request)
 
     pdu = read
 
@@ -542,8 +537,7 @@ class Net::LDAP::Connection #:nodoc:
     }
 
     request = [add_dn.to_ber, add_attrs.to_ber_sequence].to_ber_appsequence(8)
-    pkt = [next_msgid.to_ber, request].to_ber_sequence
-    write pkt
+    write(request)
 
     pdu = read
 
@@ -566,8 +560,7 @@ class Net::LDAP::Connection #:nodoc:
     request = [old_dn.to_ber, new_rdn.to_ber, delete_attrs.to_ber]
     request << new_superior.to_ber_contextspecific(0) unless new_superior == nil
 
-    pkt = [next_msgid.to_ber, request.to_ber_appsequence(12)].to_ber_sequence
-    write pkt
+    write(request.to_ber_appsequence(12))
 
     pdu = read
 
@@ -585,8 +578,7 @@ class Net::LDAP::Connection #:nodoc:
     dn = args[:dn] or raise "Unable to delete empty DN"
     controls = args.include?(:control_codes) ? args[:control_codes].to_ber_control : nil #use nil so we can compact later
     request = dn.to_s.to_ber_application_string(10)
-    pkt = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
-    write pkt
+    write(request, controls)
 
     pdu = read
 
