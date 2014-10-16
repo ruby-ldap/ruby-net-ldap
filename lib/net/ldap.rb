@@ -589,12 +589,7 @@ class Net::LDAP
 
     instrument "open.net_ldap" do |payload|
       begin
-        @open_connection =
-          self.class.connection_class.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
+        @open_connection = new_connection
         payload[:connection] = @open_connection
         payload[:bind]       = @open_connection.bind(@auth)
         yield self
@@ -604,6 +599,16 @@ class Net::LDAP
       end
     end
   end
+
+  # Internal: Returns a new instance of the configured connection class.
+  def new_connection
+    self.class.connection_class.new \
+      :host                    => @host,
+      :port                    => @port,
+      :encryption              => @encryption,
+      :instrumentation_service => @instrumentation_service
+  end
+  private :new_connection
 
   # Searches the LDAP directory for directory entries. Takes a hash argument
   # with parameters. Supported parameters include:
@@ -670,11 +675,7 @@ class Net::LDAP
         }
       else
         begin
-          conn = self.class.connection_class.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
+          conn = new_connection
           if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
             @result = conn.search(args) { |entry|
               result_set << entry if result_set
@@ -758,11 +759,7 @@ class Net::LDAP
         payload[:bind]       = @result = @open_connection.bind(auth)
       else
         begin
-          conn = self.class.connection_class.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
+          conn = new_connection
           payload[:connection] = conn
           payload[:bind]       = @result = conn.bind(auth)
         ensure
@@ -865,11 +862,7 @@ class Net::LDAP
       else
         @result = 0
         begin
-          conn = self.class.connection_class.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
+          conn = new_connection
           if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
             @result = conn.add(args)
           end
@@ -969,11 +962,7 @@ class Net::LDAP
       else
         @result = 0
         begin
-          conn = self.class.connection_class.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
+          conn = new_connection
           if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
             @result = conn.modify(args)
           end
@@ -1046,11 +1035,7 @@ class Net::LDAP
       else
         @result = 0
         begin
-          conn = self.class.connection_class.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
+          conn = new_connection
           if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
             @result = conn.rename(args)
           end
@@ -1079,11 +1064,7 @@ class Net::LDAP
       else
         @result = 0
         begin
-          conn = self.class.connection_class.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
+          conn = new_connection
           if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
             @result = conn.delete(args)
           end
