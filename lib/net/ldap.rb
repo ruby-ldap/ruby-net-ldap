@@ -361,6 +361,15 @@ class Net::LDAP
   attr_accessor :port
   attr_accessor :base
 
+  class << self
+    # Public: Returns the connection Class used to manage the network
+    # connection and perform network operations.
+    def connection_class
+      @connection_class ||= Net::LDAP::Connection
+    end
+    attr_writer :connection_class
+  end
+
   # Instantiate an object of type Net::LDAP to perform directory operations.
   # This constructor takes a Hash containing arguments, all of which are
   # either optional or may be specified later with other methods as
@@ -581,7 +590,7 @@ class Net::LDAP
     instrument "open.net_ldap" do |payload|
       begin
         @open_connection =
-          Net::LDAP::Connection.new \
+          self.class.connection_class.new \
             :host                    => @host,
             :port                    => @port,
             :encryption              => @encryption,
@@ -661,7 +670,7 @@ class Net::LDAP
         }
       else
         begin
-          conn = Net::LDAP::Connection.new \
+          conn = self.class.connection_class.new \
             :host                    => @host,
             :port                    => @port,
             :encryption              => @encryption,
@@ -749,7 +758,7 @@ class Net::LDAP
         payload[:bind]       = @result = @open_connection.bind(auth)
       else
         begin
-          conn = Connection.new \
+          conn = self.class.connection_class.new \
             :host                    => @host,
             :port                    => @port,
             :encryption              => @encryption,
@@ -856,7 +865,7 @@ class Net::LDAP
       else
         @result = 0
         begin
-          conn = Connection.new \
+          conn = self.class.connection_class.new \
             :host                    => @host,
             :port                    => @port,
             :encryption              => @encryption,
@@ -960,7 +969,7 @@ class Net::LDAP
       else
         @result = 0
         begin
-          conn = Connection.new \
+          conn = self.class.connection_class.new \
             :host                    => @host,
             :port                    => @port,
             :encryption              => @encryption,
@@ -1037,7 +1046,7 @@ class Net::LDAP
       else
         @result = 0
         begin
-          conn = Connection.new \
+          conn = self.class.connection_class.new \
             :host                    => @host,
             :port                    => @port,
             :encryption              => @encryption,
@@ -1070,7 +1079,7 @@ class Net::LDAP
       else
         @result = 0
         begin
-          conn = Connection.new \
+          conn = self.class.connection_class.new \
             :host                    => @host,
             :port                    => @port,
             :encryption              => @encryption,
