@@ -30,9 +30,7 @@ Hoe.spec 'net-ldap' do |spec|
 
   spec.extra_dev_deps << [ "hoe-git", "~> 1" ]
   spec.extra_dev_deps << [ "hoe-gemspec", "~> 1" ]
-  spec.extra_dev_deps << [ "metaid", "~> 1" ]
   spec.extra_dev_deps << [ "flexmock", ">= 1.3.0" ]
-  spec.extra_dev_deps << [ "rspec", "~> 2.0" ]
 
   spec.clean_globs << "coverage"
 
@@ -70,7 +68,7 @@ namespace :old do
   end
 end
 
-desc "Run a full set of integration and unit tests" 
+desc "Run a full set of integration and unit tests"
 task :cruise => [:test, :spec]
 
 # vim: syntax=ruby
