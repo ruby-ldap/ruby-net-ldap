@@ -58,9 +58,9 @@ class TestLDAPConnection < Test::Unit::TestCase
   end
 
   def test_write_increments_msgid
-    mock = Minitest::Mock.new
-    mock.expect(:write, true, [[1.to_ber, "request1"].to_ber_sequence])
-    mock.expect(:write, true, [[2.to_ber, "request2"].to_ber_sequence])
+    mock = flexmock("socket")
+    mock.should_receive(:write).with([1.to_ber, "request1"].to_ber_sequence).and_return(true)
+    mock.should_receive(:write).with([2.to_ber, "request2"].to_ber_sequence).and_return(true)
     conn = Net::LDAP::Connection.new(:socket => mock)
     conn.send(:write, "request1")
     conn.send(:write, "request2")
