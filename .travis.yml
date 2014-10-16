@@ -3,9 +3,10 @@ rvm:
   - 1.9.3
   - 2.0.0
   - 2.1.2
+  # optional
   - jruby-19mode
   - rbx-19mode
-  # - rbx-2
+  - rbx-2
 
 env:
   - INTEGRATION=openldap
@@ -19,6 +20,8 @@ script: bundle exec rake
 matrix:
   allow_failures:
     - rvm: jruby-19mode
+    - rvm: rbx-19mode
+    - rvm: rbx-2
   fast_finish: true
 
 notifications:
