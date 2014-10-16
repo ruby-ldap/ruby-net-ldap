@@ -2,7 +2,6 @@
 require 'test/unit'
 require 'net/ldap'
 require 'flexmock/test_unit'
-require 'minitest/mock'
 
 # Whether integration tests should be run.
 INTEGRATION = ENV.fetch("INTEGRATION", "skip") != "skip"

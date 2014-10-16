@@ -44,15 +44,15 @@ class TestLDAPConnection < Test::Unit::TestCase
   end
 
   def test_write
-    mock = Minitest::Mock.new
-    mock.expect(:write, true, [[1.to_ber, "request"].to_ber_sequence])
+    mock = flexmock("socket")
+    mock.should_receive(:write).with([1.to_ber, "request"].to_ber_sequence).and_return(true)
     conn = Net::LDAP::Connection.new(:socket => mock)
     conn.send(:write, "request")
   end
 
   def test_write_with_controls
-    mock = Minitest::Mock.new
-    mock.expect(:write, true, [[1.to_ber, "request", "controls"].to_ber_sequence])
+    mock = flexmock("socket")
+    mock.should_receive(:write).with([1.to_ber, "request", "controls"].to_ber_sequence).and_return(true)
     conn = Net::LDAP::Connection.new(:socket => mock)
     conn.send(:write, "request", "controls")
   end
