@@ -192,7 +192,8 @@ class Net::LDAP::Connection #:nodoc:
     request_pkt = [msgid, request].to_ber_sequence
     write request_pkt
 
-    (pdu = read) or raise Net::LDAP::LdapError, "no bind result"
+    pdu = read
+    raise Net::LDAP::LdapError, "no bind result" unless pdu
 
     pdu
   end
@@ -231,7 +232,9 @@ class Net::LDAP::Connection #:nodoc:
       request_pkt = [msgid, request].to_ber_sequence
       write request_pkt
 
-      (pdu = read) or raise Net::LDAP::LdapError, "no bind result"
+      pdu = read
+      raise Net::LDAP::LdapError, "no bind result" unless pdu
+
       return pdu unless pdu.result_code == 14 # saslBindInProgress
       raise Net::LDAP::LdapError, "sasl-challenge overflow" if ((n += 1) > MaxSaslChallenges)
 
@@ -409,7 +412,7 @@ class Net::LDAP::Connection #:nodoc:
         result_pdu = nil
         controls = []
 
-        while (pdu = read)
+        while pdu = read
           case pdu.app_tag
           when Net::LDAP::PDU::SearchReturnedData
             n_results += 1
@@ -515,7 +518,11 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [ next_msgid.to_ber, request ].to_ber_sequence
     write pkt
 
-    (pdu = read) && (pdu.app_tag == Net::LDAP::PDU::ModifyResponse) or raise Net::LDAP::LdapError, "response missing or invalid"
+    pdu = read
+
+    if !pdu || pdu.app_tag != Net::LDAP::PDU::ModifyResponse
+      raise Net::LDAP::LdapError, "response missing or invalid"
+    end
 
     pdu
   end
@@ -538,9 +545,11 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [next_msgid.to_ber, request].to_ber_sequence
     write pkt
 
-    (pdu = read) &&
-      (pdu.app_tag == Net::LDAP::PDU::AddResponse) or
+    pdu = read
+
+    if !pdu || pdu.app_tag != Net::LDAP::PDU::AddResponse
       raise Net::LDAP::LdapError, "response missing or invalid"
+    end
 
     pdu
   end
@@ -560,9 +569,11 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [next_msgid.to_ber, request.to_ber_appsequence(12)].to_ber_sequence
     write pkt
 
-    (pdu = read) &&
-    (pdu.app_tag == Net::LDAP::PDU::ModifyRDNResponse) or
-    raise Net::LDAP::LdapError.new( "response missing or invalid" )
+    pdu = read
+
+    if !pdu || pdu.app_tag != Net::LDAP::PDU::ModifyRDNResponse
+      raise Net::LDAP::LdapError.new "response missing or invalid"
+    end
 
     pdu
   end
@@ -577,7 +588,11 @@ class Net::LDAP::Connection #:nodoc:
     pkt = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
     write pkt
 
-    (pdu = read) && (pdu.app_tag == Net::LDAP::PDU::DeleteResponse) or raise Net::LDAP::LdapError, "response missing or invalid"
+    pdu = read
+
+    if !pdu || pdu.app_tag != Net::LDAP::PDU::DeleteResponse
+      raise Net::LDAP::LdapError, "response missing or invalid"
+    end
 
     pdu
   end
