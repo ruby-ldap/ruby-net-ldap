@@ -144,6 +144,28 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     assert_equal read_result, result
   end
 
+  def test_parse_pdu_net_ldap_connection_event
+    ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
+    ber.ber_identifier = Net::LDAP::PDU::BindResult
+    read_result = [2, ber]
+    @tcp_socket.should_receive(:read_ber).and_return(read_result)
+
+    events = @service.subscribe "parse_pdu.net_ldap_connection"
+
+    result = @connection.bind(method: :anon)
+    assert result.success?, "should be success"
+
+    # a parse_pdu event
+    payload, result = events.pop
+    assert payload.has_key?(:pdu)
+    assert payload.has_key?(:app_tag)
+    assert payload.has_key?(:message_id)
+    assert_equal Net::LDAP::PDU::BindResult, payload[:app_tag]
+    assert_equal 2, payload[:message_id]
+    pdu = payload[:pdu]
+    assert_equal 0, pdu.result_code
+  end
+
   def test_bind_net_ldap_connection_event
     ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
     ber.ber_identifier = Net::LDAP::PDU::BindResult
