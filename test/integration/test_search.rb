@@ -4,7 +4,7 @@ class TestSearchIntegration < LDAPIntegrationTestCase
   def test_search
     entries = []
 
-    result = @ldap.search(filter: "(uid=user1)", base: "dc=rubyldap,dc=com") do |entry|
+    result = @ldap.search(base: "dc=rubyldap,dc=com") do |entry|
       assert_kind_of Net::LDAP::Entry, entry
       entries << entry
     end
@@ -16,13 +16,18 @@ class TestSearchIntegration < LDAPIntegrationTestCase
   def test_search_without_result
     entries = []
 
-    result = @ldap.search(filter: "(uid=user1)", base: "dc=rubyldap,dc=com", return_result: false) do |entry|
+    result = @ldap.search(base: "dc=rubyldap,dc=com", return_result: false) do |entry|
       assert_kind_of Net::LDAP::Entry, entry
       entries << entry
     end
 
     assert result
     refute_equal entries, result
+  end
+
+  def test_search_filter
+    entries = @ldap.search(base: "dc=rubyldap,dc=com", filter: "(uid=user1)")
+    assert_equal 1, entries.size
   end
 
   def test_search_constrained_attributes
