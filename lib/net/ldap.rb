@@ -317,7 +317,7 @@ class Net::LDAP
   DefaultPort = 389
   DefaultAuth = { :method => :anonymous }
   DefaultTreebase = "dc=com"
-	DefaultForceNoPage = false
+  DefaultForceNoPage = false
 
   StartTlsOid = "1.3.6.1.4.1.1466.20037"
 
@@ -398,7 +398,7 @@ class Net::LDAP
     @verbose = false # Make this configurable with a switch on the class.
     @auth = args[:auth] || DefaultAuth
     @base = args[:base] || DefaultTreebase
-		@force_no_page = args[:force_no_page] || DefaultForceNoPage
+    @force_no_page = args[:force_no_page] || DefaultForceNoPage
     encryption args[:encryption] # may be nil
 
     if pr = @auth[:password] and pr.respond_to?(:call)
@@ -486,9 +486,9 @@ class Net::LDAP
   # standard port for simple-TLS encrypted connections is 636. Be sure you
   # are using the correct port.
   #
-  # <i>[Note: a future version of Net::LDAP will support the STARTTLS LDAP
-  # control, which will enable encrypted communications on the same TCP port
-  # used for unencrypted connections.]</i>
+  # The :start_tls like the :simple_tls encryption method also encrypts all
+  # communcations with the LDAP server. With the exception that it operates
+  # over the standard TCP port.
   def encryption(args)
     case args
     when :simple_tls, :start_tls
@@ -1169,10 +1169,10 @@ class Net::LDAP
   # MUST refactor the root_dse call out.
   #++
   def paged_searches_supported?
-		# active directory returns that it supports paged results. However
-		# it returns binary data in the rfc2696_cookie which throws an
-		# encoding exception breaking searching.
-		return false if @force_no_page
+    # active directory returns that it supports paged results. However
+    # it returns binary data in the rfc2696_cookie which throws an
+    # encoding exception breaking searching.
+    return false if @force_no_page
     @server_caps ||= search_root_dse
     @server_caps[:supportedcontrol].include?(Net::LDAP::LDAPControls::PAGED_RESULTS)
   end

@@ -40,8 +40,8 @@ modification to +Contributors.rdoc+ to add yourself.
 
 == Tests
 
-The Net::LDAP team uses RSpec for unit testing; all changes must have rspec
-tests for any new or changed features.
+The Net::LDAP team uses [Minitest](http://docs.seattlerb.org/minitest/) for unit
+testing; all changes must have tests for any new or changed features.
 
 Your changes should have been tested against at least one real LDAP server; the
 current tests are not sufficient to find all possible bugs. It's unlikely that
@@ -57,8 +57,6 @@ installed using RubyGems.
 
 * *hoe*
 * *hoe-git*
-* *metaid*
-* *rspec*
 * *flexmock*
 
 == Participation

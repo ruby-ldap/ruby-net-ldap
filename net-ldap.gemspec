@@ -24,7 +24,8 @@ Our roadmap for Net::LDAP 1.0 is to gain full <em>client</em> compliance with
 the most recent LDAP RFCs (4510-4519, plutions of 4520-4532).}
   s.email = ["blackhedd@rubyforge.org", "gemiel@gmail.com", "rory.ocon@gmail.com", "kaspar.schiess@absurd.li", "austin@rubyforge.org"]
   s.extra_rdoc_files = ["Manifest.txt", "Contributors.rdoc", "Hacking.rdoc", "History.rdoc", "License.rdoc", "README.rdoc"]
-  s.files = [".autotest", ".rspec", "Contributors.rdoc", "Hacking.rdoc", "History.rdoc", "License.rdoc", "Manifest.txt", "README.rdoc", "Rakefile", "autotest/discover.rb", "lib/net-ldap.rb", "lib/net/ber.rb", "lib/net/ber/ber_parser.rb", "lib/net/ber/core_ext.rb", "lib/net/ber/core_ext/array.rb", "lib/net/ber/core_ext/bignum.rb", "lib/net/ber/core_ext/false_class.rb", "lib/net/ber/core_ext/fixnum.rb", "lib/net/ber/core_ext/string.rb", "lib/net/ber/core_ext/true_class.rb", "lib/net/ldap.rb", "lib/net/ldap/dataset.rb", "lib/net/ldap/dn.rb", "lib/net/ldap/entry.rb", "lib/net/ldap/filter.rb", "lib/net/ldap/instrumentation.rb", "lib/net/ldap/password.rb", "lib/net/ldap/pdu.rb", "lib/net/snmp.rb", "net-ldap.gemspec", "spec/integration/ssl_ber_spec.rb", "spec/spec.opts", "spec/spec_helper.rb", "spec/unit/ber/ber_spec.rb", "spec/unit/ber/core_ext/string_spec.rb", "spec/unit/ldap/dn_spec.rb", "spec/unit/ldap/entry_spec.rb", "spec/unit/ldap/filter_spec.rb", "spec/unit/ldap_spec.rb", "test/common.rb", "test/test_entry.rb", "test/test_filter.rb", "test/test_ldap_connection.rb", "test/test_ldif.rb", "test/test_password.rb", "test/test_rename.rb", "test/test_snmp.rb", "test/testdata.ldif", "testserver/ldapserver.rb", "testserver/testdata.ldif", "lib/net/ldap/version.rb"]
+  s.files = `git ls-files`.split $/
+  s.test_files = s.files.grep(%r{^test})
   s.homepage = %q{http://github.com/ruby-ldap/ruby-net-ldap}
   s.rdoc_options = ["--main", "README.rdoc"]
   s.require_paths = ["lib"]
@@ -40,24 +41,18 @@ the most recent LDAP RFCs (4510-4519, plutions of 4520-4532).}
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_development_dependency(%q<hoe-git>, ["~> 1"])
       s.add_development_dependency(%q<hoe-gemspec>, ["~> 1"])
-      s.add_development_dependency(%q<metaid>, ["~> 1"])
       s.add_development_dependency(%q<flexmock>, [">= 1.3.0"])
-      s.add_development_dependency(%q<rspec>, ["~> 2.0"])
       s.add_development_dependency(%q<hoe>, [">= 2.9.1"])
     else
       s.add_dependency(%q<hoe-git>, ["~> 1"])
       s.add_dependency(%q<hoe-gemspec>, ["~> 1"])
-      s.add_dependency(%q<metaid>, ["~> 1"])
       s.add_dependency(%q<flexmock>, [">= 1.3.0"])
-      s.add_dependency(%q<rspec>, ["~> 2.0"])
       s.add_dependency(%q<hoe>, [">= 2.9.1"])
     end
   else
     s.add_dependency(%q<hoe-git>, ["~> 1"])
     s.add_dependency(%q<hoe-gemspec>, ["~> 1"])
-    s.add_dependency(%q<metaid>, ["~> 1"])
     s.add_dependency(%q<flexmock>, [">= 1.3.0"])
-    s.add_dependency(%q<rspec>, ["~> 2.0"])
     s.add_dependency(%q<hoe>, [">= 2.9.1"])
   end
 end

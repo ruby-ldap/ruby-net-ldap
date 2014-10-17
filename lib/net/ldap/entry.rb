@@ -115,7 +115,7 @@ class Net::LDAP::Entry
 
   ##
   # Read the first value for the provided attribute. The attribute name
-  # is canonicalized prior to reading. Returns nil if the attribute does 
+  # is canonicalized prior to reading. Returns nil if the attribute does
   # not exist.
   def first(name)
     self[name].first
