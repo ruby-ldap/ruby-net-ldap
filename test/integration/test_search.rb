@@ -41,4 +41,10 @@ class TestSearchIntegration < LDAPIntegrationTestCase
     assert_equal [:cn, :dn, :sn], entry.attribute_names.sort  # :dn is always included
     assert_empty entry[:mail]
   end
+
+  def test_search_size
+    entries = @ldap.search(base: "ou=People,dc=rubyldap,dc=com", size: 2)
+
+    assert_equal 2, entries.size
+  end
 end
