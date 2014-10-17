@@ -24,4 +24,13 @@ class TestSearchIntegration < LDAPIntegrationTestCase
     assert result
     refute_equal entries, result
   end
+
+  def test_search_timeout
+    events = @service.subscribe "search.net_ldap_connection"
+
+    @ldap.search(:timeout => 1)
+
+    payload, result = events.pop
+    assert_equal 1, payload[:timelimit]
+  end
 end
