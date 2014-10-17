@@ -24,4 +24,10 @@ class TestSearchIntegration < LDAPIntegrationTestCase
     assert result
     refute_equal entries, result
   end
+
+  def test_search_constrained_attributes
+    entry = @ldap.search(base: "uid=user1,ou=People,dc=rubyldap,dc=com", attributes: ["cn", "sn"]).first
+    assert_equal [:cn, :dn, :sn], entry.attribute_names.sort  # :dn is always included
+    assert_empty entry[:mail]
+  end
 end
