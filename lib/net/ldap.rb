@@ -24,6 +24,7 @@ require 'net/ldap/dataset'
 require 'net/ldap/password'
 require 'net/ldap/entry'
 require 'net/ldap/instrumentation'
+require 'net/ldap/search_request'
 require 'net/ldap/connection'
 require 'net/ldap/version'
 

@@ -328,9 +328,8 @@ class Net::LDAP::Connection #:nodoc:
 
     sort_control = encode_sort_controls(args.fetch(:sort_controls){ false })
 
-  deref = args[:deref] || Net::LDAP::DerefAliases_Never
-  raise Net::LDAP::LdapError.new( "invalid alias dereferencing value" ) unless Net::LDAP::DerefAliasesArray.include?(deref)
-
+    deref = args[:deref] || Net::LDAP::DerefAliases_Never
+    raise Net::LDAP::LdapError.new( "invalid alias dereferencing value" ) unless Net::LDAP::DerefAliasesArray.include?(deref)
 
     # An interesting value for the size limit would be close to A/D's
     # built-in page limit of 1000 records, but openLDAP newer than version
@@ -377,16 +376,15 @@ class Net::LDAP::Connection #:nodoc:
           end
         end
 
-        request = [
-          search_base.to_ber,
-          scope.to_ber_enumerated,
-          deref.to_ber_enumerated,
-          query_limit.to_ber, # size limit
-          0.to_ber,
-          attributes_only.to_ber,
-          search_filter.to_ber,
-          search_attributes.to_ber_sequence
-        ].to_ber_appsequence(3)
+        request = Net::LDAP::SearchRequest.new \
+          base_object: search_base,
+          scope: scope,
+          deref_aliases: deref,
+          size_limit: query_limit,
+          time_limit: 0,
+          types_only: attributes_only,
+          filter: search_filter,
+          attributes: search_attributes
 
         # rfc2696_cookie sometimes contains binary data from Microsoft Active Directory
         # this breaks when calling to_ber. (Can't force binary data to UTF-8)
@@ -403,7 +401,7 @@ class Net::LDAP::Connection #:nodoc:
         controls << sort_control if sort_control
         controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
 
-        write(request, controls)
+        write(request.to_ber, controls)
 
         result_pdu = nil
         controls = []
