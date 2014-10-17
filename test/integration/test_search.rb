@@ -25,9 +25,15 @@ class TestSearchIntegration < LDAPIntegrationTestCase
     refute_equal entries, result
   end
 
-  def test_search_filter
+  def test_search_filter_string
     entries = @ldap.search(base: "dc=rubyldap,dc=com", filter: "(uid=user1)")
     assert_equal 1, entries.size
+  end
+
+  def test_search_filter_object
+    filter = Net::LDAP::Filter.eq("uid", "user1") | Net::LDAP::Filter.eq("uid", "user2")
+    entries = @ldap.search(base: "dc=rubyldap,dc=com", filter: filter)
+    assert_equal 2, entries.size
   end
 
   def test_search_constrained_attributes
