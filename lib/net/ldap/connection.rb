@@ -329,9 +329,8 @@ class Net::LDAP::Connection #:nodoc:
 
     sort_control = encode_sort_controls(args.fetch(:sort_controls){ false })
 
-  deref = args[:deref] || Net::LDAP::DerefAliases_Never
-  raise Net::LDAP::LdapError.new( "invalid alias dereferencing value" ) unless Net::LDAP::DerefAliasesArray.include?(deref)
-
+    deref = args[:deref] || Net::LDAP::DerefAliases_Never
+    raise Net::LDAP::LdapError.new( "invalid alias dereferencing value" ) unless Net::LDAP::DerefAliasesArray.include?(deref)
 
     # An interesting value for the size limit would be close to A/D's
     # built-in page limit of 1000 records, but openLDAP newer than version
