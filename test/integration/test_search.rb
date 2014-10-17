@@ -47,4 +47,10 @@ class TestSearchIntegration < LDAPIntegrationTestCase
 
     assert_equal 2, entries.size
   end
+
+  def test_search_attributes_only
+    entry = @ldap.search(base: "uid=user1,ou=People,dc=rubyldap,dc=com", attributes_only: true).first
+
+    assert_empty entry[:cn], "unexpected attribute value: #{entry[:cn]}"
+  end
 end
