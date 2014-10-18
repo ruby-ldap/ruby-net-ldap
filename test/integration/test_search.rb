@@ -63,9 +63,11 @@ class TestSearchIntegration < LDAPIntegrationTestCase
   # as successful search terminating messages.
   def test_search_size_broken
     entries = []
-    refute @ldap.search(base: "ou=People,dc=rubyldap,dc=com", size: 2) do |entry|
+
+    returned = @ldap.search(base: "ou=People,dc=rubyldap,dc=com", size: 2) do |entry|
       entries << entry.dn
     end
+    refute returned
 
     # reported as an "error" of sizeLimitExceeded
     result = @ldap.get_operation_result
