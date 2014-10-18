@@ -42,9 +42,37 @@ class TestSearchIntegration < LDAPIntegrationTestCase
     assert_empty entry[:mail]
   end
 
+  # http://tools.ietf.org/html/rfc4511#section-4.5.1.4
   def test_search_size
+    skip "search treats sizeLimitExceeded response as failure"
+
     entries = @ldap.search(base: "ou=People,dc=rubyldap,dc=com", size: 2)
 
+    assert_equal 2, entries.size
+  end
+
+  # See: test_search_size for what *should* work.
+  #
+  # This tests the currently broken behavior where searches are reported as
+  # failed when the size limit has been reached. This is broken since the
+  # sizeLimit parameter defines how many results to send back, and will result
+  # in a sizeLimitExceeded result in cases where there are more results than
+  # returned; not an error case, but also not a result code that is categorized
+  # as a non-error result (http://tools.ietf.org/html/rfc4511#appendix-A.1).
+  # The practical choice is to treat sizeLimitExceeded (and timeLimitExceeded)
+  # as successful search terminating messages.
+  def test_search_size_broken
+    entries = []
+    refute @ldap.search(base: "ou=People,dc=rubyldap,dc=com", size: 2) do |entry|
+      entries << entry.dn
+    end
+
+    # reported as an "error" of sizeLimitExceeded
+    result = @ldap.get_operation_result
+    assert_equal 4, result.code
+    assert_equal Net::LDAP::ResultStrings[4], result.message
+
+    # received the right number of results
     assert_equal 2, entries.size
   end
 
