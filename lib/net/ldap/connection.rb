@@ -146,9 +146,9 @@ class Net::LDAP::Connection #:nodoc:
   #
   # Returns the return value from writing to the connection, which in some
   # cases is the Integer number of bytes written to the socket.
-  def write(request, controls = nil)
+  def write(request, controls = nil, message_id = next_msgid)
     instrument "write.net_ldap_connection" do |payload|
-      packet = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
+      packet = [message_id.to_ber, request, controls].compact.to_ber_sequence
       payload[:content_length] = @conn.write(packet)
     end
   end
