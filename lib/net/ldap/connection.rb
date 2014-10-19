@@ -361,6 +361,7 @@ class Net::LDAP::Connection #:nodoc:
     @queue[message_id] ||= []
 
     instrument "search.net_ldap_connection",
+               :message_id => message_id,
                :filter     => search_filter,
                :base       => search_base,
                :scope      => scope,
