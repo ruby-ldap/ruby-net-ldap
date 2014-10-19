@@ -185,16 +185,16 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
 
   def test_search_net_ldap_connection_event
     # search data
-    search_data_ber = Net::BER::BerIdentifiedArray.new([2, [
+    search_data_ber = Net::BER::BerIdentifiedArray.new([1, [
       "uid=user1,ou=OrgUnit2,ou=OrgUnitTop,dc=openldap,dc=ghe,dc=local",
       [ ["uid", ["user1"]] ]
     ]])
     search_data_ber.ber_identifier = Net::LDAP::PDU::SearchReturnedData
-    search_data = [2, search_data_ber]
+    search_data = [1, search_data_ber]
     # search result (end of results)
     search_result_ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
     search_result_ber.ber_identifier = Net::LDAP::PDU::SearchResult
-    search_result = [2, search_result_ber]
+    search_result = [1, search_result_ber]
     @tcp_socket.should_receive(:read_ber).and_return(search_data).
                                           and_return(search_result)
 
