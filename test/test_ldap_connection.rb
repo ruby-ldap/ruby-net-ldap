@@ -42,6 +42,29 @@ class TestLDAPConnection < Test::Unit::TestCase
     expected = [ "0#\n\x01\x020\x1E\x04\x04mail1\x16\x04\x14testuser@example.com" ]
     assert_equal(expected, result)
   end
+
+  def test_write
+    mock = flexmock("socket")
+    mock.should_receive(:write).with([1.to_ber, "request"].to_ber_sequence).and_return(true)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+    conn.send(:write, "request")
+  end
+
+  def test_write_with_controls
+    mock = flexmock("socket")
+    mock.should_receive(:write).with([1.to_ber, "request", "controls"].to_ber_sequence).and_return(true)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+    conn.send(:write, "request", "controls")
+  end
+
+  def test_write_increments_msgid
+    mock = flexmock("socket")
+    mock.should_receive(:write).with([1.to_ber, "request1"].to_ber_sequence).and_return(true)
+    mock.should_receive(:write).with([2.to_ber, "request2"].to_ber_sequence).and_return(true)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+    conn.send(:write, "request1")
+    conn.send(:write, "request2")
+  end
 end
 
 
@@ -119,6 +142,28 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     payload, result = events.pop
     assert payload.has_key?(:result)
     assert_equal read_result, result
+  end
+
+  def test_parse_pdu_net_ldap_connection_event
+    ber = Net::BER::BerIdentifiedArray.new([0, "", ""])
+    ber.ber_identifier = Net::LDAP::PDU::BindResult
+    read_result = [2, ber]
+    @tcp_socket.should_receive(:read_ber).and_return(read_result)
+
+    events = @service.subscribe "parse_pdu.net_ldap_connection"
+
+    result = @connection.bind(method: :anon)
+    assert result.success?, "should be success"
+
+    # a parse_pdu event
+    payload, result = events.pop
+    assert payload.has_key?(:pdu)
+    assert payload.has_key?(:app_tag)
+    assert payload.has_key?(:message_id)
+    assert_equal Net::LDAP::PDU::BindResult, payload[:app_tag]
+    assert_equal 2, payload[:message_id]
+    pdu = payload[:pdu]
+    assert_equal 0, pdu.result_code
   end
 
   def test_bind_net_ldap_connection_event
