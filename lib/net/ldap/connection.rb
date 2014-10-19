@@ -111,6 +111,30 @@ class Net::LDAP::Connection #:nodoc:
     @conn = nil
   end
 
+  # Internal: Reads messages by ID from a queue, falling back to reading from
+  # the connected socket until a message matching the ID is read. Any messages
+  # with mismatched IDs gets queued for subsequent reads by the origin of that
+  # message ID.
+  #
+  # Returns a Net::LDAP::PDU object or nil.
+  def queued_read(message_id)
+    if pdu = (@queue[message_id] || []).shift
+      return pdu
+    end
+
+    while pdu = read
+      if pdu.message_id == message_id
+        return pdu
+      else
+        @queue[pdu.message_id].push pdu
+
+        next
+      end
+    end
+
+    pdu
+  end
+
   # Internal: Reads and parses data from the configured connection.
   #
   # - syntax: the BER syntax to use to parse the read data with
@@ -413,12 +437,7 @@ class Net::LDAP::Connection #:nodoc:
         result_pdu = nil
         controls = []
 
-        while pdu = (@queue[message_id].shift || read)
-          if pdu.message_id != message_id
-            @queue[pdu.message_id].push pdu
-            next
-          end
-
+        while pdu = queued_read(message_id)
           case pdu.app_tag
           when Net::LDAP::PDU::SearchReturnedData
             n_results += 1
