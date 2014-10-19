@@ -356,6 +356,10 @@ class Net::LDAP::Connection #:nodoc:
     result_pdu = nil
     n_results = 0
 
+    @queue ||= {}
+    message_id = next_msgid
+    @queue[message_id] ||= []
+
     instrument "search.net_ldap_connection",
                :filter     => search_filter,
                :base       => search_base,
@@ -403,12 +407,17 @@ class Net::LDAP::Connection #:nodoc:
         controls << sort_control if sort_control
         controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
 
-        write(request, controls)
+        write(request, controls, message_id)
 
         result_pdu = nil
         controls = []
 
-        while pdu = read
+        while pdu = (@queue[message_id].shift || read)
+          if pdu.message_id != message_id
+            @queue[pdu.message_id].push pdu
+            next
+          end
+
           case pdu.app_tag
           when Net::LDAP::PDU::SearchReturnedData
             n_results += 1
