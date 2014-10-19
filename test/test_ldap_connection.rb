@@ -199,6 +199,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
                                           and_return(search_result)
 
     events = @service.subscribe "search.net_ldap_connection"
+    unread = @service.subscribe "search_messages_unread.net_ldap_connection"
 
     result = @connection.search(filter: "(uid=user1)")
     assert result.success?, "should be success"
@@ -209,5 +210,8 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     assert payload.has_key?(:filter)
     assert_equal "(uid=user1)", payload[:filter].to_s
     assert result
+
+    # ensure no unread
+    assert unread.empty?, "should not have any leftover unread messages"
   end
 end

@@ -518,6 +518,14 @@ class Net::LDAP::Connection #:nodoc:
 
       result_pdu || OpenStruct.new(:status => :failure, :result_code => 1, :message => "Invalid search")
     end # instrument
+  ensure
+    # clean up message queue for this search
+    messages = message_queue.delete(message_id)
+
+    unless messages.empty?
+      instrument "search_messages_unread.net_ldap_connection",
+                 message_id: message_id, messages: messages
+    end
   end
 
   MODIFY_OPERATIONS = { #:nodoc:
