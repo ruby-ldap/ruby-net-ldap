@@ -315,19 +315,27 @@ class Net::LDAP::Connection #:nodoc:
     args ||= {}
 
     # filtering, scoping, search base
+    # filter: https://tools.ietf.org/html/rfc4511#section-4.5.1.7
+    # base:   https://tools.ietf.org/html/rfc4511#section-4.5.1.1
+    # scope:  https://tools.ietf.org/html/rfc4511#section-4.5.1.2
     filter = args[:filter] || Net::LDAP::Filter.eq("objectClass", "*")
     base   = args[:base]
     scope  = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
 
     # attr handling
+    # attrs:      https://tools.ietf.org/html/rfc4511#section-4.5.1.8
+    # attrs_only: https://tools.ietf.org/html/rfc4511#section-4.5.1.6
     attrs  = Array(args[:attributes])
     attrs_only = args[:attributes_only] == true
 
     # references
+    # refs:  https://tools.ietf.org/html/rfc4511#section-4.5.3
+    # deref: https://tools.ietf.org/html/rfc4511#section-4.5.1.3
     refs   = args[:return_referrals] == true
     deref  = args[:deref] || Net::LDAP::DerefAliases_Never
 
     # limiting, paging, sorting
+    # size: https://tools.ietf.org/html/rfc4511#section-4.5.1.4
     size   = args[:size].to_i
     paged  = args[:paged_searches_supported]
     sort   = args.fetch(:sort_controls, false)
