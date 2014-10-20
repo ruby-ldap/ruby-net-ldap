@@ -311,26 +311,37 @@ class Net::LDAP::Connection #:nodoc:
   # type-5 packet, which might never come. We need to support the time-limit
   # in the protocol.
   #++
-  def search(args = {})
-    search_filter = (args && args[:filter]) ||
-      Net::LDAP::Filter.eq("objectclass", "*")
-    search_filter = Net::LDAP::Filter.construct(search_filter) if search_filter.is_a?(String)
-    search_base = (args && args[:base]) || "dc=example, dc=com"
-    search_attributes = ((args && args[:attributes]) || []).map { |attr| attr.to_s.to_ber}
-    return_referrals = args && args[:return_referrals] == true
-    sizelimit = (args && args[:size].to_i) || 0
-    raise Net::LDAP::LdapError, "invalid search-size" unless sizelimit >= 0
-    paged_searches_supported = (args && args[:paged_searches_supported])
+  def search(args = nil)
+    args ||= {}
 
-    attributes_only = (args and args[:attributes_only] == true)
-    scope = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
+    # filtering, scoping, search base
+    filter = args[:filter] || Net::LDAP::Filter.eq("objectClass", "*")
+    base   = args[:base]
+    scope  = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
+
+    # attr handling
+    attrs  = Array(args[:attributes])
+    attrs_only = args[:attributes_only] == true
+
+    # references
+    refs   = args[:return_referrals] == true
+    deref  = args[:deref] || Net::LDAP::DerefAliases_Never
+
+    # limiting, paging, sorting
+    size   = args[:size].to_i
+    paged  = args[:paged_searches_supported]
+    sort   = args.fetch(:sort_controls, false)
+
+    # arg validation
+    raise Net::LDAP::LdapError, "search base is required" unless base
+    raise Net::LDAP::LdapError, "invalid search-size" unless size >= 0
     raise Net::LDAP::LdapError, "invalid search scope" unless Net::LDAP::SearchScopes.include?(scope)
+    raise Net::LDAP::LdapError, "invalid alias dereferencing value" unless Net::LDAP::DerefAliasesArray.include?(deref)
 
-    sort_control = encode_sort_controls(args.fetch(:sort_controls){ false })
-
-  deref = args[:deref] || Net::LDAP::DerefAliases_Never
-  raise Net::LDAP::LdapError.new( "invalid alias dereferencing value" ) unless Net::LDAP::DerefAliasesArray.include?(deref)
-
+    # arg transforms
+    filter = Net::LDAP::Filter.construct(filter) if filter.is_a?(String)
+    ber_attrs = attrs.map { |attr| attr.to_s.to_ber }
+    ber_sort  = encode_sort_controls(sort)
 
     # An interesting value for the size limit would be close to A/D's
     # built-in page limit of 1000 records, but openLDAP newer than version
@@ -357,35 +368,35 @@ class Net::LDAP::Connection #:nodoc:
     n_results = 0
 
     instrument "search.net_ldap_connection",
-               :filter     => search_filter,
-               :base       => search_base,
-               :scope      => scope,
-               :limit      => sizelimit,
-               :sort       => sort_control,
-               :referrals  => return_referrals,
-               :deref      => deref,
-               :attributes => search_attributes do |payload|
+               filter:     filter,
+               base:       base,
+               scope:      scope,
+               limit:      size,
+               sort:       sort,
+               referrals:  refs,
+               deref:      deref,
+               attributes: attrs do |payload|
       loop do
         # should collect this into a private helper to clarify the structure
         query_limit = 0
-        if sizelimit > 0
-          if paged_searches_supported
-            query_limit = (((sizelimit - n_results) < 126) ? (sizelimit -
+        if size > 0
+          if paged
+            query_limit = (((size - n_results) < 126) ? (size -
                                                               n_results) : 0)
           else
-            query_limit = sizelimit
+            query_limit = size
           end
         end
 
         request = [
-          search_base.to_ber,
+          base.to_ber,
           scope.to_ber_enumerated,
           deref.to_ber_enumerated,
           query_limit.to_ber, # size limit
           0.to_ber,
-          attributes_only.to_ber,
-          search_filter.to_ber,
-          search_attributes.to_ber_sequence
+          attrs_only.to_ber,
+          filter.to_ber,
+          ber_attrs.to_ber_sequence
         ].to_ber_appsequence(3)
 
         # rfc2696_cookie sometimes contains binary data from Microsoft Active Directory
@@ -399,8 +410,8 @@ class Net::LDAP::Connection #:nodoc:
             # Criticality MUST be false to interoperate with normal LDAPs.
             false.to_ber,
             rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber
-          ].to_ber_sequence if paged_searches_supported
-        controls << sort_control if sort_control
+          ].to_ber_sequence if paged
+        controls << ber_sort if ber_sort
         controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
 
         write(request, controls)
@@ -414,7 +425,7 @@ class Net::LDAP::Connection #:nodoc:
             n_results += 1
             yield pdu.search_entry if block_given?
           when Net::LDAP::PDU::SearchResultReferral
-            if return_referrals
+            if refs
               if block_given?
                 se = Net::LDAP::Entry.new
                 se[:search_referrals] = (pdu.search_referrals || [])
@@ -424,7 +435,7 @@ class Net::LDAP::Connection #:nodoc:
           when Net::LDAP::PDU::SearchResult
             result_pdu = pdu
             controls = pdu.result_controls
-            if return_referrals && pdu.result_code == 10
+            if refs && pdu.result_code == 10
               if block_given?
                 se = Net::LDAP::Entry.new
                 se[:search_referrals] = (pdu.search_referrals || [])
