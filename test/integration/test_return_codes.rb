@@ -29,7 +29,7 @@ class TestReturnCodeIntegration < LDAPIntegrationTestCase
   end
 
   def test_size_limit_exceeded
-    assert @ldap.search(filter: "cn=sizeLimitExceeded", base: "ou=Retcodes,dc=rubyldap,dc=com")
+    @ldap.search(filter: "cn=sizeLimitExceeded", base: "ou=Retcodes,dc=rubyldap,dc=com")
     assert result = @ldap.get_operation_result
 
     assert_equal 4, result.code
