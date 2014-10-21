@@ -683,7 +683,7 @@ class Net::LDAP
           when 0
             # everything good
             result_set
-          when 4
+          when ResultStrings.key("Size Limit Exceeded")
             # LDAP: Size limit exceeded
             # This happens when we use size option and results are truncated
             # Still we need to return user results
