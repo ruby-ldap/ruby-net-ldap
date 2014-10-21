@@ -55,5 +55,6 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
     assert_equal [entry], result
     assert_equal [entry], payload[:result]
     assert_equal "(uid=user1)", payload[:filter]
+    assert_equal result.size, payload[:size]
   end
 end
