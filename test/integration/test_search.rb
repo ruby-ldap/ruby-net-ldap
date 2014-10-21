@@ -31,6 +31,6 @@ class TestSearchIntegration < LDAPIntegrationTestCase
     @ldap.search(:timeout => 1)
 
     payload, result = events.pop
-    assert_equal 1, payload[:timelimit]
+    assert_equal 1, payload[:time]
   end
 end
