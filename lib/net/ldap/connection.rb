@@ -404,7 +404,7 @@ class Net::LDAP::Connection #:nodoc:
           scope.to_ber_enumerated,
           deref.to_ber_enumerated,
           query_limit.to_ber, # size limit
-          timelimit.to_ber,
+          time.to_ber,
           attrs_only.to_ber,
           filter.to_ber,
           ber_attrs.to_ber_sequence
