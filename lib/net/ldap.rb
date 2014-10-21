@@ -680,7 +680,7 @@ class Net::LDAP
       if return_result_set
         unless @result.nil?
           case @result.result_code
-          when 0
+          when ResultStrings.key("Success")
             # everything good
             result_set
           when ResultStrings.key("Size Limit Exceeded")
