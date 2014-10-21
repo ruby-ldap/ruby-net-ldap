@@ -678,7 +678,18 @@ class Net::LDAP
       end
 
       if return_result_set
-        (!@result.nil? && @result.result_code == 0) ? result_set : nil
+        unless @result.nil?
+          case @result.result_code
+          when 0
+            # everything good
+            result_set
+          when 4
+            # LDAP: Size limit exceeded
+            # This happens when we use size option and results are truncated
+            # Still we need to return user results
+            result_set
+          end
+        end
       else
         @result.success?
       end

@@ -40,4 +40,20 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
     assert_equal [entry], payload[:result]
     assert_equal "(uid=user1)", payload[:filter]
   end
+
+  def test_instrument_search_with_size
+    events = @service.subscribe "search.net_ldap"
+
+    flexmock(@connection).should_receive(:bind).and_return(flexmock(:bind_result, :result_code => 0))
+    flexmock(@connection).should_receive(:search).with(Hash, Proc).
+                yields(entry = Net::LDAP::Entry.new("uid=user1,ou=users,dc=example,dc=com")).
+                and_return(flexmock(:search_result, :success? => true, :result_code => 4))
+
+    refute_nil @subject.search(:filter => "(uid=user1)", :size => 1)
+
+    payload, result = events.pop
+    assert_equal [entry], result
+    assert_equal [entry], payload[:result]
+    assert_equal "(uid=user1)", payload[:filter]
+  end
 end
