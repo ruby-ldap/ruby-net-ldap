@@ -28,7 +28,7 @@ class TestSearchIntegration < LDAPIntegrationTestCase
   def test_search_with_size
     entries = []
 
-    result = @ldap.search(filter: "(uid=user1)", base: "dc=rubyldap,dc=com", return_result: false, size: 1) do |entry|
+    result = @ldap.search(filter: "(uid=user1)", base: "dc=rubyldap,dc=com", size: 1) do |entry|
       assert_kind_of Net::LDAP::Entry, entry
       entries << entry
     end
