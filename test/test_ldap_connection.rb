@@ -186,7 +186,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def test_search_net_ldap_connection_event
     # search data
     search_data_ber = Net::BER::BerIdentifiedArray.new([1, [
-      "uid=user1,ou=OrgUnit2,ou=OrgUnitTop,dc=openldap,dc=ghe,dc=local",
+      "uid=user1,ou=People,dc=rubyldap,dc=com",
       [ ["uid", ["user1"]] ]
     ]])
     search_data_ber.ber_identifier = Net::LDAP::PDU::SearchReturnedData
@@ -201,7 +201,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     events = @service.subscribe "search.net_ldap_connection"
     unread = @service.subscribe "search_messages_unread.net_ldap_connection"
 
-    result = @connection.search(filter: "(uid=user1)")
+    result = @connection.search(filter: "(uid=user1)", base: "ou=People,dc=rubyldap,dc=com")
     assert result.success?, "should be success"
 
     # a search event
