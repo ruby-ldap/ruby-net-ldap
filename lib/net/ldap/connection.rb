@@ -381,7 +381,7 @@ class Net::LDAP::Connection #:nodoc:
                filter:     filter,
                base:       base,
                scope:      scope,
-               limit:      size,
+               size:       size,
                time:       time,
                sort:       sort,
                referrals:  refs,
