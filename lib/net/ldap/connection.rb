@@ -111,6 +111,45 @@ class Net::LDAP::Connection #:nodoc:
     @conn = nil
   end
 
+  # Internal: Reads messages by ID from a queue, falling back to reading from
+  # the connected socket until a message matching the ID is read. Any messages
+  # with mismatched IDs gets queued for subsequent reads by the origin of that
+  # message ID.
+  #
+  # Returns a Net::LDAP::PDU object or nil.
+  def queued_read(message_id)
+    if pdu = message_queue[message_id].shift
+      return pdu
+    end
+
+    # read messages until we have a match for the given message_id
+    while pdu = read
+      if pdu.message_id == message_id
+        return pdu
+      else
+        message_queue[pdu.message_id].push pdu
+        next
+      end
+    end
+
+    pdu
+  end
+
+  # Internal: The internal queue of messages, read from the socket, grouped by
+  # message ID.
+  #
+  # Used by `queued_read` to return messages sent by the server with the given
+  # ID. If no messages are queued for that ID, `queued_read` will `read` from
+  # the socket and queue messages that don't match the given ID for other
+  # readers.
+  #
+  # Returns the message queue Hash.
+  def message_queue
+    @message_queue ||= Hash.new do |hash, key|
+      hash[key] = []
+    end
+  end
+
   # Internal: Reads and parses data from the configured connection.
   #
   # - syntax: the BER syntax to use to parse the read data with
@@ -146,9 +185,9 @@ class Net::LDAP::Connection #:nodoc:
   #
   # Returns the return value from writing to the connection, which in some
   # cases is the Integer number of bytes written to the socket.
-  def write(request, controls = nil)
+  def write(request, controls = nil, message_id = next_msgid)
     instrument "write.net_ldap_connection" do |payload|
-      packet = [next_msgid.to_ber, request, controls].compact.to_ber_sequence
+      packet = [message_id.to_ber, request, controls].compact.to_ber_sequence
       payload[:content_length] = @conn.write(packet)
     end
   end
@@ -311,26 +350,47 @@ class Net::LDAP::Connection #:nodoc:
   # type-5 packet, which might never come. We need to support the time-limit
   # in the protocol.
   #++
-  def search(args = {})
-    search_filter = (args && args[:filter]) ||
-      Net::LDAP::Filter.eq("objectclass", "*")
-    search_filter = Net::LDAP::Filter.construct(search_filter) if search_filter.is_a?(String)
-    search_base = (args && args[:base]) || "dc=example, dc=com"
-    search_attributes = ((args && args[:attributes]) || []).map { |attr| attr.to_s.to_ber}
-    return_referrals = args && args[:return_referrals] == true
-    sizelimit = (args && args[:size].to_i) || 0
-    raise Net::LDAP::LdapError, "invalid search-size" unless sizelimit >= 0
-    paged_searches_supported = (args && args[:paged_searches_supported])
+  def search(args = nil)
+    args ||= {}
 
-    attributes_only = (args and args[:attributes_only] == true)
-    scope = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
+    # filtering, scoping, search base
+    # filter: https://tools.ietf.org/html/rfc4511#section-4.5.1.7
+    # base:   https://tools.ietf.org/html/rfc4511#section-4.5.1.1
+    # scope:  https://tools.ietf.org/html/rfc4511#section-4.5.1.2
+    filter = args[:filter] || Net::LDAP::Filter.eq("objectClass", "*")
+    base   = args[:base]
+    scope  = args[:scope] || Net::LDAP::SearchScope_WholeSubtree
+
+    # attr handling
+    # attrs:      https://tools.ietf.org/html/rfc4511#section-4.5.1.8
+    # attrs_only: https://tools.ietf.org/html/rfc4511#section-4.5.1.6
+    attrs  = Array(args[:attributes])
+    attrs_only = args[:attributes_only] == true
+
+    # references
+    # refs:  https://tools.ietf.org/html/rfc4511#section-4.5.3
+    # deref: https://tools.ietf.org/html/rfc4511#section-4.5.1.3
+    refs   = args[:return_referrals] == true
+    deref  = args[:deref] || Net::LDAP::DerefAliases_Never
+
+    # limiting, paging, sorting
+    # size: https://tools.ietf.org/html/rfc4511#section-4.5.1.4
+    # time: https://tools.ietf.org/html/rfc4511#section-4.5.1.5
+    size   = args[:size].to_i
+    time   = args[:time].to_i
+    paged  = args[:paged_searches_supported]
+    sort   = args.fetch(:sort_controls, false)
+
+    # arg validation
+    raise Net::LDAP::LdapError, "search base is required" unless base
+    raise Net::LDAP::LdapError, "invalid search-size" unless size >= 0
     raise Net::LDAP::LdapError, "invalid search scope" unless Net::LDAP::SearchScopes.include?(scope)
+    raise Net::LDAP::LdapError, "invalid alias dereferencing value" unless Net::LDAP::DerefAliasesArray.include?(deref)
 
-    sort_control = encode_sort_controls(args.fetch(:sort_controls){ false })
-
-  deref = args[:deref] || Net::LDAP::DerefAliases_Never
-  raise Net::LDAP::LdapError.new( "invalid alias dereferencing value" ) unless Net::LDAP::DerefAliasesArray.include?(deref)
-
+    # arg transforms
+    filter = Net::LDAP::Filter.construct(filter) if filter.is_a?(String)
+    ber_attrs = attrs.map { |attr| attr.to_s.to_ber }
+    ber_sort  = encode_sort_controls(sort)
 
     # An interesting value for the size limit would be close to A/D's
     # built-in page limit of 1000 records, but openLDAP newer than version
@@ -356,36 +416,40 @@ class Net::LDAP::Connection #:nodoc:
     result_pdu = nil
     n_results = 0
 
+    message_id = next_msgid
+
     instrument "search.net_ldap_connection",
-               :filter     => search_filter,
-               :base       => search_base,
-               :scope      => scope,
-               :limit      => sizelimit,
-               :sort       => sort_control,
-               :referrals  => return_referrals,
-               :deref      => deref,
-               :attributes => search_attributes do |payload|
+               message_id: message_id,
+               filter:     filter,
+               base:       base,
+               scope:      scope,
+               size:       size,
+               time:       time,
+               sort:       sort,
+               referrals:  refs,
+               deref:      deref,
+               attributes: attrs do |payload|
       loop do
         # should collect this into a private helper to clarify the structure
         query_limit = 0
-        if sizelimit > 0
-          if paged_searches_supported
-            query_limit = (((sizelimit - n_results) < 126) ? (sizelimit -
+        if size > 0
+          if paged
+            query_limit = (((size - n_results) < 126) ? (size -
                                                               n_results) : 0)
           else
-            query_limit = sizelimit
+            query_limit = size
           end
         end
 
         request = [
-          search_base.to_ber,
+          base.to_ber,
           scope.to_ber_enumerated,
           deref.to_ber_enumerated,
           query_limit.to_ber, # size limit
-          0.to_ber,
-          attributes_only.to_ber,
-          search_filter.to_ber,
-          search_attributes.to_ber_sequence
+          time.to_ber,
+          attrs_only.to_ber,
+          filter.to_ber,
+          ber_attrs.to_ber_sequence
         ].to_ber_appsequence(3)
 
         # rfc2696_cookie sometimes contains binary data from Microsoft Active Directory
@@ -399,22 +463,22 @@ class Net::LDAP::Connection #:nodoc:
             # Criticality MUST be false to interoperate with normal LDAPs.
             false.to_ber,
             rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber
-          ].to_ber_sequence if paged_searches_supported
-        controls << sort_control if sort_control
+          ].to_ber_sequence if paged
+        controls << ber_sort if ber_sort
         controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
 
-        write(request, controls)
+        write(request, controls, message_id)
 
         result_pdu = nil
         controls = []
 
-        while pdu = read
+        while pdu = queued_read(message_id)
           case pdu.app_tag
           when Net::LDAP::PDU::SearchReturnedData
             n_results += 1
             yield pdu.search_entry if block_given?
           when Net::LDAP::PDU::SearchResultReferral
-            if return_referrals
+            if refs
               if block_given?
                 se = Net::LDAP::Entry.new
                 se[:search_referrals] = (pdu.search_referrals || [])
@@ -424,7 +488,7 @@ class Net::LDAP::Connection #:nodoc:
           when Net::LDAP::PDU::SearchResult
             result_pdu = pdu
             controls = pdu.result_controls
-            if return_referrals && pdu.result_code == 10
+            if refs && pdu.result_code == 10
               if block_given?
                 se = Net::LDAP::Entry.new
                 se[:search_referrals] = (pdu.search_referrals || [])
@@ -476,6 +540,16 @@ class Net::LDAP::Connection #:nodoc:
 
       result_pdu || OpenStruct.new(:status => :failure, :result_code => 1, :message => "Invalid search")
     end # instrument
+  ensure
+    # clean up message queue for this search
+    messages = message_queue.delete(message_id)
+
+    # in the exceptional case some messages were *not* consumed from the queue,
+    # instrument the event but do not fail.
+    unless messages.empty?
+      instrument "search_messages_unread.net_ldap_connection",
+                 message_id: message_id, messages: messages
+    end
   end
 
   MODIFY_OPERATIONS = { #:nodoc:
