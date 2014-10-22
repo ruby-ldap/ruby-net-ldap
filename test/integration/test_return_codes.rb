@@ -8,31 +8,31 @@ class TestReturnCodeIntegration < LDAPIntegrationTestCase
     refute @ldap.search(filter: "cn=operationsError", base: "ou=Retcodes,dc=rubyldap,dc=com")
     assert result = @ldap.get_operation_result
 
-    assert_equal 1, result.code
-    assert_equal Net::LDAP::ResultStrings[1], result.message
+    assert_equal Net::LDAP::ResultCodeOperationsError, result.code
+    assert_equal Net::LDAP::ResultStrings[Net::LDAP::ResultCodeOperationsError], result.message
   end
 
   def test_protocol_error
     refute @ldap.search(filter: "cn=protocolError", base: "ou=Retcodes,dc=rubyldap,dc=com")
     assert result = @ldap.get_operation_result
 
-    assert_equal 2, result.code
-    assert_equal Net::LDAP::ResultStrings[2], result.message
+    assert_equal Net::LDAP::ResultCodeProtocolError, result.code
+    assert_equal Net::LDAP::ResultStrings[Net::LDAP::ResultCodeProtocolError], result.message
   end
 
   def test_time_limit_exceeded
     assert @ldap.search(filter: "cn=timeLimitExceeded", base: "ou=Retcodes,dc=rubyldap,dc=com")
     assert result = @ldap.get_operation_result
 
-    assert_equal 3, result.code
-    assert_equal Net::LDAP::ResultStrings[3], result.message
+    assert_equal Net::LDAP::ResultCodeTimeLimitExceeded, result.code
+    assert_equal Net::LDAP::ResultStrings[Net::LDAP::ResultCodeTimeLimitExceeded], result.message
   end
 
   def test_size_limit_exceeded
     assert @ldap.search(filter: "cn=sizeLimitExceeded", base: "ou=Retcodes,dc=rubyldap,dc=com")
     assert result = @ldap.get_operation_result
 
-    assert_equal 4, result.code
-    assert_equal Net::LDAP::ResultStrings[4], result.message
+    assert_equal Net::LDAP::ResultCodeSizeLimitExceeded, result.code
+    assert_equal Net::LDAP::ResultStrings[Net::LDAP::ResultCodeSizeLimitExceeded], result.message
   end
 end
