@@ -44,8 +44,6 @@ class TestSearchIntegration < LDAPIntegrationTestCase
 
   # http://tools.ietf.org/html/rfc4511#section-4.5.1.4
   def test_search_size
-    skip "search treats sizeLimitExceeded response as failure"
-
     entries = @ldap.search(base: "ou=People,dc=rubyldap,dc=com", size: 2)
 
     assert_equal 2, entries.size
