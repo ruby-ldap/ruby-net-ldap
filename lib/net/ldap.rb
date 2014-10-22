@@ -321,29 +321,103 @@ class Net::LDAP
 
   StartTlsOid = "1.3.6.1.4.1.1466.20037"
 
+  # https://tools.ietf.org/html/rfc4511#section-4.1.9
+  # https://tools.ietf.org/html/rfc4511#appendix-A
+  ResultCodeSuccess                      = 0
+  ResultCodeOperationsError              = 1
+  ResultCodeProtocolError                = 2
+  ResultCodeTimeLimitExceeded            = 3
+  ResultCodeSizeLimitExceeded            = 4
+  ResultCodeCompareFalse                 = 5
+  ResultCodeCompareTrue                  = 6
+  ResultCodeAuthMethodNotSupported       = 7
+  ResultCodeStrongerAuthRequired         = 8
+  ResultCodeReferral                     = 10
+  ResultCodeAdminLimitExceeded           = 11
+  ResultCodeUnavailableCriticalExtension = 12
+  ResultCodeConfidentialityRequired      = 13
+  ResultCodeSaslBindInProgress           = 14
+  ResultCodeNoSuchAttribute              = 16
+  ResultCodeUndefinedAttributeType       = 17
+  ResultCodeInappropriateMatching        = 18
+  ResultCodeConstraintViolation          = 19
+  ResultCodeAttributeOrValueExists       = 20
+  ResultCodeInvalidAttributeSyntax       = 21
+  ResultCodeNoSuchObject                 = 32
+  ResultCodeAliasProblem                 = 33
+  ResultCodeInvalidDNSyntax              = 34
+  ResultCodeAliasDereferencingProblem    = 36
+  ResultCodeInappropriateAuthentication  = 48
+  ResultCodeInvalidCredentials           = 49
+  ResultCodeInsufficientAccessRights     = 50
+  ResultCodeBusy                         = 51
+  ResultCodeUnavailable                  = 52
+  ResultCodeUnwillingToPerform           = 53
+  ResultCodeNamingViolation              = 64
+  ResultCodeObjectClassViolation         = 65
+  ResultCodeNotAllowedOnNonLeaf          = 66
+  ResultCodeNotAllowedOnRDN              = 67
+  ResultCodeEntryAlreadyExists           = 68
+  ResultCodeObjectClassModsProhibited    = 69
+  ResultCodeAffectsMultipleDSAs          = 71
+  ResultCodeOther                        = 80
+
+  # https://tools.ietf.org/html/rfc4511#appendix-A.1
+  ResultCodesNonError = [
+    ResultCodeSuccess,
+    ResultCodeCompareFalse,
+    ResultCodeCompareTrue,
+    ResultCodeReferral,
+    ResultCodeSaslBindInProgress
+  ]
+
+  # nonstandard list of "successful" result codes for searches
+  ResultCodesSearchSuccess = [
+    ResultCodeSuccess,
+    ResultCodeTimeLimitExceeded,
+    ResultCodeSizeLimitExceeded
+  ]
+
+  # map of result code to human message
   ResultStrings = {
-    0 => "Success",
-    1 => "Operations Error",
-    2 => "Protocol Error",
-    3 => "Time Limit Exceeded",
-    4 => "Size Limit Exceeded",
-    10 => "Referral",
-    12 => "Unavailable crtical extension",
-    14 => "saslBindInProgress",
-    16 => "No Such Attribute",
-    17 => "Undefined Attribute Type",
-    19 => "Constraint Violation",
-    20 => "Attribute or Value Exists",
-    32 => "No Such Object",
-    34 => "Invalid DN Syntax",
-    48 => "Inappropriate Authentication",
-    49 => "Invalid Credentials",
-    50 => "Insufficient Access Rights",
-    51 => "Busy",
-    52 => "Unavailable",
-    53 => "Unwilling to perform",
-    65 => "Object Class Violation",
-    68 => "Entry Already Exists"
+    ResultCodeSuccess                      => "Success",
+    ResultCodeOperationsError              => "Operations Error",
+    ResultCodeProtocolError                => "Protocol Error",
+    ResultCodeTimeLimitExceeded            => "Time Limit Exceeded",
+    ResultCodeSizeLimitExceeded            => "Size Limit Exceeded",
+    ResultCodeCompareFalse                 => "False Comparison",
+    ResultCodeCompareTrue                  => "True Comparison",
+    ResultCodeAuthMethodNotSupported       => "Auth Method Not Supported",
+    ResultCodeStrongerAuthRequired         => "Stronger Auth Needed",
+    ResultCodeReferral                     => "Referral",
+    ResultCodeAdminLimitExceeded           => "Admin Limit Exceeded",
+    ResultCodeUnavailableCriticalExtension => "Unavailable crtical extension",
+    ResultCodeConfidentialityRequired      => "Confidentiality Required",
+    ResultCodeSaslBindInProgress           => "saslBindInProgress",
+    ResultCodeNoSuchAttribute              => "No Such Attribute",
+    ResultCodeUndefinedAttributeType       => "Undefined Attribute Type",
+    ResultCodeInappropriateMatching        => "Inappropriate Matching",
+    ResultCodeConstraintViolation          => "Constraint Violation",
+    ResultCodeAttributeOrValueExists       => "Attribute or Value Exists",
+    ResultCodeInvalidAttributeSyntax       => "Invalide Attribute Syntax",
+    ResultCodeNoSuchObject                 => "No Such Object",
+    ResultCodeAliasProblem                 => "Alias Problem",
+    ResultCodeInvalidDNSyntax              => "Invalid DN Syntax",
+    ResultCodeAliasDereferencingProblem    => "Alias Dereferencing Problem",
+    ResultCodeInappropriateAuthentication  => "Inappropriate Authentication",
+    ResultCodeInvalidCredentials           => "Invalid Credentials",
+    ResultCodeInsufficientAccessRights     => "Insufficient Access Rights",
+    ResultCodeBusy                         => "Busy",
+    ResultCodeUnavailable                  => "Unavailable",
+    ResultCodeUnwillingToPerform           => "Unwilling to perform",
+    ResultCodeNamingViolation              => "Naming Violation",
+    ResultCodeObjectClassViolation         => "Object Class Violation",
+    ResultCodeNotAllowedOnNonLeaf          => "Not Allowed On Non-Leaf",
+    ResultCodeNotAllowedOnRDN              => "Not Allowed On RDN",
+    ResultCodeEntryAlreadyExists           => "Entry Already Exists",
+    ResultCodeObjectClassModsProhibited    => "ObjectClass Modifications Prohibited",
+    ResultCodeAffectsMultipleDSAs          => "Affects Multiple DSAs",
+    ResultCodeOther                        => "Other"
   }
 
   module LDAPControls
