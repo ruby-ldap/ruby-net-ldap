@@ -28,10 +28,10 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
   def test_instrument_search
     events = @service.subscribe "search.net_ldap"
 
-    flexmock(@connection).should_receive(:bind).and_return(flexmock(:bind_result, :result_code => 0))
+    flexmock(@connection).should_receive(:bind).and_return(flexmock(:bind_result, :result_code => Net::LDAP::ResultCodeSuccess))
     flexmock(@connection).should_receive(:search).with(Hash, Proc).
                 yields(entry = Net::LDAP::Entry.new("uid=user1,ou=users,dc=example,dc=com")).
-                and_return(flexmock(:search_result, :success? => true, :result_code => 0))
+                and_return(flexmock(:search_result, :success? => true, :result_code => Net::LDAP::ResultCodeSuccess))
 
     refute_nil @subject.search(:filter => "(uid=user1)")
 
@@ -44,10 +44,10 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
   def test_instrument_search_with_size
     events = @service.subscribe "search.net_ldap"
 
-    flexmock(@connection).should_receive(:bind).and_return(flexmock(:bind_result, :result_code => 0))
+    flexmock(@connection).should_receive(:bind).and_return(flexmock(:bind_result, :result_code => Net::LDAP::ResultCodeSuccess))
     flexmock(@connection).should_receive(:search).with(Hash, Proc).
                 yields(entry = Net::LDAP::Entry.new("uid=user1,ou=users,dc=example,dc=com")).
-                and_return(flexmock(:search_result, :success? => true, :result_code => 4))
+                and_return(flexmock(:search_result, :success? => true, :result_code => Net::LDAP::ResultCodeSizeLimitExceeded))
 
     refute_nil @subject.search(:filter => "(uid=user1)", :size => 1)
 
