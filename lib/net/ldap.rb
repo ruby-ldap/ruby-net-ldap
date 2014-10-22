@@ -754,14 +754,7 @@ class Net::LDAP
 
       if return_result_set
         unless @result.nil?
-          case @result.result_code
-          when ResultStrings.key("Success")
-            # everything good
-            result_set
-          when ResultStrings.key("Size Limit Exceeded"), ResultStrings.key("Time Limit Exceeded")
-            # LDAP: Size/Time limit exceeded
-            # This happens when we use size option and results are truncated
-            # Still we need to return user results
+          if ResultCodesSearchSuccess.include?(@result.result_code)
             result_set
           end
         end
