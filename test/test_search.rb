@@ -4,7 +4,7 @@ require_relative 'test_helper'
 class TestSearch < Test::Unit::TestCase
   class FakeConnection
     def search(args)
-      OpenStruct.new(:result_code => 1, :message => "error", :success? => false)
+      OpenStruct.new(:result_code => Net::LDAP::ResultCodeOperationsError, :message => "error", :success? => false)
     end
   end
 

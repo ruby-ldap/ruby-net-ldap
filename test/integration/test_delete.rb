@@ -25,7 +25,7 @@ class TestDeleteIntegration < LDAPIntegrationTestCase
     refute @ldap.search(base: @dn, scope: Net::LDAP::SearchScope_BaseObject)
 
     result = @ldap.get_operation_result
-    assert_equal 32, result.code
-    assert_equal Net::LDAP::ResultStrings[32], result.message
+    assert_equal Net::LDAP::ResultCodeNoSuchObject, result.code
+    assert_equal Net::LDAP::ResultStrings[Net::LDAP::ResultCodeNoSuchObject], result.message
   end
 end

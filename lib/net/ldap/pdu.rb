@@ -18,24 +18,48 @@ require 'ostruct'
 # well with our approach.
 #
 # Currently, we only support controls on SearchResult.
+#
+# http://tools.ietf.org/html/rfc4511#section-4.1.1
+# http://tools.ietf.org/html/rfc4511#section-4.1.9
 class Net::LDAP::PDU
   class Error < RuntimeError; end
 
-  ##
-  # This message packet is a bind request.
+  # http://tools.ietf.org/html/rfc4511#section-4.2
   BindRequest = 0
+  # http://tools.ietf.org/html/rfc4511#section-4.2.2
   BindResult = 1
+  # http://tools.ietf.org/html/rfc4511#section-4.3
   UnbindRequest = 2
+  # http://tools.ietf.org/html/rfc4511#section-4.5.1
   SearchRequest = 3
+  # http://tools.ietf.org/html/rfc4511#section-4.5.2
   SearchReturnedData = 4
   SearchResult = 5
+  # see also SearchResultReferral (19)
+  # http://tools.ietf.org/html/rfc4511#section-4.6
+  ModifyRequest  = 6
   ModifyResponse = 7
+  # http://tools.ietf.org/html/rfc4511#section-4.7
+  AddRequest = 8
   AddResponse = 9
+  # http://tools.ietf.org/html/rfc4511#section-4.8
+  DeleteRequest = 10
   DeleteResponse = 11
+  # http://tools.ietf.org/html/rfc4511#section-4.9
+  ModifyRDNRequest  = 12
   ModifyRDNResponse = 13
+  # http://tools.ietf.org/html/rfc4511#section-4.10
+  CompareRequest = 14
+  CompareResponse = 15
+  # http://tools.ietf.org/html/rfc4511#section-4.11
+  AbandonRequest = 16
+  # http://tools.ietf.org/html/rfc4511#section-4.5.2
   SearchResultReferral = 19
+  # http://tools.ietf.org/html/rfc4511#section-4.12
   ExtendedRequest = 23
   ExtendedResponse = 24
+  # unused: http://tools.ietf.org/html/rfc4511#section-4.13
+  IntermediateResponse = 25
 
   ##
   # The LDAP packet message ID.
@@ -125,7 +149,7 @@ class Net::LDAP::PDU
   end
 
   def status
-    result_code == 0 ? :success : :failure
+    Net::LDAP::ResultCodesNonError.include?(result_code) ? :success : :failure
   end
 
   def success?
@@ -152,7 +176,7 @@ class Net::LDAP::PDU
       :matchedDN => sequence[1],
       :errorMessage => sequence[2]
     }
-    parse_search_referral(sequence[3]) if @ldap_result[:resultCode] == 10
+    parse_search_referral(sequence[3]) if @ldap_result[:resultCode] == Net::LDAP::ResultCodeReferral
   end
   private :parse_ldap_result
 
