@@ -610,10 +610,11 @@ class Net::LDAP::Connection #:nodoc:
       add_attrs << [ k.to_s.to_ber, Array(v).map { |m| m.to_ber}.to_ber_set ].to_ber_sequence
     }
 
-    request = [add_dn.to_ber, add_attrs.to_ber_sequence].to_ber_appsequence(8)
-    write(request)
+    message_id = next_msgid
+    request    = [add_dn.to_ber, add_attrs.to_ber_sequence].to_ber_appsequence(8)
 
-    pdu = read
+    write(request, nil, message_id)
+    pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::AddResponse
       raise Net::LDAP::LdapError, "response missing or invalid"
