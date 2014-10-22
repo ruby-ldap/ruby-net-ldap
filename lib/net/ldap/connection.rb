@@ -375,7 +375,9 @@ class Net::LDAP::Connection #:nodoc:
 
     # limiting, paging, sorting
     # size: https://tools.ietf.org/html/rfc4511#section-4.5.1.4
+    # time: https://tools.ietf.org/html/rfc4511#section-4.5.1.5
     size   = args[:size].to_i
+    time   = args[:time].to_i
     paged  = args[:paged_searches_supported]
     sort   = args.fetch(:sort_controls, false)
 
@@ -421,7 +423,8 @@ class Net::LDAP::Connection #:nodoc:
                filter:     filter,
                base:       base,
                scope:      scope,
-               limit:      size,
+               size:       size,
+               time:       time,
                sort:       sort,
                referrals:  refs,
                deref:      deref,
@@ -443,7 +446,7 @@ class Net::LDAP::Connection #:nodoc:
           scope.to_ber_enumerated,
           deref.to_ber_enumerated,
           query_limit.to_ber, # size limit
-          0.to_ber,
+          time.to_ber,
           attrs_only.to_ber,
           filter.to_ber,
           ber_attrs.to_ber_sequence

@@ -25,6 +25,20 @@ class TestSearchIntegration < LDAPIntegrationTestCase
     refute_equal entries, result
   end
 
+  def test_search_timeout
+    entries = []
+    events = @service.subscribe "search.net_ldap_connection"
+
+    result = @ldap.search(base: "dc=rubyldap,dc=com", time: 5) do |entry|
+      assert_kind_of Net::LDAP::Entry, entry
+      entries << entry
+    end
+
+    payload, _ = events.pop
+    assert_equal 5, payload[:time]
+    assert_equal entries, result
+  end
+
   def test_search_with_size
     entries = []
 
