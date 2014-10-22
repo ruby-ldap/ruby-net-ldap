@@ -227,7 +227,7 @@ class Net::LDAP::Connection #:nodoc:
     raise Net::LDAP::LdapError, "Invalid binding information" unless (user && psw)
 
     request = [LdapVersion.to_ber, user.to_ber,
-      psw.to_ber_contextspecific(0)].to_ber_appsequence(0)
+      psw.to_ber_contextspecific(0)].to_ber_appsequence(Net::LDAP::PDU::BindRequest)
     write(request)
 
     pdu = read
@@ -265,7 +265,7 @@ class Net::LDAP::Connection #:nodoc:
     n = 0
     loop {
       sasl = [mech.to_ber, cred.to_ber].to_ber_contextspecific(3)
-      request = [LdapVersion.to_ber, "".to_ber, sasl].to_ber_appsequence(0)
+      request = [LdapVersion.to_ber, "".to_ber, sasl].to_ber_appsequence(Net::LDAP::PDU::BindRequest)
       write(request)
 
       pdu = read
@@ -450,7 +450,7 @@ class Net::LDAP::Connection #:nodoc:
           attrs_only.to_ber,
           filter.to_ber,
           ber_attrs.to_ber_sequence
-        ].to_ber_appsequence(3)
+        ].to_ber_appsequence(Net::LDAP::PDU::SearchRequest)
 
         # rfc2696_cookie sometimes contains binary data from Microsoft Active Directory
         # this breaks when calling to_ber. (Can't force binary data to UTF-8)
@@ -584,7 +584,7 @@ class Net::LDAP::Connection #:nodoc:
     modify_dn = args[:dn] or raise "Unable to modify empty DN"
     ops = self.class.modify_ops args[:operations]
     request = [ modify_dn.to_ber,
-      ops.to_ber_sequence ].to_ber_appsequence(6)
+      ops.to_ber_sequence ].to_ber_appsequence(Net::LDAP::PDU::ModifyRequest)
     write(request)
 
     pdu = read
@@ -610,7 +610,7 @@ class Net::LDAP::Connection #:nodoc:
       add_attrs << [ k.to_s.to_ber, Array(v).map { |m| m.to_ber}.to_ber_set ].to_ber_sequence
     }
 
-    request = [add_dn.to_ber, add_attrs.to_ber_sequence].to_ber_appsequence(8)
+    request = [add_dn.to_ber, add_attrs.to_ber_sequence].to_ber_appsequence(Net::LDAP::PDU::AddRequest)
     write(request)
 
     pdu = read
@@ -634,7 +634,7 @@ class Net::LDAP::Connection #:nodoc:
     request = [old_dn.to_ber, new_rdn.to_ber, delete_attrs.to_ber]
     request << new_superior.to_ber_contextspecific(0) unless new_superior == nil
 
-    write(request.to_ber_appsequence(12))
+    write(request.to_ber_appsequence(Net::LDAP::PDU::ModifyRDNRequest))
 
     pdu = read
 
@@ -651,7 +651,7 @@ class Net::LDAP::Connection #:nodoc:
   def delete(args)
     dn = args[:dn] or raise "Unable to delete empty DN"
     controls = args.include?(:control_codes) ? args[:control_codes].to_ber_control : nil #use nil so we can compact later
-    request = dn.to_s.to_ber_application_string(10)
+    request = dn.to_s.to_ber_application_string(Net::LDAP::PDU::DeleteRequest)
     write(request, controls)
 
     pdu = read
