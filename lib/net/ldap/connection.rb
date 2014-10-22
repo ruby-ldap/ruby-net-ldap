@@ -271,7 +271,7 @@ class Net::LDAP::Connection #:nodoc:
       pdu = read
       raise Net::LDAP::LdapError, "no bind result" unless pdu
 
-      return pdu unless pdu.result_code == 14 # saslBindInProgress
+      return pdu unless pdu.result_code == Net::LDAP::ResultCodeSaslBindInProgress
       raise Net::LDAP::LdapError, "sasl-challenge overflow" if ((n += 1) > MaxSaslChallenges)
 
       cred = chall.call(pdu.result_server_sasl_creds)
@@ -488,7 +488,7 @@ class Net::LDAP::Connection #:nodoc:
           when Net::LDAP::PDU::SearchResult
             result_pdu = pdu
             controls = pdu.result_controls
-            if refs && pdu.result_code == 10
+            if refs && pdu.result_code == Net::LDAP::ResultCodeReferral
               if block_given?
                 se = Net::LDAP::Entry.new
                 se[:search_referrals] = (pdu.search_referrals || [])
@@ -516,7 +516,7 @@ class Net::LDAP::Connection #:nodoc:
         # of type OCTET STRING, covered in the default syntax supported by
         # read_ber, so I guess we're ok.
         more_pages = false
-        if result_pdu.result_code == 0 and controls
+        if result_pdu.result_code == Net::LDAP::ResultCodeSuccess and controls
           controls.each do |c|
             if c.oid == Net::LDAP::LDAPControls::PAGED_RESULTS
               # just in case some bogus server sends us more than 1 of these.
@@ -538,7 +538,7 @@ class Net::LDAP::Connection #:nodoc:
       # track total result count
       payload[:result_count] = n_results
 
-      result_pdu || OpenStruct.new(:status => :failure, :result_code => 1, :message => "Invalid search")
+      result_pdu || OpenStruct.new(:status => :failure, :result_code => Net::LDAP::ResultCodeOperationsError, :message => "Invalid search")
     end # instrument
   ensure
     # clean up message queue for this search

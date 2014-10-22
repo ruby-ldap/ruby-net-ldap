@@ -623,7 +623,7 @@ class Net::LDAP
     elsif result
       os.code = result
     else
-      os.code = 0
+      os.code = Net::LDAP::ResultCodeSuccess
     end
     os.message = Net::LDAP.result2string(os.code)
     os
@@ -741,7 +741,7 @@ class Net::LDAP
             :port                    => @port,
             :encryption              => @encryption,
             :instrumentation_service => @instrumentation_service
-          if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
+          if (@result = conn.bind(args[:auth] || @auth)).result_code == Net::LDAP::ResultCodeSuccess
             @result = conn.search(args) { |entry|
               result_set << entry if result_set
               yield entry if block_given?
@@ -947,7 +947,7 @@ class Net::LDAP
             :port                    => @port,
             :encryption              => @encryption,
             :instrumentation_service => @instrumentation_service
-          if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
+          if (@result = conn.bind(args[:auth] || @auth)).result_code == Net::LDAP::ResultCodeSuccess
             @result = conn.add(args)
           end
         ensure
@@ -1051,7 +1051,7 @@ class Net::LDAP
             :port                    => @port,
             :encryption              => @encryption,
             :instrumentation_service => @instrumentation_service
-          if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
+          if (@result = conn.bind(args[:auth] || @auth)).result_code == Net::LDAP::ResultCodeSuccess
             @result = conn.modify(args)
           end
         ensure
@@ -1128,7 +1128,7 @@ class Net::LDAP
             :port                    => @port,
             :encryption              => @encryption,
             :instrumentation_service => @instrumentation_service
-          if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
+          if (@result = conn.bind(args[:auth] || @auth)).result_code == Net::LDAP::ResultCodeSuccess
             @result = conn.rename(args)
           end
         ensure
@@ -1161,7 +1161,7 @@ class Net::LDAP
             :port                    => @port,
             :encryption              => @encryption,
             :instrumentation_service => @instrumentation_service
-          if (@result = conn.bind(args[:auth] || @auth)).result_code == 0
+          if (@result = conn.bind(args[:auth] || @auth)).result_code == Net::LDAP::ResultCodeSuccess
             @result = conn.delete(args)
           end
         ensure
