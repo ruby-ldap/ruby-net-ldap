@@ -125,7 +125,7 @@ class Net::LDAP::PDU
   end
 
   def status
-    result_code == 0 ? :success : :failure
+    Net::LDAP::ResultCodesNonError.include?(result_code) ? :success : :failure
   end
 
   def success?
