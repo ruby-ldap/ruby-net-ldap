@@ -35,7 +35,7 @@ class Net::LDAP::PDU
   # http://tools.ietf.org/html/rfc4511#section-4.5.2
   SearchReturnedData = 4
   SearchResult = 5
-  SearchResultReferral = 19
+  # see also SearchResultReferral (19)
   # http://tools.ietf.org/html/rfc4511#section-4.6
   ModifyRequest  = 6
   ModifyResponse = 7
@@ -48,9 +48,18 @@ class Net::LDAP::PDU
   # http://tools.ietf.org/html/rfc4511#section-4.9
   ModifyRDNRequest  = 12
   ModifyRDNResponse = 13
+  # http://tools.ietf.org/html/rfc4511#section-4.10
+  CompareRequest = 14
+  CompareResponse = 15
+  # http://tools.ietf.org/html/rfc4511#section-4.11
+  AbandonRequest = 16
+  # http://tools.ietf.org/html/rfc4511#section-4.5.2
+  SearchResultReferral = 19
   # http://tools.ietf.org/html/rfc4511#section-4.12
   ExtendedRequest = 23
   ExtendedResponse = 24
+  # unused: http://tools.ietf.org/html/rfc4511#section-4.13
+  IntermediateResponse = 25
 
   ##
   # The LDAP packet message ID.
