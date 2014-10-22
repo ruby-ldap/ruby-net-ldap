@@ -12,8 +12,9 @@ class TestBEREncoding < Test::Unit::TestCase
     assert_equal ary, encoded_ary.read_ber
   end
 
+  # http://tools.ietf.org/html/rfc4511#section-5.1
   def test_true
-    assert_equal "\x01\x01\x01", true.to_ber
+    assert_equal "\x01\x01\xFF", true.to_ber
   end
 
   def test_false
