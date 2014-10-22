@@ -14,7 +14,7 @@ class TestBEREncoding < Test::Unit::TestCase
 
   # http://tools.ietf.org/html/rfc4511#section-5.1
   def test_true
-    assert_equal "\x01\x01\xFF", true.to_ber
+    assert_equal "\x01\x01\xFF".b, true.to_ber
   end
 
   def test_false
