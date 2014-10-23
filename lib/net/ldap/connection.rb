@@ -583,11 +583,15 @@ class Net::LDAP::Connection #:nodoc:
   def modify(args)
     modify_dn = args[:dn] or raise "Unable to modify empty DN"
     ops = self.class.modify_ops args[:operations]
-    request = [ modify_dn.to_ber,
-      ops.to_ber_sequence ].to_ber_appsequence(Net::LDAP::PDU::ModifyRequest)
-    write(request)
 
-    pdu = read
+    message_id = next_msgid
+    request    = [
+      modify_dn.to_ber,
+      ops.to_ber_sequence
+    ].to_ber_appsequence(Net::LDAP::PDU::ModifyRequest)
+
+    write(request, nil, message_id)
+    pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::ModifyResponse
       raise Net::LDAP::LdapError, "response missing or invalid"
