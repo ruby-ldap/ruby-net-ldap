@@ -67,6 +67,86 @@ class TestLDAPConnection < Test::Unit::TestCase
   end
 end
 
+class TestLDAPConnectionSocketReads < Test::Unit::TestCase
+  def make_message(message_id, app_tag: Net::LDAP::PDU::SearchResult, code: Net::LDAP::ResultCodeSuccess, matched_dn: "", error_message: "")
+    result = Net::BER::BerIdentifiedArray.new([code, matched_dn, error_message])
+    result.ber_identifier = app_tag
+    [message_id, result]
+  end
+
+  def test_queued_read_drains_queue_before_read
+    result1a = make_message(1, error_message: "one")
+    result1b = make_message(1, error_message: "two")
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).and_return(result1b)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    conn.message_queue[1].push Net::LDAP::PDU.new(result1a)
+
+    assert msg1 = conn.queued_read(1)
+    assert msg2 = conn.queued_read(1)
+
+    assert_equal 1, msg1.message_id
+    assert_equal "one", msg1.error_message
+    assert_equal 1, msg2.message_id
+    assert_equal "two", msg2.error_message
+  end
+
+  def test_queued_read_reads_until_message_id_match
+    result1 = make_message(1)
+    result2 = make_message(2)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    assert result = conn.queued_read(2)
+    assert_equal 2, result.message_id
+    assert_equal 1, conn.queued_read(1).message_id
+  end
+
+  def test_queued_read_modify
+    result1 = make_message(1, app_tag: Net::LDAP::PDU::SearchResult)
+    result2 = make_message(2, app_tag: Net::LDAP::PDU::ModifyResponse)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    mock.should_receive(:write)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    conn.next_msgid # simulates ongoing query
+
+    conn.instance_variable_get("@msgid")
+
+    assert result = conn.modify(dn: "uid=modified-user1,ou=People,dc=rubyldap,dc=com",
+                                operations: [[:add, :mail, "modified-user1@example.com"]])
+    assert result.success?
+    assert_equal 2, result.message_id
+  end
+
+  def test_queued_read_add
+    result1 = make_message(1, app_tag: Net::LDAP::PDU::SearchResult)
+    result2 = make_message(2, app_tag: Net::LDAP::PDU::AddResponse)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    mock.should_receive(:write)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    conn.next_msgid # simulates ongoing query
+
+    assert result = conn.add(dn: "uid=added-user1,ou=People,dc=rubyldap,dc=com")
+    assert result.success?
+    assert_equal 2, result.message_id
+  end
+end
 
 class TestLDAPConnectionErrors < Test::Unit::TestCase
   def setup
@@ -79,7 +159,7 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
   def test_error_failed_operation
     ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeUnwillingToPerform, "", "The provided password value was rejected by a password validator:  The provided password did not contain enough characters from the character set 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.  The minimum number of characters from that set that must be present in user passwords is 1"])
     ber.ber_identifier = Net::LDAP::PDU::ModifyResponse
-    @tcp_socket.should_receive(:read_ber).and_return([2, ber])
+    @tcp_socket.should_receive(:read_ber).and_return([1, ber])
 
     result = @connection.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]])
     assert result.failure?, "should be failure"
@@ -89,7 +169,7 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
   def test_no_error_on_success
     ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
     ber.ber_identifier = Net::LDAP::PDU::ModifyResponse
-    @tcp_socket.should_receive(:read_ber).and_return([2, ber])
+    @tcp_socket.should_receive(:read_ber).and_return([1, ber])
 
     result = @connection.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]])
     assert result.success?, "should be success"
