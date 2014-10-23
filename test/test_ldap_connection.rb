@@ -68,9 +68,15 @@ class TestLDAPConnection < Test::Unit::TestCase
 end
 
 class TestLDAPConnectionSocketReads < Test::Unit::TestCase
-  def make_message(message_id, app_tag: Net::LDAP::PDU::SearchResult, code: Net::LDAP::ResultCodeSuccess, matched_dn: "", error_message: "")
-    result = Net::BER::BerIdentifiedArray.new([code, matched_dn, error_message])
-    result.ber_identifier = app_tag
+  def make_message(message_id, options = {})
+    options = {
+      app_tag: Net::LDAP::PDU::SearchResult,
+      code: Net::LDAP::ResultCodeSuccess,
+      matched_dn: "",
+      error_message: ""
+    }.merge(options)
+    result = Net::BER::BerIdentifiedArray.new([options[:code], options[:matched_dn], options[:error_message]])
+    result.ber_identifier = options[:app_tag]
     [message_id, result]
   end
 
