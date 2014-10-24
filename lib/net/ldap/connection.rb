@@ -655,11 +655,12 @@ class Net::LDAP::Connection #:nodoc:
   #++
   def delete(args)
     dn = args[:dn] or raise "Unable to delete empty DN"
-    controls = args.include?(:control_codes) ? args[:control_codes].to_ber_control : nil #use nil so we can compact later
-    request = dn.to_s.to_ber_application_string(Net::LDAP::PDU::DeleteRequest)
-    write(request, controls)
+    controls   = args.include?(:control_codes) ? args[:control_codes].to_ber_control : nil #use nil so we can compact later
+    message_id = next_msgid
+    request    = dn.to_s.to_ber_application_string(Net::LDAP::PDU::DeleteRequest)
 
-    pdu = read
+    write(request, controls, message_id)
+    pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::DeleteResponse
       raise Net::LDAP::LdapError, "response missing or invalid"
