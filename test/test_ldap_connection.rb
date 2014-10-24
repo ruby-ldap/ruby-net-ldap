@@ -210,6 +210,27 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
     assert result = conn.setup_encryption(method: :start_tls)
     assert_equal mock, result
   end
+
+  def test_queued_read_bind_simple
+    result1 = make_message(1, app_tag: Net::LDAP::PDU::SearchResult)
+    result2 = make_message(2, app_tag: Net::LDAP::PDU::BindResult)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    mock.should_receive(:write)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    conn.next_msgid # simulates ongoing query
+
+    assert result = conn.bind(
+      method: :simple,
+      username: "uid=user1,ou=People,dc=rubyldap,dc=com",
+      password: "passworD1")
+    assert result.success?
+    assert_equal 2, result.message_id
+  end
 end
 
 class TestLDAPConnectionErrors < Test::Unit::TestCase
@@ -257,7 +278,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def test_write_net_ldap_connection_event
     ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
     ber.ber_identifier = Net::LDAP::PDU::BindResult
-    read_result = [2, ber]
+    read_result = [1, ber]
     @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
     events = @service.subscribe "write.net_ldap_connection"
@@ -274,7 +295,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def test_read_net_ldap_connection_event
     ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
     ber.ber_identifier = Net::LDAP::PDU::BindResult
-    read_result = [2, ber]
+    read_result = [1, ber]
     @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
     events = @service.subscribe "read.net_ldap_connection"
@@ -291,7 +312,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def test_parse_pdu_net_ldap_connection_event
     ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
     ber.ber_identifier = Net::LDAP::PDU::BindResult
-    read_result = [2, ber]
+    read_result = [1, ber]
     @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
     events = @service.subscribe "parse_pdu.net_ldap_connection"
@@ -305,7 +326,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     assert payload.has_key?(:app_tag)
     assert payload.has_key?(:message_id)
     assert_equal Net::LDAP::PDU::BindResult, payload[:app_tag]
-    assert_equal 2, payload[:message_id]
+    assert_equal 1, payload[:message_id]
     pdu = payload[:pdu]
     assert_equal Net::LDAP::ResultCodeSuccess, pdu.result_code
   end
@@ -313,7 +334,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def test_bind_net_ldap_connection_event
     ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
     ber.ber_identifier = Net::LDAP::PDU::BindResult
-    bind_result = [2, ber]
+    bind_result = [1, ber]
     @tcp_socket.should_receive(:read_ber).and_return(bind_result)
 
     events = @service.subscribe "bind.net_ldap_connection"

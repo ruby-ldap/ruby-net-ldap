@@ -234,12 +234,18 @@ class Net::LDAP::Connection #:nodoc:
 
     raise Net::LDAP::LdapError, "Invalid binding information" unless (user && psw)
 
-    request = [LdapVersion.to_ber, user.to_ber,
-      psw.to_ber_contextspecific(0)].to_ber_appsequence(Net::LDAP::PDU::BindRequest)
-    write(request)
+    message_id = next_msgid
+    request    = [
+      LdapVersion.to_ber, user.to_ber,
+      psw.to_ber_contextspecific(0)
+    ].to_ber_appsequence(Net::LDAP::PDU::BindRequest)
 
-    pdu = read
-    raise Net::LDAP::LdapError, "no bind result" unless pdu
+    write(request, nil, message_id)
+    pdu = queued_read(message_id)
+
+    if !pdu || pdu.app_tag != Net::LDAP::PDU::BindResult
+      raise Net::LDAP::LdapError, "no bind result"
+    end
 
     pdu
   end
