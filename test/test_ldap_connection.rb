@@ -152,6 +152,27 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
     assert result.success?
     assert_equal 2, result.message_id
   end
+
+  def test_queued_read_rename
+    result1 = make_message(1, app_tag: Net::LDAP::PDU::SearchResult)
+    result2 = make_message(2, app_tag: Net::LDAP::PDU::ModifyRDNResponse)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    mock.should_receive(:write)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    conn.next_msgid # simulates ongoing query
+
+    assert result = conn.rename(
+      olddn:  "uid=renamable-user1,ou=People,dc=rubyldap,dc=com",
+      newrdn: "uid=renamed-user1"
+    )
+    assert result.success?
+    assert_equal 2, result.message_id
+  end
 end
 
 class TestLDAPConnectionErrors < Test::Unit::TestCase

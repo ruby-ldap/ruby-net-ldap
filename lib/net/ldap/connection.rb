@@ -636,12 +636,12 @@ class Net::LDAP::Connection #:nodoc:
     delete_attrs = args[:delete_attributes] ? true : false
     new_superior = args[:new_superior]
 
-    request = [old_dn.to_ber, new_rdn.to_ber, delete_attrs.to_ber]
-    request << new_superior.to_ber_contextspecific(0) unless new_superior == nil
+    message_id = next_msgid
+    request    = [old_dn.to_ber, new_rdn.to_ber, delete_attrs.to_ber]
+    request   << new_superior.to_ber_contextspecific(0) unless new_superior == nil
 
-    write(request.to_ber_appsequence(Net::LDAP::PDU::ModifyRDNRequest))
-
-    pdu = read
+    write(request.to_ber_appsequence(Net::LDAP::PDU::ModifyRDNRequest), nil, message_id)
+    pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::ModifyRDNResponse
       raise Net::LDAP::LdapError.new "response missing or invalid"
