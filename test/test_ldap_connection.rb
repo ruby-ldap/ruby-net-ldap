@@ -191,6 +191,25 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
     assert result.success?
     assert_equal 2, result.message_id
   end
+
+  def test_queued_read_setup_encryption_with_start_tls
+    result1 = make_message(1, app_tag: Net::LDAP::PDU::SearchResult)
+    result2 = make_message(2, app_tag: Net::LDAP::PDU::ExtendedResponse)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    mock.should_receive(:write)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+    flexmock(Net::LDAP::Connection).should_receive(:wrap_with_ssl).with(mock).
+      and_return(mock)
+
+    conn.next_msgid # simulates ongoing query
+
+    assert result = conn.setup_encryption(method: :start_tls)
+    assert_equal mock, result
+  end
 end
 
 class TestLDAPConnectionErrors < Test::Unit::TestCase

@@ -87,10 +87,18 @@ class Net::LDAP::Connection #:nodoc:
       # additional branches requiring server validation and peer certs, etc.
       # go here.
     when :start_tls
-      request = [Net::LDAP::StartTlsOid.to_ber_contextspecific(0)].to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
-      write(request)
-      pdu = read
-      raise Net::LDAP::LdapError, "no start_tls result" if pdu.nil?
+      message_id = next_msgid
+      request    = [
+        Net::LDAP::StartTlsOid.to_ber_contextspecific(0)
+      ].to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
+
+      write(request, nil, message_id)
+      pdu = queued_read(message_id)
+
+      if pdu.nil? || pdu.app_tag != Net::LDAP::PDU::ExtendedResponse
+        raise Net::LDAP::LdapError, "no start_tls result"
+      end
+
       if pdu.result_code.zero?
         @conn = self.class.wrap_with_ssl(@conn)
       else
