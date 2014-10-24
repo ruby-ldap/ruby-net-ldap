@@ -67,6 +67,193 @@ class TestLDAPConnection < Test::Unit::TestCase
   end
 end
 
+class TestLDAPConnectionSocketReads < Test::Unit::TestCase
+  def make_message(message_id, options = {})
+    options = {
+      app_tag: Net::LDAP::PDU::SearchResult,
+      code: Net::LDAP::ResultCodeSuccess,
+      matched_dn: "",
+      error_message: ""
+    }.merge(options)
+    result = Net::BER::BerIdentifiedArray.new([options[:code], options[:matched_dn], options[:error_message]])
+    result.ber_identifier = options[:app_tag]
+    [message_id, result]
+  end
+
+  def test_queued_read_drains_queue_before_read
+    result1a = make_message(1, error_message: "one")
+    result1b = make_message(1, error_message: "two")
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).and_return(result1b)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    conn.message_queue[1].push Net::LDAP::PDU.new(result1a)
+
+    assert msg1 = conn.queued_read(1)
+    assert msg2 = conn.queued_read(1)
+
+    assert_equal 1, msg1.message_id
+    assert_equal "one", msg1.error_message
+    assert_equal 1, msg2.message_id
+    assert_equal "two", msg2.error_message
+  end
+
+  def test_queued_read_reads_until_message_id_match
+    result1 = make_message(1)
+    result2 = make_message(2)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    assert result = conn.queued_read(2)
+    assert_equal 2, result.message_id
+    assert_equal 1, conn.queued_read(1).message_id
+  end
+
+  def test_queued_read_modify
+    result1 = make_message(1, app_tag: Net::LDAP::PDU::SearchResult)
+    result2 = make_message(2, app_tag: Net::LDAP::PDU::ModifyResponse)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    mock.should_receive(:write)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    conn.next_msgid # simulates ongoing query
+
+    conn.instance_variable_get("@msgid")
+
+    assert result = conn.modify(dn: "uid=modified-user1,ou=People,dc=rubyldap,dc=com",
+                                operations: [[:add, :mail, "modified-user1@example.com"]])
+    assert result.success?
+    assert_equal 2, result.message_id
+  end
+
+  def test_queued_read_add
+    result1 = make_message(1, app_tag: Net::LDAP::PDU::SearchResult)
+    result2 = make_message(2, app_tag: Net::LDAP::PDU::AddResponse)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    mock.should_receive(:write)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    conn.next_msgid # simulates ongoing query
+
+    assert result = conn.add(dn: "uid=added-user1,ou=People,dc=rubyldap,dc=com")
+    assert result.success?
+    assert_equal 2, result.message_id
+  end
+
+  def test_queued_read_rename
+    result1 = make_message(1, app_tag: Net::LDAP::PDU::SearchResult)
+    result2 = make_message(2, app_tag: Net::LDAP::PDU::ModifyRDNResponse)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    mock.should_receive(:write)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    conn.next_msgid # simulates ongoing query
+
+    assert result = conn.rename(
+      olddn:  "uid=renamable-user1,ou=People,dc=rubyldap,dc=com",
+      newrdn: "uid=renamed-user1"
+    )
+    assert result.success?
+    assert_equal 2, result.message_id
+  end
+
+  def test_queued_read_delete
+    result1 = make_message(1, app_tag: Net::LDAP::PDU::SearchResult)
+    result2 = make_message(2, app_tag: Net::LDAP::PDU::DeleteResponse)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    mock.should_receive(:write)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    conn.next_msgid # simulates ongoing query
+
+    assert result = conn.delete(dn: "uid=deletable-user1,ou=People,dc=rubyldap,dc=com")
+    assert result.success?
+    assert_equal 2, result.message_id
+  end
+
+  def test_queued_read_setup_encryption_with_start_tls
+    result1 = make_message(1, app_tag: Net::LDAP::PDU::SearchResult)
+    result2 = make_message(2, app_tag: Net::LDAP::PDU::ExtendedResponse)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    mock.should_receive(:write)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+    flexmock(Net::LDAP::Connection).should_receive(:wrap_with_ssl).with(mock).
+      and_return(mock)
+
+    conn.next_msgid # simulates ongoing query
+
+    assert result = conn.setup_encryption(method: :start_tls)
+    assert_equal mock, result
+  end
+
+  def test_queued_read_bind_simple
+    result1 = make_message(1, app_tag: Net::LDAP::PDU::SearchResult)
+    result2 = make_message(2, app_tag: Net::LDAP::PDU::BindResult)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    mock.should_receive(:write)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    conn.next_msgid # simulates ongoing query
+
+    assert result = conn.bind(
+      method: :simple,
+      username: "uid=user1,ou=People,dc=rubyldap,dc=com",
+      password: "passworD1")
+    assert result.success?
+    assert_equal 2, result.message_id
+  end
+
+  def test_queued_read_bind_sasl
+    result1 = make_message(1, app_tag: Net::LDAP::PDU::SearchResult)
+    result2 = make_message(2, app_tag: Net::LDAP::PDU::BindResult)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    mock.should_receive(:write)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    conn.next_msgid # simulates ongoing query
+
+    assert result = conn.bind(
+      method: :sasl,
+      mechanism: "fake",
+      initial_credential: "passworD1",
+      challenge_response: flexmock("challenge proc"))
+    assert result.success?
+    assert_equal 2, result.message_id
+  end
+end
 
 class TestLDAPConnectionErrors < Test::Unit::TestCase
   def setup
@@ -79,7 +266,7 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
   def test_error_failed_operation
     ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeUnwillingToPerform, "", "The provided password value was rejected by a password validator:  The provided password did not contain enough characters from the character set 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.  The minimum number of characters from that set that must be present in user passwords is 1"])
     ber.ber_identifier = Net::LDAP::PDU::ModifyResponse
-    @tcp_socket.should_receive(:read_ber).and_return([2, ber])
+    @tcp_socket.should_receive(:read_ber).and_return([1, ber])
 
     result = @connection.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]])
     assert result.failure?, "should be failure"
@@ -89,7 +276,7 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
   def test_no_error_on_success
     ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
     ber.ber_identifier = Net::LDAP::PDU::ModifyResponse
-    @tcp_socket.should_receive(:read_ber).and_return([2, ber])
+    @tcp_socket.should_receive(:read_ber).and_return([1, ber])
 
     result = @connection.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]])
     assert result.success?, "should be success"
@@ -113,7 +300,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def test_write_net_ldap_connection_event
     ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
     ber.ber_identifier = Net::LDAP::PDU::BindResult
-    read_result = [2, ber]
+    read_result = [1, ber]
     @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
     events = @service.subscribe "write.net_ldap_connection"
@@ -130,7 +317,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def test_read_net_ldap_connection_event
     ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
     ber.ber_identifier = Net::LDAP::PDU::BindResult
-    read_result = [2, ber]
+    read_result = [1, ber]
     @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
     events = @service.subscribe "read.net_ldap_connection"
@@ -147,7 +334,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def test_parse_pdu_net_ldap_connection_event
     ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
     ber.ber_identifier = Net::LDAP::PDU::BindResult
-    read_result = [2, ber]
+    read_result = [1, ber]
     @tcp_socket.should_receive(:read_ber).and_return(read_result)
 
     events = @service.subscribe "parse_pdu.net_ldap_connection"
@@ -161,7 +348,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     assert payload.has_key?(:app_tag)
     assert payload.has_key?(:message_id)
     assert_equal Net::LDAP::PDU::BindResult, payload[:app_tag]
-    assert_equal 2, payload[:message_id]
+    assert_equal 1, payload[:message_id]
     pdu = payload[:pdu]
     assert_equal Net::LDAP::ResultCodeSuccess, pdu.result_code
   end
@@ -169,7 +356,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def test_bind_net_ldap_connection_event
     ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
     ber.ber_identifier = Net::LDAP::PDU::BindResult
-    bind_result = [2, ber]
+    bind_result = [1, ber]
     @tcp_socket.should_receive(:read_ber).and_return(bind_result)
 
     events = @service.subscribe "bind.net_ldap_connection"
