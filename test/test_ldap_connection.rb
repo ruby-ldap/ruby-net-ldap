@@ -231,6 +231,28 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
     assert result.success?
     assert_equal 2, result.message_id
   end
+
+  def test_queued_read_bind_sasl
+    result1 = make_message(1, app_tag: Net::LDAP::PDU::SearchResult)
+    result2 = make_message(2, app_tag: Net::LDAP::PDU::BindResult)
+
+    mock = flexmock("socket")
+    mock.should_receive(:read_ber).
+      and_return(result1).
+      and_return(result2)
+    mock.should_receive(:write)
+    conn = Net::LDAP::Connection.new(:socket => mock)
+
+    conn.next_msgid # simulates ongoing query
+
+    assert result = conn.bind(
+      method: :sasl,
+      mechanism: "fake",
+      initial_credential: "passworD1",
+      challenge_response: flexmock("challenge proc"))
+    assert result.success?
+    assert_equal 2, result.message_id
+  end
 end
 
 class TestLDAPConnectionErrors < Test::Unit::TestCase

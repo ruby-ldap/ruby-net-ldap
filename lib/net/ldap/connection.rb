@@ -276,14 +276,21 @@ class Net::LDAP::Connection #:nodoc:
       auth[:challenge_response]
     raise Net::LDAP::LdapError, "Invalid binding information" unless (mech && cred && chall)
 
+    message_id = next_msgid
+
     n = 0
     loop {
       sasl = [mech.to_ber, cred.to_ber].to_ber_contextspecific(3)
-      request = [LdapVersion.to_ber, "".to_ber, sasl].to_ber_appsequence(Net::LDAP::PDU::BindRequest)
-      write(request)
+      request = [
+        LdapVersion.to_ber, "".to_ber, sasl
+      ].to_ber_appsequence(Net::LDAP::PDU::BindRequest)
 
-      pdu = read
-      raise Net::LDAP::LdapError, "no bind result" unless pdu
+      write(request, nil, message_id)
+      pdu = queued_read(message_id)
+
+      if !pdu || pdu.app_tag != Net::LDAP::PDU::BindResult
+        raise Net::LDAP::LdapError, "no bind result"
+      end
 
       return pdu unless pdu.result_code == Net::LDAP::ResultCodeSaslBindInProgress
       raise Net::LDAP::LdapError, "sasl-challenge overflow" if ((n += 1) > MaxSaslChallenges)
