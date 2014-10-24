@@ -87,10 +87,18 @@ class Net::LDAP::Connection #:nodoc:
       # additional branches requiring server validation and peer certs, etc.
       # go here.
     when :start_tls
-      request = [Net::LDAP::StartTlsOid.to_ber_contextspecific(0)].to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
-      write(request)
-      pdu = read
-      raise Net::LDAP::LdapError, "no start_tls result" if pdu.nil?
+      message_id = next_msgid
+      request    = [
+        Net::LDAP::StartTlsOid.to_ber_contextspecific(0)
+      ].to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
+
+      write(request, nil, message_id)
+      pdu = queued_read(message_id)
+
+      if pdu.nil? || pdu.app_tag != Net::LDAP::PDU::ExtendedResponse
+        raise Net::LDAP::LdapError, "no start_tls result"
+      end
+
       if pdu.result_code.zero?
         @conn = self.class.wrap_with_ssl(@conn)
       else
@@ -226,12 +234,18 @@ class Net::LDAP::Connection #:nodoc:
 
     raise Net::LDAP::LdapError, "Invalid binding information" unless (user && psw)
 
-    request = [LdapVersion.to_ber, user.to_ber,
-      psw.to_ber_contextspecific(0)].to_ber_appsequence(0)
-    write(request)
+    message_id = next_msgid
+    request    = [
+      LdapVersion.to_ber, user.to_ber,
+      psw.to_ber_contextspecific(0)
+    ].to_ber_appsequence(Net::LDAP::PDU::BindRequest)
 
-    pdu = read
-    raise Net::LDAP::LdapError, "no bind result" unless pdu
+    write(request, nil, message_id)
+    pdu = queued_read(message_id)
+
+    if !pdu || pdu.app_tag != Net::LDAP::PDU::BindResult
+      raise Net::LDAP::LdapError, "no bind result"
+    end
 
     pdu
   end
@@ -262,16 +276,23 @@ class Net::LDAP::Connection #:nodoc:
       auth[:challenge_response]
     raise Net::LDAP::LdapError, "Invalid binding information" unless (mech && cred && chall)
 
+    message_id = next_msgid
+
     n = 0
     loop {
       sasl = [mech.to_ber, cred.to_ber].to_ber_contextspecific(3)
-      request = [LdapVersion.to_ber, "".to_ber, sasl].to_ber_appsequence(0)
-      write(request)
+      request = [
+        LdapVersion.to_ber, "".to_ber, sasl
+      ].to_ber_appsequence(Net::LDAP::PDU::BindRequest)
 
-      pdu = read
-      raise Net::LDAP::LdapError, "no bind result" unless pdu
+      write(request, nil, message_id)
+      pdu = queued_read(message_id)
 
-      return pdu unless pdu.result_code == 14 # saslBindInProgress
+      if !pdu || pdu.app_tag != Net::LDAP::PDU::BindResult
+        raise Net::LDAP::LdapError, "no bind result"
+      end
+
+      return pdu unless pdu.result_code == Net::LDAP::ResultCodeSaslBindInProgress
       raise Net::LDAP::LdapError, "sasl-challenge overflow" if ((n += 1) > MaxSaslChallenges)
 
       cred = chall.call(pdu.result_server_sasl_creds)
@@ -450,7 +471,7 @@ class Net::LDAP::Connection #:nodoc:
           attrs_only.to_ber,
           filter.to_ber,
           ber_attrs.to_ber_sequence
-        ].to_ber_appsequence(3)
+        ].to_ber_appsequence(Net::LDAP::PDU::SearchRequest)
 
         # rfc2696_cookie sometimes contains binary data from Microsoft Active Directory
         # this breaks when calling to_ber. (Can't force binary data to UTF-8)
@@ -488,7 +509,7 @@ class Net::LDAP::Connection #:nodoc:
           when Net::LDAP::PDU::SearchResult
             result_pdu = pdu
             controls = pdu.result_controls
-            if refs && pdu.result_code == 10
+            if refs && pdu.result_code == Net::LDAP::ResultCodeReferral
               if block_given?
                 se = Net::LDAP::Entry.new
                 se[:search_referrals] = (pdu.search_referrals || [])
@@ -516,7 +537,7 @@ class Net::LDAP::Connection #:nodoc:
         # of type OCTET STRING, covered in the default syntax supported by
         # read_ber, so I guess we're ok.
         more_pages = false
-        if result_pdu.result_code == 0 and controls
+        if result_pdu.result_code == Net::LDAP::ResultCodeSuccess and controls
           controls.each do |c|
             if c.oid == Net::LDAP::LDAPControls::PAGED_RESULTS
               # just in case some bogus server sends us more than 1 of these.
@@ -538,7 +559,7 @@ class Net::LDAP::Connection #:nodoc:
       # track total result count
       payload[:result_count] = n_results
 
-      result_pdu || OpenStruct.new(:status => :failure, :result_code => 1, :message => "Invalid search")
+      result_pdu || OpenStruct.new(:status => :failure, :result_code => Net::LDAP::ResultCodeOperationsError, :message => "Invalid search")
     end # instrument
   ensure
     # clean up message queue for this search
@@ -583,11 +604,15 @@ class Net::LDAP::Connection #:nodoc:
   def modify(args)
     modify_dn = args[:dn] or raise "Unable to modify empty DN"
     ops = self.class.modify_ops args[:operations]
-    request = [ modify_dn.to_ber,
-      ops.to_ber_sequence ].to_ber_appsequence(6)
-    write(request)
 
-    pdu = read
+    message_id = next_msgid
+    request    = [
+      modify_dn.to_ber,
+      ops.to_ber_sequence
+    ].to_ber_appsequence(Net::LDAP::PDU::ModifyRequest)
+
+    write(request, nil, message_id)
+    pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::ModifyResponse
       raise Net::LDAP::LdapError, "response missing or invalid"
@@ -610,10 +635,11 @@ class Net::LDAP::Connection #:nodoc:
       add_attrs << [ k.to_s.to_ber, Array(v).map { |m| m.to_ber}.to_ber_set ].to_ber_sequence
     }
 
-    request = [add_dn.to_ber, add_attrs.to_ber_sequence].to_ber_appsequence(8)
-    write(request)
+    message_id = next_msgid
+    request    = [add_dn.to_ber, add_attrs.to_ber_sequence].to_ber_appsequence(Net::LDAP::PDU::AddRequest)
 
-    pdu = read
+    write(request, nil, message_id)
+    pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::AddResponse
       raise Net::LDAP::LdapError, "response missing or invalid"
@@ -631,12 +657,12 @@ class Net::LDAP::Connection #:nodoc:
     delete_attrs = args[:delete_attributes] ? true : false
     new_superior = args[:new_superior]
 
-    request = [old_dn.to_ber, new_rdn.to_ber, delete_attrs.to_ber]
-    request << new_superior.to_ber_contextspecific(0) unless new_superior == nil
+    message_id = next_msgid
+    request    = [old_dn.to_ber, new_rdn.to_ber, delete_attrs.to_ber]
+    request   << new_superior.to_ber_contextspecific(0) unless new_superior == nil
 
-    write(request.to_ber_appsequence(12))
-
-    pdu = read
+    write(request.to_ber_appsequence(Net::LDAP::PDU::ModifyRDNRequest), nil, message_id)
+    pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::ModifyRDNResponse
       raise Net::LDAP::LdapError.new "response missing or invalid"
@@ -650,11 +676,12 @@ class Net::LDAP::Connection #:nodoc:
   #++
   def delete(args)
     dn = args[:dn] or raise "Unable to delete empty DN"
-    controls = args.include?(:control_codes) ? args[:control_codes].to_ber_control : nil #use nil so we can compact later
-    request = dn.to_s.to_ber_application_string(10)
-    write(request, controls)
+    controls   = args.include?(:control_codes) ? args[:control_codes].to_ber_control : nil #use nil so we can compact later
+    message_id = next_msgid
+    request    = dn.to_s.to_ber_application_string(Net::LDAP::PDU::DeleteRequest)
 
-    pdu = read
+    write(request, controls, message_id)
+    pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::DeleteResponse
       raise Net::LDAP::LdapError, "response missing or invalid"
