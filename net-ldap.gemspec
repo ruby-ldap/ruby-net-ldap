@@ -30,8 +30,8 @@ the most recent LDAP RFCs (4510-4519, plutions of 4520-4532).}
   s.required_ruby_version = ">= 1.9.3"
   s.summary = %q{Net::LDAP for Ruby (also called net-ldap) implements client access for the Lightweight Directory Access Protocol (LDAP), an IETF standard protocol for accessing distributed directory services}
 
-  s.add_development_dependency("hoe-git", "~> 1")
-  s.add_development_dependency("hoe-gemspec", "~> 1")
-  s.add_development_dependency("flexmock", ">= 1.3.0")
-  s.add_development_dependency("hoe", ">= 2.9.1")
+  s.add_development_dependency("hoe-git", "~> 1.0")
+  s.add_development_dependency("hoe-gemspec", "~> 1.0")
+  s.add_development_dependency("flexmock", "~> 1.3")
+  s.add_development_dependency("hoe", "~> 2.9")
 end
