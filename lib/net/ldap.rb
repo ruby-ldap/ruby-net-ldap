@@ -1194,9 +1194,16 @@ class Net::LDAP
   def search_root_dse
     rs = search(:ignore_server_caps => true, :base => "",
                 :scope => SearchScope_BaseObject,
-                :attributes => [ :namingContexts, :supportedLdapVersion,
-                  :altServer, :supportedControl, :supportedExtension,
-                  :supportedFeatures, :supportedSASLMechanisms])
+                :attributes => [
+                  :altServer,
+                  :namingContexts,
+                  :supportedCapabilities,
+                  :supportedControl,
+                  :supportedExtension,
+                  :supportedFeatures,
+                  :supportedLdapVersion,
+                  :supportedSASLMechanisms
+                ])
     (rs and rs.first) or Net::LDAP::Entry.new
   end
 
