@@ -5,9 +5,9 @@
   * Search timeout
   * Instrumentation
 * Bug fixes:
-  * Searches on the same open connection do not interleave results
+  * Fix reads for multiple concurrent requests with shared, open connections mixing up the results
   * Fix search size option
-  * Fix BER true encoding
+  * Fix BER encoding bug
 
 * Details
   * #142 Encode true as xFF
