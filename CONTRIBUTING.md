@@ -8,7 +8,7 @@ mind.
 If you find a bug, or would like to propose an idea, file a [new issue][issues].
 Include as many details as possible:
 
-- Ruby and Rubygem version
+- Version of net-ldap gem
 - LDAP server version
 - Queries, connection information, any other input
 - output or error messages
