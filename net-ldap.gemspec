@@ -7,8 +7,6 @@ Gem::Specification.new do |s|
   s.name = %q{net-ldap}
   s.version = Net::LDAP::VERSION
   s.license = "MIT"
-
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Francis Cianfrocca", "Emiel van de Laar", "Rory O'Connell", "Kaspar Schiess", "Austin Ziegler", "Michael Schaarschmidt"]
   s.date = %q{2012-02-28}
   s.description = %q{Net::LDAP for Ruby (also called net-ldap) implements client access for the
@@ -29,28 +27,11 @@ the most recent LDAP RFCs (4510-4519, plutions of 4520-4532).}
   s.homepage = %q{http://github.com/ruby-ldap/ruby-net-ldap}
   s.rdoc_options = ["--main", "README.rdoc"]
   s.require_paths = ["lib"]
-  s.required_ruby_version = Gem::Requirement.new(">= 1.9.3")
-  s.rubygems_version = %q{1.5.2}
+  s.required_ruby_version = ">= 1.9.3"
   s.summary = %q{Net::LDAP for Ruby (also called net-ldap) implements client access for the Lightweight Directory Access Protocol (LDAP), an IETF standard protocol for accessing distributed directory services}
 
-  if s.respond_to? :specification_version then
-    s.specification_version = 3
-
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_development_dependency(%q<hoe-git>, ["~> 1"])
-      s.add_development_dependency(%q<hoe-gemspec>, ["~> 1"])
-      s.add_development_dependency(%q<flexmock>, [">= 1.3.0"])
-      s.add_development_dependency(%q<hoe>, [">= 2.9.1"])
-    else
-      s.add_dependency(%q<hoe-git>, ["~> 1"])
-      s.add_dependency(%q<hoe-gemspec>, ["~> 1"])
-      s.add_dependency(%q<flexmock>, [">= 1.3.0"])
-      s.add_dependency(%q<hoe>, [">= 2.9.1"])
-    end
-  else
-    s.add_dependency(%q<hoe-git>, ["~> 1"])
-    s.add_dependency(%q<hoe-gemspec>, ["~> 1"])
-    s.add_dependency(%q<flexmock>, [">= 1.3.0"])
-    s.add_dependency(%q<hoe>, [">= 2.9.1"])
-  end
+  s.add_development_dependency("hoe-git", "~> 1")
+  s.add_development_dependency("hoe-gemspec", "~> 1")
+  s.add_development_dependency("flexmock", ">= 1.3.0")
+  s.add_development_dependency("hoe", ">= 2.9.1")
 end
