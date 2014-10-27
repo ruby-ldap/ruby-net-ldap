@@ -2,8 +2,10 @@
 * Major changes:
   * Dropped support for ruby 1.8.7, ruby >= 1.9.3 now required
 * Major enhancements:
-  * Search timeout
-  * Instrumentation
+  * Add support for search time limit parameter
+  * Instrument received messages, PDU parsing
+* Minor enhancments:
+  * Add support for querying ActiveDirectory capabilities from root dse
 * Bug fixes:
   * Fix reads for multiple concurrent requests with shared, open connections mixing up the results
   * Fix search size option
@@ -13,6 +15,7 @@
   * Switch to minitest
 
 * Details
+  * #150 Support querying ActiveDirectory capabilities when searching root dse
   * #142 Encode true as xFF
   * #124, #145, #146 Cleanup gemspec
   * #138, #144 Track response messages by message id
