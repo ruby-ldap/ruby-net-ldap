@@ -1197,6 +1197,7 @@ class Net::LDAP
                 :attributes => [
                   :altServer,
                   :namingContexts,
+                  :supportedCapabilities,
                   :supportedControl,
                   :supportedExtension,
                   :supportedFeatures,
