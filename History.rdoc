@@ -8,6 +8,9 @@
   * Fix reads for multiple concurrent requests with shared, open connections mixing up the results
   * Fix search size option
   * Fix BER encoding bug
+* Code clean-up:
+  * Added integration test suite
+  * Switch to minitest
 
 * Details
   * #142 Encode true as xFF
