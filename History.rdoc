@@ -17,7 +17,7 @@
 * Details
   * #150 Support querying ActiveDirectory capabilities when searching root dse
   * #142 Encode true as xFF
-  * #124, #145, #146 Cleanup gemspec
+  * #124, #145, #146, #152 Cleanup gemspec
   * #138, #144 Track response messages by message id
   * #141 Magic number/constant cleanup
   * #119, #129, #130, #132, #133, #137 Integration tests
