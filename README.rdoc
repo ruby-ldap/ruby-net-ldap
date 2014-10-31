@@ -37,6 +37,14 @@ sources.
 
 Simply require either 'net-ldap' or 'net/ldap'.
 
+== Release
+
+This section is for gem maintainers to cut a new version of the gem.
+
+* Update lib/html/pipeline/version.rb to next version number X.X.X following {semver}(http://semver.org/).
+* Update CHANGELOG.md. Get latest changes with `git log --oneline vLAST_RELEASE..HEAD | grep Merge`
+* On the master branch, run `script/release`
+
 :include: Contributors.rdoc
 
 :include: License.rdoc
