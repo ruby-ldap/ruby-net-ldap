@@ -21,7 +21,7 @@ earlier versions of the IETF LDAP RFCs (2251-2256, 2829-2830, 3377, and 3771).
 Our roadmap for Net::LDAP 1.0 is to gain full <em>client</em> compliance with
 the most recent LDAP RFCs (4510-4519, plutions of 4520-4532).}
   s.email = ["blackhedd@rubyforge.org", "gemiel@gmail.com", "rory.ocon@gmail.com", "kaspar.schiess@absurd.li", "austin@rubyforge.org"]
-  s.extra_rdoc_files = ["Manifest.txt", "Contributors.rdoc", "Hacking.rdoc", "History.rdoc", "License.rdoc", "README.rdoc"]
+  s.extra_rdoc_files = ["Contributors.rdoc", "Hacking.rdoc", "History.rdoc", "License.rdoc", "README.rdoc"]
   s.files = `git ls-files`.split $/
   s.test_files = s.files.grep(%r{^test})
   s.homepage = %q{http://github.com/ruby-ldap/ruby-net-ldap}
