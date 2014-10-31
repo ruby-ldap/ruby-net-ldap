@@ -55,8 +55,6 @@ us with a sample LDIF data file for importing into LDAP servers for testing.
 Net::LDAP uses several libraries during development, all of which can be
 installed using RubyGems.
 
-* *hoe*
-* *hoe-git*
 * *flexmock*
 
 == Participation

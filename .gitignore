@@ -5,3 +5,5 @@ pkg/
 doc/
 publish/
 Gemfile.lock
+.bundle
+bin/
