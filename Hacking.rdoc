@@ -25,7 +25,7 @@ patches being accepted, we recommend that you follow the guidelines below:
 
 == Documentation
 
-* Documentation: {net-ldap}[http://net-ldap.rubyforge.org/]
+* Documentation: {net-ldap}[http://rubydoc.info/gems/net-ldap]
 
 It is very important that, if you add new methods or objects, your code is
 well-documented. The purpose of the changes should be clearly described so that
@@ -40,8 +40,8 @@ modification to +Contributors.rdoc+ to add yourself.
 
 == Tests
 
-The Net::LDAP team uses RSpec for unit testing; all changes must have rspec
-tests for any new or changed features.
+The Net::LDAP team uses [Minitest](http://docs.seattlerb.org/minitest/) for unit
+testing; all changes must have tests for any new or changed features.
 
 Your changes should have been tested against at least one real LDAP server; the
 current tests are not sufficient to find all possible bugs. It's unlikely that
@@ -55,14 +55,9 @@ us with a sample LDIF data file for importing into LDAP servers for testing.
 Net::LDAP uses several libraries during development, all of which can be
 installed using RubyGems.
 
-* *hoe*
-* *hoe-git*
-* *metaid*
-* *rspec*
 * *flexmock*
 
 == Participation
 
-* RubyForge: {net-ldap}[http://rubyforge.org/projects/net-ldap]
 * GitHub: {ruby-ldap/ruby-net-ldap}[https://github.com/ruby-ldap/ruby-net-ldap/]
 * Group: {ruby-ldap}[http://groups.google.com/group/ruby-ldap]

@@ -114,6 +114,14 @@ class Net::LDAP::Entry
   end
 
   ##
+  # Read the first value for the provided attribute. The attribute name
+  # is canonicalized prior to reading. Returns nil if the attribute does
+  # not exist.
+  def first(name)
+    self[name].first
+  end
+
+  ##
   # Returns the first distinguished name (dn) of the Entry as a \String.
   def dn
     self[:dn].first.to_s
@@ -147,7 +155,7 @@ class Net::LDAP::Entry
     Net::LDAP::Dataset.from_entry(self).to_ldif_string
   end
 
-  def respond_to?(sym) #:nodoc:
+  def respond_to?(sym, include_all = false) #:nodoc:
     return true if valid_attribute?(self.class.attribute_name(sym))
     return super
   end

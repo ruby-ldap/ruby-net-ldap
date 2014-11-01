@@ -148,6 +148,9 @@ module Net::BER::BERParser
   # implemented on the including object and that it returns a Fixnum value.
   # Also requires #read(bytes) to work.
   #
+  # Yields the object type `id` and the data `content_length` if a block is
+  # given. This is namely to support instrumentation.
+  #
   # This does not work with non-blocking I/O.
   def read_ber(syntax = nil)
     # TODO: clean this up so it works properly with partial packets coming
@@ -156,6 +159,8 @@ module Net::BER::BERParser
 
     id = getbyte or return nil  # don't trash this value, we'll use it later
     content_length = read_ber_length
+
+    yield id, content_length if block_given?
 
     if -1 == content_length
       raise Net::BER::BerError, "Indeterminite BER content length not implemented."

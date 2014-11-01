@@ -1,12 +1,9 @@
-spec/ldap.yml
-.rvmrc
-*.gemspec
-pkg/
+*~
 *.swp
-html/
+.rvmrc
+pkg/
 doc/
 publish/
-coverage/
-coverage.info
-.rake_tasks~
 Gemfile.lock
+.bundle
+bin/

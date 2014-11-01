@@ -65,22 +65,22 @@ class Net::LDAP::Filter
       new(:eq, attribute, value)
     end
 
-		##
-		# Creates a Filter object indicating a binary comparison.
-		# this prevents the search data from being forced into a UTF-8 string.
-		#
-		# This is primarily used for Microsoft Active Directory to compare
-		# GUID values.
-		#
-		#    # for guid represented as hex charecters
-		#    guid = "6a31b4a12aa27a41aca9603f27dd5116"
-		#    guid_bin = [guid].pack("H*")
-		#    f = Net::LDAP::Filter.bineq("objectGUID", guid_bin)
-		#
-		# This filter does not perform any escaping.
-		def bineq(attribute, value)
-			new(:bineq, attribute, value)
-		end
+    ##
+    # Creates a Filter object indicating a binary comparison.
+    # this prevents the search data from being forced into a UTF-8 string.
+    #
+    # This is primarily used for Microsoft Active Directory to compare
+    # GUID values.
+    #
+    #    # for guid represented as hex charecters
+    #    guid = "6a31b4a12aa27a41aca9603f27dd5116"
+    #    guid_bin = [guid].pack("H*")
+    #    f = Net::LDAP::Filter.bineq("objectGUID", guid_bin)
+    #
+    # This filter does not perform any escaping.
+    def bineq(attribute, value)
+      new(:bineq, attribute, value)
+    end
 
     ##
     # Creates a Filter object indicating extensible comparison. This Filter
@@ -242,7 +242,7 @@ class Net::LDAP::Filter
 
     # http://tools.ietf.org/html/rfc4515 lists these exceptions from UTF1
     # charset for filters. All of the following must be escaped in any normal
-    # string using a single backslash ('\') as escape. 
+    # string using a single backslash ('\') as escape.
     #
     ESCAPES = {
       "\0" => '00', # NUL            = %x00 ; null character
@@ -251,10 +251,10 @@ class Net::LDAP::Filter
       ')'  => '29', # RPARENS        = %x29 ; right parenthesis (")")
       '\\' => '5C', # ESC            = %x5C ; esc (or backslash) ("\")
     }
-    # Compiled character class regexp using the keys from the above hash. 
+    # Compiled character class regexp using the keys from the above hash.
     ESCAPE_RE = Regexp.new(
-      "[" + 
-      ESCAPES.keys.map { |e| Regexp.escape(e) }.join + 
+      "[" +
+      ESCAPES.keys.map { |e| Regexp.escape(e) }.join +
       "]")
 
     ##
@@ -310,8 +310,8 @@ class Net::LDAP::Filter
         present?(ber.to_s)
       when 0xa9 # context-specific constructed 9, "extensible comparison"
         raise Net::LDAP::LdapError, "Invalid extensible search filter, should be at least two elements" if ber.size<2
-        
-        # Reassembles the extensible filter parts 
+
+        # Reassembles the extensible filter parts
         # (["sn", "2.4.6.8.10", "Barbara Jones", '1'])
         type = value = dn = rule = nil
         ber.each do |element|
@@ -327,7 +327,7 @@ class Net::LDAP::Filter
         attribute << type if type
         attribute << ":#{dn}" if dn
         attribute << ":#{rule}" if rule
-        
+
         ex(attribute, value)
       else
         raise Net::LDAP::LdapError, "Invalid BER tag-value (#{ber.ber_identifier}) in search filter."
@@ -414,10 +414,8 @@ class Net::LDAP::Filter
     case @op
     when :ne
       "!(#{@left}=#{@right})"
-    when :eq
+    when :eq, :bineq
       "#{@left}=#{@right}"
-		when :bineq
-			"#{@left}=#{@right}"
     when :ex
       "#{@left}:=#{@right}"
     when :ge
@@ -527,9 +525,9 @@ class Net::LDAP::Filter
       else # equality
         [@left.to_s.to_ber, unescape(@right).to_ber].to_ber_contextspecific(3)
       end
-		when :bineq
-			# make sure data is not forced to UTF-8
-			[@left.to_s.to_ber, unescape(@right).to_ber_bin].to_ber_contextspecific(3)
+    when :bineq
+      # make sure data is not forced to UTF-8
+      [@left.to_s.to_ber, unescape(@right).to_ber_bin].to_ber_contextspecific(3)
     when :ex
       seq = []
 
@@ -755,7 +753,7 @@ class Net::LDAP::Filter
         scanner.scan(/\s*/)
         if op = scanner.scan(/<=|>=|!=|:=|=/)
           scanner.scan(/\s*/)
-          if value = scanner.scan(/(?:[-\[\]{}\w*.+@=,#\$%&!'^~\s\xC3\x80-\xCA\xAF]|[^\x00-\x7F]|\\[a-fA-F\d]{2})+/u)
+          if value = scanner.scan(/(?:[-\[\]{}\w*.+:@=,#\$%&!'^~\s\xC3\x80-\xCA\xAF]|[^\x00-\x7F]|\\[a-fA-F\d]{2})+/u)
             # 20100313 AZ: Assumes that "(uid=george*)" is the same as
             # "(uid=george* )". The standard doesn't specify, but I can find
             # no examples that suggest otherwise.

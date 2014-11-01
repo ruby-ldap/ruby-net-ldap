@@ -1,3 +1,40 @@
+=== Net::LDAP 0.9.0
+* Major changes:
+  * Dropped support for ruby 1.8.7, ruby >= 1.9.3 now required
+* Major enhancements:
+  * Add support for search time limit parameter
+  * Instrument received messages, PDU parsing
+* Minor enhancments:
+  * Add support for querying ActiveDirectory capabilities from root dse
+* Bug fixes:
+  * Fix reads for multiple concurrent requests with shared, open connections mixing up the results
+  * Fix search size option
+  * Fix BER encoding bug
+* Code clean-up:
+  * Added integration test suite
+  * Switch to minitest
+
+* Details
+  * #150 Support querying ActiveDirectory capabilities when searching root dse
+  * #142 Encode true as xFF
+  * #124, #145, #146, #152 Cleanup gemspec
+  * #138, #144 Track response messages by message id
+  * #141 Magic number/constant cleanup
+  * #119, #129, #130, #132, #133, #137 Integration tests
+  * #115 Search timeout support
+  * #140 Fix search size option
+  * #139 Cleanup and inline documentation for Net::LDAP::Connection#search
+  * #131 Instrumentation
+  * #116 Refactor Connection#write
+  * #126 Update gitignore
+  * #128 Fix whitespace
+  * #113, #121 Switch to minitest
+  * #123 Base64 encoded dn
+  * #114 Separate file for Net::LDAP::Connection
+  * #104 Parse version spec in LDIF datasets
+  * #106 ldap.modify doc fixes
+  * #111 Fix test deprecations
+
 === Net::LDAP 0.5.0 / 2013-07-22
 * Major changes:
   * Required Ruby version is >=1.9.3
