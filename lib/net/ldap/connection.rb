@@ -41,9 +41,20 @@ class Net::LDAP::Connection #:nodoc:
     end
   end
 
-  def self.wrap_with_ssl(io)
+  def self.wrap_with_ssl(io, ssl_context = nil, cafile = nil)
     raise Net::LDAP::LdapError, "OpenSSL is unavailable" unless Net::LDAP::HasOpenSSL
-    ctx = OpenSSL::SSL::SSLContext.new
+    if (ssl_context && cafile)
+      raise Net::LDAP::LdapError, "Please specify only one of ssl_context or cafile"
+    end
+
+    ctx = ssl_context ? ssl_context : OpenSSL::SSL::SSLContext.new
+
+    # OpenSSL automatically merges the given parameters with the default parameters
+    # These include verification and some common workarounds
+    if cafile
+      ctx.set_params({:ca_file => cafile})
+    end
+
     conn = OpenSSL::SSL::SSLSocket.new(io, ctx)
     conn.connect
 
@@ -85,7 +96,7 @@ class Net::LDAP::Connection #:nodoc:
   def setup_encryption(args)
     case args[:method]
     when :simple_tls
-      @conn = self.class.wrap_with_ssl(@conn)
+      @conn = self.class.wrap_with_ssl(@conn, args[:ssl_context], args[:cafile])
       # additional branches requiring server validation and peer certs, etc.
       # go here.
     when :start_tls
@@ -102,7 +113,7 @@ class Net::LDAP::Connection #:nodoc:
       end
 
       if pdu.result_code.zero?
-        @conn = self.class.wrap_with_ssl(@conn)
+        @conn = self.class.wrap_with_ssl(@conn, args[:ssl_context], args[:cafile])
       else
         raise Net::LDAP::LdapError, "start_tls failed: #{pdu.result_code}"
       end

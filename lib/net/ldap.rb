@@ -537,10 +537,6 @@ class Net::LDAP
   # additional capabilities are added, more configuration values will be
   # added here.
   #
-  # Currently, the only supported argument is { :method => :simple_tls }.
-  # (Equivalently, you may pass the symbol :simple_tls all by itself,
-  # without enclosing it in a Hash.)
-  #
   # The :simple_tls encryption method encrypts <i>all</i> communications
   # with the LDAP server. It completely establishes SSL/TLS encryption with
   # the LDAP server before any LDAP-protocol data is exchanged. There is no
@@ -563,6 +559,17 @@ class Net::LDAP
   # The :start_tls like the :simple_tls encryption method also encrypts all
   # communcations with the LDAP server. With the exception that it operates
   # over the standard TCP port.
+  #
+  # In order to allow verification of server certificates and other TLS-related
+  # options, the keys :cafile and :ssl_context can be used.
+  #
+  # The :cafile option  is a single filename that points to one or more
+  # PEM-encoded certificates. These certificates are used as a certificate auhority
+  # to verify the server certificates.
+  #
+  # For fine-grained control of the TLS settings, it is also possible to use the
+  # :ssl_context option to pass a custom OpenSSL::SSL::SSLContext. Consult the
+  # OpenSSL documentation for more information on the available options.
   def encryption(args)
     case args
     when :simple_tls, :start_tls
