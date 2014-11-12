@@ -17,6 +17,8 @@ class Net::LDAP::Connection #:nodoc:
       raise Net::LDAP::LdapError, "Server #{server[:host]} refused connection on port #{server[:port]}."
     rescue Errno::EHOSTUNREACH => error
       raise Net::LDAP::LdapError, "Host #{server[:host]} was unreachable (#{error.message})"
+    rescue Errno::ETIMEDOUT
+      raise Net::LDAP::LdapError, "Connection to #{server[:host]} timed out."
     end
 
     if server[:encryption]
