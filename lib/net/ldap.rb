@@ -560,20 +560,29 @@ class Net::LDAP
   # communcations with the LDAP server. With the exception that it operates
   # over the standard TCP port.
   #
-  # In order to allow verification of server certificates and other TLS-related
-  # options, the keys :cafile and :ssl_context can be used.
+  # In order to verify certificates and enable other TLS options, the
+  # :tls_options hash can be passed alongside :simple_tls or :start_tls.
+  # This hash contains any options that can be passed to
+  # OpenSSL::SSL::SSLContext#set_params(). The most common options passed
+  # should be OpenSSL::SSL::SSLContext::DEFAULT_PARAMS, or the :ca_file option,
+  # which contains a path to a Certificate Authority file (PEM-encoded).
   #
-  # The :cafile option  is a single filename that points to one or more
-  # PEM-encoded certificates. These certificates are used as a certificate auhority
-  # to verify the server certificates.
+  # Example for a default setup without custom settings:
+  #   {
+  #     :method => :simple_tls,
+  #     :tls_options => OpenSSL::SSL::SSLContext::DEFAULT_PARAMS
+  #   }
   #
-  # For fine-grained control of the TLS settings, it is also possible to use the
-  # :ssl_context option to pass a custom OpenSSL::SSL::SSLContext. Consult the
-  # OpenSSL documentation for more information on the available options.
+  # Example for specifying a CA-File and only allowing TLSv1.1 connections:
+  #
+  #   {
+  #     :method => :start_tls,
+  #     :tls_options => { :ca_file => "/etc/cafile.pem", :ssl_version => "TLSv1_1" }
+  #   }
   def encryption(args)
     case args
     when :simple_tls, :start_tls
-      args = { :method => args }
+      args = { :method => args, :tls_options => {} }
     end
     @encryption = args
   end
