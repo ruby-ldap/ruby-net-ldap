@@ -45,6 +45,9 @@ class Net::LDAP::Connection #:nodoc:
     raise Net::LDAP::LdapError, "OpenSSL is unavailable" unless Net::LDAP::HasOpenSSL
 
     ctx = OpenSSL::SSL::SSLContext.new
+
+    # By default, we do not verify certificates. For a 1.0 release, this should probably be changed at some point.
+    # See discussion in https://github.com/ruby-ldap/ruby-net-ldap/pull/161
     ctx.set_params(tls_options) unless tls_options.empty?
 
     conn = OpenSSL::SSL::SSLSocket.new(io, ctx)
