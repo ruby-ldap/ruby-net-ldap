@@ -96,6 +96,13 @@ add: olcTLSCertificateKeyFile
 olcTLSCertificateKeyFile: /etc/ssl/private/ldap01_slapd_key.pem
 EOF
 
+# LDAP over TLS/SSL (ldaps://) is deprecated in favour of StartTLS. The latter
+# refers to an existing LDAP session (listening on TCP port 389) becoming
+# protected by TLS/SSL whereas LDAPS, like HTTPS, is a distinct
+# encrypted-from-the-start protocol that operates over TCP port 636. But we
+# enable it for testing here.
+sudo sed -i -e 's|^SLAPD_SERVICES="\(.*\)"|SLAPD_SERVICES="ldap:/// ldapi:/// ldaps:///"|' /etc/default/slapd
+
 sudo adduser openldap ssl-cert
 sudo chgrp ssl-cert /etc/ssl/private/ldap01_slapd_key.pem
 sudo chmod g+r /etc/ssl/private/ldap01_slapd_key.pem
