@@ -19,4 +19,9 @@ class TestBindIntegration < LDAPIntegrationTestCase
   def test_bind_fail
     refute @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: "not my password"), @ldap.get_operation_result.inspect
   end
+
+  def test_bind_tls
+    @ldap.encryption(method: :start_tls, tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS)
+    assert @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: "passworD1"), @ldap.get_operation_result.inspect
+  end
 end
