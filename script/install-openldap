@@ -5,7 +5,7 @@ set -x
 BASE_PATH="$( cd `dirname $0`/../test/fixtures/openldap && pwd )"
 SEED_PATH="$( cd `dirname $0`/../test/fixtures          && pwd )"
 
-dpkg -s slapd time ldap-utils ||\
+dpkg -s slapd time ldap-utils gnutls-bin ssl-cert > /dev/null ||\
   DEBIAN_FRONTEND=noninteractive sudo -E apt-get install -y --force-yes slapd time ldap-utils
 
 sudo /etc/init.d/slapd stop
@@ -45,3 +45,60 @@ sudo /etc/init.d/slapd start
              -f $SEED_PATH/seed.ldif
 
 sudo rm -rf $TMPDIR
+
+# SSL
+
+sudo sh -c "certtool --generate-privkey > /etc/ssl/private/cakey.pem"
+
+sudo sh -c "cat > /etc/ssl/ca.info <<EOF
+cn = rubyldap
+ca
+cert_signing_key
+EOF"
+
+# Create the self-signed CA certificate:
+sudo certtool --generate-self-signed \
+--load-privkey /etc/ssl/private/cakey.pem \
+--template /etc/ssl/ca.info \
+--outfile /etc/ssl/certs/cacert.pem
+
+# Make a private key for the server:
+sudo certtool --generate-privkey \
+--bits 1024 \
+--outfile /etc/ssl/private/ldap01_slapd_key.pem
+
+sudo sh -c "cat > /etc/ssl/ldap01.info <<EOF
+organization = Example Company
+cn = ldap01.example.com
+tls_www_server
+encryption_key
+signing_key
+expiration_days = 3650
+EOF"
+
+# Create the server certificate
+sudo certtool --generate-certificate \
+--load-privkey /etc/ssl/private/ldap01_slapd_key.pem \
+--load-ca-certificate /etc/ssl/certs/cacert.pem \
+--load-ca-privkey /etc/ssl/private/cakey.pem \
+--template /etc/ssl/ldap01.info \
+--outfile /etc/ssl/certs/ldap01_slapd_cert.pem
+
+sudo ldapmodify -Y EXTERNAL -H ldapi:/// <<EOF | true
+dn: cn=config
+add: olcTLSCACertificateFile
+olcTLSCACertificateFile: /etc/ssl/certs/cacert.pem
+-
+add: olcTLSCertificateFile
+olcTLSCertificateFile: /etc/ssl/certs/ldap01_slapd_cert.pem
+-
+add: olcTLSCertificateKeyFile
+olcTLSCertificateKeyFile: /etc/ssl/private/ldap01_slapd_key.pem
+EOF
+
+sudo adduser openldap ssl-cert
+sudo chgrp ssl-cert /etc/ssl/private/ldap01_slapd_key.pem
+sudo chmod g+r /etc/ssl/private/ldap01_slapd_key.pem
+sudo chmod o-r /etc/ssl/private/ldap01_slapd_key.pem
+
+sudo service slapd restart
