@@ -78,11 +78,11 @@ EOF"
 
 # Create the server certificate
 sudo certtool --generate-certificate \
---load-privkey /etc/ssl/private/ldap01_slapd_key.pem \
---load-ca-certificate /etc/ssl/certs/cacert.pem \
---load-ca-privkey /etc/ssl/private/cakey.pem \
---template /etc/ssl/ldap01.info \
---outfile /etc/ssl/certs/ldap01_slapd_cert.pem
+  --load-privkey /etc/ssl/private/ldap01_slapd_key.pem \
+  --load-ca-certificate /etc/ssl/certs/cacert.pem \
+  --load-ca-privkey /etc/ssl/private/cakey.pem \
+  --template /etc/ssl/ldap01.info \
+  --outfile /etc/ssl/certs/ldap01_slapd_cert.pem
 
 sudo ldapmodify -Y EXTERNAL -H ldapi:/// <<EOF | true
 dn: cn=config
