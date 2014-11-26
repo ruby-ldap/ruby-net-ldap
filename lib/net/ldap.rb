@@ -537,10 +537,6 @@ class Net::LDAP
   # additional capabilities are added, more configuration values will be
   # added here.
   #
-  # Currently, the only supported argument is { :method => :simple_tls }.
-  # (Equivalently, you may pass the symbol :simple_tls all by itself,
-  # without enclosing it in a Hash.)
-  #
   # The :simple_tls encryption method encrypts <i>all</i> communications
   # with the LDAP server. It completely establishes SSL/TLS encryption with
   # the LDAP server before any LDAP-protocol data is exchanged. There is no
@@ -563,10 +559,30 @@ class Net::LDAP
   # The :start_tls like the :simple_tls encryption method also encrypts all
   # communcations with the LDAP server. With the exception that it operates
   # over the standard TCP port.
+  #
+  # In order to verify certificates and enable other TLS options, the
+  # :tls_options hash can be passed alongside :simple_tls or :start_tls.
+  # This hash contains any options that can be passed to
+  # OpenSSL::SSL::SSLContext#set_params(). The most common options passed
+  # should be OpenSSL::SSL::SSLContext::DEFAULT_PARAMS, or the :ca_file option,
+  # which contains a path to a Certificate Authority file (PEM-encoded).
+  #
+  # Example for a default setup without custom settings:
+  #   {
+  #     :method => :simple_tls,
+  #     :tls_options => OpenSSL::SSL::SSLContext::DEFAULT_PARAMS
+  #   }
+  #
+  # Example for specifying a CA-File and only allowing TLSv1.1 connections:
+  #
+  #   {
+  #     :method => :start_tls,
+  #     :tls_options => { :ca_file => "/etc/cafile.pem", :ssl_version => "TLSv1_1" }
+  #   }
   def encryption(args)
     case args
     when :simple_tls, :start_tls
-      args = { :method => args }
+      args = { :method => args, :tls_options => {} }
     end
     @encryption = args
   end

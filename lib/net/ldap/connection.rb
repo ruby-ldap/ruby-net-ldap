@@ -41,9 +41,15 @@ class Net::LDAP::Connection #:nodoc:
     end
   end
 
-  def self.wrap_with_ssl(io)
+  def self.wrap_with_ssl(io, tls_options = {})
     raise Net::LDAP::LdapError, "OpenSSL is unavailable" unless Net::LDAP::HasOpenSSL
+
     ctx = OpenSSL::SSL::SSLContext.new
+
+    # By default, we do not verify certificates. For a 1.0 release, this should probably be changed at some point.
+    # See discussion in https://github.com/ruby-ldap/ruby-net-ldap/pull/161
+    ctx.set_params(tls_options) unless tls_options.empty?
+
     conn = OpenSSL::SSL::SSLSocket.new(io, ctx)
     conn.connect
 
@@ -85,7 +91,7 @@ class Net::LDAP::Connection #:nodoc:
   def setup_encryption(args)
     case args[:method]
     when :simple_tls
-      @conn = self.class.wrap_with_ssl(@conn)
+      @conn = self.class.wrap_with_ssl(@conn, args[:tls_options])
       # additional branches requiring server validation and peer certs, etc.
       # go here.
     when :start_tls
@@ -102,7 +108,7 @@ class Net::LDAP::Connection #:nodoc:
       end
 
       if pdu.result_code.zero?
-        @conn = self.class.wrap_with_ssl(@conn)
+        @conn = self.class.wrap_with_ssl(@conn, args[:tls_options])
       else
         raise Net::LDAP::LdapError, "start_tls failed: #{pdu.result_code}"
       end
