@@ -1,3 +1,5 @@
+require 'timeout'
+
 # This is a private class used internally by the library. It should not
 # be called by user code.
 class Net::LDAP::Connection #:nodoc:
@@ -10,7 +12,7 @@ class Net::LDAP::Connection #:nodoc:
     @instrumentation_service = server[:instrumentation_service]
 
     begin
-      @conn = server[:socket] || TCPSocket.new(server[:host], server[:port])
+      @conn = server[:socket] || connect(server)
     rescue SocketError
       raise Net::LDAP::LdapError, "No such address or other socket error."
     rescue Errno::ECONNREFUSED
@@ -26,6 +28,54 @@ class Net::LDAP::Connection #:nodoc:
     end
 
     yield self if block_given?
+  end
+
+  # Internal: Connect to the host and port.
+  #
+  # Accepted options:
+  # - host: the hostname or IP address String of the server to connect to.
+  # - port: the port Integer to connect to.
+  # - timeout: the Integer seconds to wait before timing out, or `nil` for no
+  #            timeout (the default).
+  #
+  # This connects to the specified server using non-blocking socket methods.
+  # This allows us to specify our own timeout to prevent blocking.
+  #
+  # Returns a connected Socket object.
+  def connect(options)
+    host, port = options[:host], options[:port]
+    timeout    = options[:timeout]
+
+    addr = Socket.getaddrinfo(host, nil)
+    ip   = addr[0][3]
+    sockaddr = Socket.sockaddr_in(port, ip)
+
+    socket = Socket.new(Socket.const_get(addr[0][0]), Socket::SOCK_STREAM, 0)
+    socket.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
+
+    begin
+      # start connection attempt
+      socket.connect_nonblock(sockaddr)
+    rescue IO::WaitWritable
+      if IO.select(nil, [socket], nil, timeout)
+        # validate connection succeeded
+        begin
+          socket.connect_nonblock(sockaddr)
+        rescue Errno::EISCONN
+          # already connected, no action necessary
+        rescue Exception => e
+          # unexpected error
+          socket.close
+          raise Net::LDAP::LdapError, "Connection to #{host}:#{port} (#{ip}) failed: (#{e.class}) #{e.message}"
+        end
+      else
+        # connection timeout
+        socket.close
+        raise Net::LDAP::LdapError, "Connection to #{host}:#{port} (#{ip}) timed out."
+      end
+    end
+
+    socket
   end
 
   module GetbyteForSSLSocket
