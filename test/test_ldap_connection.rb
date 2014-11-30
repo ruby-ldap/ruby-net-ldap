@@ -8,7 +8,7 @@ class TestLDAPConnection < Test::Unit::TestCase
   end
 
   def test_blocked_port
-    flexmock(TCPSocket).should_receive(:new).and_raise(SocketError)
+    flexmock(Socket).should_receive(:new).and_raise(SocketError)
     assert_raise Net::LDAP::LdapError do
       Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
     end
@@ -16,7 +16,7 @@ class TestLDAPConnection < Test::Unit::TestCase
 
   def test_raises_unknown_exceptions
     error = Class.new(StandardError)
-    flexmock(TCPSocket).should_receive(:new).and_raise(error)
+    flexmock(Socket).should_receive(:new).and_raise(error)
     assert_raise error do
       Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
     end
@@ -259,8 +259,7 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
   def setup
     @tcp_socket = flexmock(:connection)
     @tcp_socket.should_receive(:write)
-    flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
-    @connection = Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+    @connection = Net::LDAP::Connection.new(:socket => @tcp_socket)
   end
 
   def test_error_failed_operation
@@ -288,12 +287,10 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def setup
     @tcp_socket = flexmock(:connection)
     @tcp_socket.should_receive(:write)
-    flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
 
     @service = MockInstrumentationService.new
     @connection = Net::LDAP::Connection.new \
-      :host => 'test.mocked.com',
-      :port => 636,
+      :socket => @tcp_socket,
       :instrumentation_service => @service
   end
 
