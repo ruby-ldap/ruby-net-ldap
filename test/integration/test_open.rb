@@ -1,6 +1,6 @@
 require_relative '../test_helper'
 
-class TestBindIntegration < LDAPIntegrationTestCase
+class TestOpenIntegration < LDAPIntegrationTestCase
   def test_binds_without_open
     events = @service.subscribe "bind.net_ldap_connection"
 
