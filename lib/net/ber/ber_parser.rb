@@ -146,23 +146,9 @@ module Net::BER::BERParser
       raise Net::BER::BerError, "Invalid BER length 0xFF detected."
     else
       v = 0
-      len = n & 0x7f
-
-      buffer =
-        begin
-          read_nonblock(len)
-        rescue IO::WaitReadable
-          if IO.select([self], nil, nil, read_ber_timeout)
-            read_nonblock(len)
-          else
-            raise Net::LDAP::LdapError, "Timed out reading from the socket"
-          end
-        end
-
-      buffer.each_byte do |b|
+      read_ber_nonblock(n & 0x7f).each_byte do |b|
         v = (v << 8) + b
       end
-
       v
     end
   end
@@ -191,7 +177,7 @@ module Net::BER::BERParser
       raise Net::BER::BerError,
             "Indeterminite BER content length not implemented."
     end
-    data = read(content_length)
+    data = read_ber_nonblock(content_length)
 
     parse_ber_object(syntax, id, data)
   end
@@ -218,4 +204,18 @@ module Net::BER::BERParser
     nil
   end
   private :getbyte_nonblock
+
+  # Internal: Read `len` bytes, respecting timeout.
+  def read_ber_nonblock(len)
+    begin
+      read_nonblock(len)
+    rescue IO::WaitReadable
+      if IO.select([self], nil, nil, read_ber_timeout)
+        read_nonblock(len)
+      else
+        raise Net::LDAP::LdapError, "Timed out reading from the socket"
+      end
+    end
+  end
+  private :read_ber_nonblock
 end
