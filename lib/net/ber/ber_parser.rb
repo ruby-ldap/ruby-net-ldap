@@ -137,7 +137,20 @@ module Net::BER::BERParser
       raise Net::BER::BerError, "Invalid BER length 0xFF detected."
     else
       v = 0
-      read(n & 0x7f).each_byte do |b|
+      len = n & 0x7f
+
+      buffer =
+        begin
+          read_nonblock(len)
+        rescue IO::WaitReadable
+          if IO.select([self], nil, nil, read_ber_timeout)
+            read_nonblock(len)
+          else
+            raise Net::LDAP::LdapError, "Timed out reading from the socket"
+          end
+        end
+
+      buffer.each_byte do |b|
         v = (v << 8) + b
       end
 
