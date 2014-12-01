@@ -136,7 +136,7 @@ module Net::BER::BERParser
   # invalid BER length case. Because the "lengthlength" value was not used
   # inside of #read_ber, we no longer return it.
   def read_ber_length
-    n = getbyte
+    n = getbyte_nonblock
 
     if n <= 0x7f
       n
@@ -185,6 +185,11 @@ module Net::BER::BERParser
 
   # Internal: Returns the BER message ID or nil.
   def read_ber_id
+    getbyte_nonblock
+  end
+
+  # Internal: Replaces `getbyte` with nonblocking implementation.
+  def getbyte_nonblock
     begin
       read_nonblock(1).ord
     rescue IO::WaitReadable
