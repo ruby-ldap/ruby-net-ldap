@@ -22,6 +22,26 @@ class TestLDAPConnection < Test::Unit::TestCase
     end
   end
 
+  def test_connection_timeout
+    socket = flexmock(:socket)
+    flexmock(Socket).should_receive(:new).and_return(socket)
+
+    # standard behavior
+    socket.should_receive(:setsockopt)
+    socket.should_receive(:close)
+
+    # indicate connection happening in background (wait to write)
+    socket.should_receive(:connect_nonblock).
+           and_raise(Errno::EINPROGRESS.new.extend(IO::WaitWritable))
+
+    # time out waiting to write
+    flexmock(IO).should_receive(:select).and_return(nil)
+
+    assert_raise Net::LDAP::LdapError do
+      Net::LDAP::Connection.new(:host => "123.123.123.123", :port => 389, :timeout => 1)
+    end
+  end
+
   def test_modify_ops_delete
     args = { :operations => [ [ :delete, "mail" ] ] }
     result = Net::LDAP::Connection.modify_ops(args[:operations])
