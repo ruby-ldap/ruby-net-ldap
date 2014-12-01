@@ -21,7 +21,8 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls
-    @ldap.encryption(method: :start_tls, tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS)
+    tls_options = OpenSSL::SSL::SSLContext::DEFAULT_PARAMS.merge(:verify_mode => OpenSSL::SSL::VERIFY_NONE)
+    @ldap.encryption(method: :start_tls, tls_options: tls_options)
     assert @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: "passworD1"), @ldap.get_operation_result.inspect
   end
 end
