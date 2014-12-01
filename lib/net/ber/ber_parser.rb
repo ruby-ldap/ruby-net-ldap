@@ -191,6 +191,7 @@ module Net::BER::BERParser
   def read_ber_id
     getbyte_nonblock
   end
+  private :read_ber_id
 
   # Internal: Replaces `getbyte` with nonblocking implementation.
   def getbyte_nonblock
@@ -207,4 +208,5 @@ module Net::BER::BERParser
     # nothing to read on the socket (StringIO)
     nil
   end
+  private :getbyte_nonblock
 end
