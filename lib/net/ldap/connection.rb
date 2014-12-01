@@ -67,6 +67,9 @@ class Net::LDAP::Connection #:nodoc:
         close
         errors << [e, host, port]
       end
+      if server[:timeout]
+        @conn.read_ber_timeout = server[:timeout]
+      end
     end
 
     raise Net::LDAP::ConnectionError.new(errors)
