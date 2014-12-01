@@ -166,7 +166,7 @@ module Net::BER::BERParser
     # from streams that don't block when we ask for more data (like
     # StringIOs). At it is, this can throw TypeErrors and other nasties.
 
-    id = getbyte or return nil  # don't trash this value, we'll use it later
+    id = read_ber_id or return nil  # don't trash this value, we'll use it later
     content_length = read_ber_length
 
     yield id, content_length if block_given?
@@ -178,5 +178,10 @@ module Net::BER::BERParser
     data = read(content_length)
 
     parse_ber_object(syntax, id, data)
+  end
+
+  # Internal: Returns the BER message ID or nil.
+  def read_ber_id
+    getbyte
   end
 end
