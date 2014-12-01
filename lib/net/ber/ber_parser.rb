@@ -25,6 +25,9 @@ module Net::BER::BERParser
   BuiltinSyntax = Net::BER.compile_syntax(:universal => universal,
                                           :context_specific => context)
 
+  # Public: specify the BER socket read timeouts, nil by default (no timeout).
+  attr_accessor :read_ber_timeout
+
   ##
   # This is an extract of our BER object parsing to simplify our
   # understanding of how we parse basic BER object types.
@@ -182,6 +185,17 @@ module Net::BER::BERParser
 
   # Internal: Returns the BER message ID or nil.
   def read_ber_id
-    getbyte
+    begin
+      read_nonblock(1).ord
+    rescue IO::WaitReadable
+      if IO.select([self], nil, nil, read_ber_timeout)
+        read_nonblock(1).ord
+      else
+        raise Net::LDAP::LdapError, "Timed out reading from the socket"
+      end
+    end
+  rescue EOFError
+    # nothing to read on the socket (StringIO)
+    nil
   end
 end
