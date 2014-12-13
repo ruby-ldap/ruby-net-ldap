@@ -52,6 +52,10 @@ class TestBEREncoding < Test::Unit::TestCase
     define_method "test_encode_#{number}" do
       assert_equal expected_encoding.b, number.to_ber
     end
+
+    define_method "test_decode_encoded_#{number}" do
+      assert_equal number, expected_encoding.b.read_ber
+    end
   end
 
   # Round-trip encoding: This is mostly to be sure to cover Bignums well.
