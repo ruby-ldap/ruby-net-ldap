@@ -48,11 +48,11 @@ module Net::BER::Extensions::Fixnum
       size -= 1
     end
 
-    # for positive integers, if most significant bit is set to one,
+    # for positive integers, if most significant bit in an octet is set to one,
     # pad the result (otherwise it's decoded as a negative value)
     # See section 8.5 of ITU-T X.690:
     # http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
-    if self > 0 && (self & (0b10000000 << (size - 1))) > 0
+    if self > 0 && (self & (0b10000000 << (size - 1) * 8)) > 0
       size += 1
     end
 
