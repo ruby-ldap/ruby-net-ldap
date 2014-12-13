@@ -40,7 +40,12 @@ class TestBEREncoding < Test::Unit::TestCase
     5           => "\002\001\005",
     500         => "\002\002\001\364",
     50_000      => "\x02\x02\xC3P",
-    5_000_000_000  => "\002\005\001*\005\362\000"
+    5_000_000_000  => "\002\005\001*\005\362\000",
+
+    # negatives
+    # -1          => "\x02\x01\xFF",
+    # -127        => "\x02\x01\x81",
+    # -128        => "\x02\x01\x80"
   }.each do |number, expected_encoding|
     define_method "test_encode_#{number}" do
       assert_equal expected_encoding.b, number.to_ber
