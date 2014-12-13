@@ -27,7 +27,7 @@ class TestBEREncoding < Test::Unit::TestCase
     1           => "\x02\x01\x01",
     127         => "\x02\x01\x7F",
     128         => "\x02\x02\x00\x80",
-    255         => "\x02\x01\xFF",
+    255         => "\x02\x02\x00\xFF",
     256         => "\x02\x02\x01\x00",
     65535       => "\x02\x02\xFF\xFF",
     65536       => "\x02\x03\x01\x00\x00",
