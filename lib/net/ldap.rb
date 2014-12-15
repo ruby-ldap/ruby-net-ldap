@@ -323,7 +323,14 @@ class Net::LDAP
     :constructed => constructed,
   }
 
+  universal = {
+    constructed: {
+      107 => :array #ExtendedResponse (PasswdModifyResponseValue)
+    }
+  }
+
   AsnSyntax = Net::BER.compile_syntax(:application => application,
+                                      :universal => universal,
                                       :context_specific => context_specific)
 
   DefaultHost = "127.0.0.1"
@@ -332,7 +339,8 @@ class Net::LDAP
   DefaultTreebase = "dc=com"
   DefaultForceNoPage = false
 
-  StartTlsOid = "1.3.6.1.4.1.1466.20037"
+  StartTlsOid = '1.3.6.1.4.1.1466.20037'
+  PasswdModifyOid = '1.3.6.1.4.1.4203.1.11.1'
 
   # https://tools.ietf.org/html/rfc4511#section-4.1.9
   # https://tools.ietf.org/html/rfc4511#appendix-A
@@ -651,8 +659,11 @@ class Net::LDAP
   #++
   def get_operation_result
     result = @result
-    result = result.result if result.is_a?(Net::LDAP::PDU)
     os = OpenStruct.new
+    if result.is_a?(Net::LDAP::PDU)
+      os.extended_response = result.extended_response
+      result = result.result
+    end
     if result.is_a?(Hash)
       # We might get a hash of LDAP response codes instead of a simple
       # numeric code.
@@ -1036,6 +1047,44 @@ class Net::LDAP
     instrument "modify.net_ldap", args do |payload|
       @result = use_connection(args) do |conn|
         conn.modify(args)
+      end
+      @result.success?
+    end
+  end
+
+  # Password Modify
+  #
+  # Change existing password:
+  #
+  #  dn = 'uid=modify-password-user1,ou=People,dc=rubyldap,dc=com'
+  #  auth = {
+  #    method: :simple,
+  #    username: dn,
+  #    password: 'passworD1'
+  #  }
+  #  ldap.password_modify(dn: dn,
+  #                       auth: auth,
+  #                       old_password: 'passworD1',
+  #                       new_password: 'passworD2')
+  #
+  # Or get the LDAP server to generate a password for you:
+  #
+  #  dn = 'uid=modify-password-user1,ou=People,dc=rubyldap,dc=com'
+  #  auth = {
+  #    method: :simple,
+  #    username: dn,
+  #    password: 'passworD1'
+  #  }
+  #  ldap.password_modify(dn: dn,
+  #                       auth: auth,
+  #                       old_password: 'passworD1')
+  #
+  #  ldap.get_operation_result.extended_response[0][0] #=> 'VtcgGf/G'
+  #
+  def password_modify(args)
+    instrument "modify_password.net_ldap", args do |payload|
+      @result = use_connection(args) do |conn|
+        conn.password_modify(args)
       end
       @result.success?
     end
