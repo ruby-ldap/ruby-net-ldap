@@ -1,21 +1,21 @@
 # -*- ruby encoding: utf-8 -*-
 ##
-# Ber extensions to the Fixnum class.
-module Net::BER::Extensions::Fixnum
+# BER extensions to the Integer class, affecting Fixnum and Bignum objects.
+module Net::BER::Extensions::Integer
   ##
-  # Converts the fixnum to BER format.
+  # Converts the Integer to BER format.
   def to_ber
     "\002#{to_ber_internal}"
   end
 
   ##
-  # Converts the fixnum to BER enumerated format.
+  # Converts the Integer to BER enumerated format.
   def to_ber_enumerated
     "\012#{to_ber_internal}"
   end
 
   ##
-  # Converts the fixnum to BER length encoding format.
+  # Converts the Integer to BER length encoding format.
   def to_ber_length_encoding
     if self <= 127
       [self].pack('C')
@@ -33,38 +33,34 @@ module Net::BER::Extensions::Fixnum
   end
 
   ##
-  # Used to BER-encode the length and content bytes of a Fixnum. Callers
+  # Used to BER-encode the length and content bytes of an Integer. Callers
   # must prepend the tag byte for the contained value.
   def to_ber_internal
-    # CAUTION: Bit twiddling ahead. You might want to shield your eyes or
-    # something.
-
-    # Looks for the first byte in the fixnum that is not all zeroes. It does
-    # this by masking one byte after another, checking the result for bits
-    # that are left on.
-    val   = (self < 0) ? ~self : self
+    # Compute the byte length, accounting for negative values requiring two's
+    # complement.
     size  = 1
-    size += 1 until (val >> (size * 8)).zero?
+    size += 1 until (((self < 0) ? ~self : self) >> (size * 8)).zero?
 
-    # for positive integers, if most significant bit in an octet is set to one,
-    # pad the result (otherwise it's decoded as a negative value)
-    # See section 8.5 of ITU-T X.690:
+    # Padding for positive, negative values. See section 8.5 of ITU-T X.690:
     # http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
+
+    # For positive integers, if most significant bit in an octet is set to one,
+    # pad the result (otherwise it's decoded as a negative value).
     if self > 0 && (self & (0x80 << (size - 1) * 8)) > 0
       size += 1
     end
 
-    # and for negative integers, pad if the most significant bit in the octet
-    # is not set to one.
+    # And for negative integers, pad if the most significant bit in the octet
+    # is not set to one (othwerise, it's decoded as positive value).
     if self < 0 && (self & (0x80 << (size - 1) * 8)) == 0
       size += 1
     end
 
-    # Store the size of the fixnum in the result
+    # Store the size of the Integer in the result
     result = [size]
 
     # Appends bytes to result, starting with higher orders first. Extraction
-    # of bytes is done by right shifting the original fixnum by an amount
+    # of bytes is done by right shifting the original Integer by an amount
     # and then masking that with 0xff.
     while size > 0
       # right shift size - 1 bytes, mask with 0xff
