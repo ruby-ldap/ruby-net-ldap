@@ -42,17 +42,21 @@ module Net::BER::Extensions::Fixnum
     # Looks for the first byte in the fixnum that is not all zeroes. It does
     # this by masking one byte after another, checking the result for bits
     # that are left on.
-    size = Net::BER::MAX_FIXNUM_SIZE
-    while size > 1
-      break if (self & (0xff << (size - 1) * 8)) > 0
-      size -= 1
-    end
+    val   = (self < 0) ? ~self : self
+    size  = 1
+    size += 1 until (val >> (size * 8)).zero?
 
     # for positive integers, if most significant bit in an octet is set to one,
     # pad the result (otherwise it's decoded as a negative value)
     # See section 8.5 of ITU-T X.690:
     # http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
-    if self > 0 && (self & (0b10000000 << (size - 1) * 8)) > 0
+    if self > 0 && (self & (0x80 << (size - 1) * 8)) > 0
+      size += 1
+    end
+
+    # and for negative integers, pad if the most significant bit in the octet
+    # is not set to one.
+    if self < 0 && (self & (0x80 << (size - 1) * 8)) == 0
       size += 1
     end
 
