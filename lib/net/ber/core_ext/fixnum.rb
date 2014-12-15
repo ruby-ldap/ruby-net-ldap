@@ -15,7 +15,7 @@ module Net::BER::Extensions::Fixnum
   end
 
   ##
-  # Converts the fixnum to BER length encodining format.
+  # Converts the fixnum to BER length encoding format.
   def to_ber_length_encoding
     if self <= 127
       [self].pack('C')
