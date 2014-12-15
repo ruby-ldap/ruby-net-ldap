@@ -47,7 +47,15 @@ class TestBEREncoding < Test::Unit::TestCase
     # negatives
     -1          => "\x02\x01\xFF",
     -127        => "\x02\x01\x81",
-    -128        => "\x02\x01\x80"
+    -128        => "\x02\x01\x80",
+    -255        => "\x02\x02\xFF\x01",
+    -256        => "\x02\x02\xFF\x00",
+    -65535      => "\x02\x03\xFF\x00\x01",
+    -65536      => "\x02\x03\xFF\x00\x00",
+    -65537      => "\x02\x03\xFE\xFF\xFF",
+    -8388607    => "\x02\x03\x80\x00\x01",
+    -8388608    => "\x02\x03\x80\x00\x00",
+    -16_777_215 => "\x02\x04\xFF\x00\x00\x01",
   }.each do |number, expected_encoding|
     define_method "test_encode_#{number}" do
       assert_equal expected_encoding.b, number.to_ber
