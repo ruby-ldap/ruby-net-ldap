@@ -27,18 +27,4 @@ class TestBERIntegration < LDAPIntegrationTestCase
     assert_includes Net::LDAP::ResultCodesSearchSuccess,
       @ldap.get_operation_result.code, "should be a successful search operation"
   end
-
-  def test_ber_encoding_message_id_greater_than_128
-    @ldap.open do |client|
-      256.times {
-        entries = client.search \
-          base: "dc=rubyldap,dc=com",
-          filter: "(uid=user1)",
-          size: 1
-        assert_equal "uid=user1,ou=People,dc=rubyldap,dc=com", entries.first.dn
-      }
-      message_id = client.instance_variable_get('@open_connection').instance_variable_get('@msgid')
-      assert_operator message_id, :>, 256  # includes non-search messages
-    end
-  end
 end
