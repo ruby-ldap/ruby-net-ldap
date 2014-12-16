@@ -1,3 +1,7 @@
+=== Net::LDAP 0.10.1
+* Bug fixes:
+  * Fix Integer BER encoding of signed values
+
 === Net::LDAP 0.10.0
 * Major enhancements:
   * Accept SimpleTLS/StartTLS encryption options (compatible with `OpenSSL::SSL::SSLContext#set_params`)
