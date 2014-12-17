@@ -91,7 +91,7 @@ class Net::LDAP::Connection #:nodoc:
   def setup_encryption(args)
     case args[:method]
     when :simple_tls
-      @conn = self.class.wrap_with_ssl(@conn, args[:tls_options])
+      @conn = self.class.wrap_with_ssl(@conn, args.fetch(:tls_options, {}))
       # additional branches requiring server validation and peer certs, etc.
       # go here.
     when :start_tls
