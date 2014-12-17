@@ -57,4 +57,22 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
     assert_equal "(uid=user1)", payload[:filter]
     assert_equal result.size, payload[:size]
   end
+
+  def test_connect_cb
+    flexmock(Net::LDAP::Connection).should_receive(:new).with(
+        :socket => 42,
+        :host => "test.mocked.com",
+        :port => 636,
+        :encryption => nil,
+        :instrumentation_service => @service).and_return(@connection)
+    flexmock(@connection).should_receive(:bind).and_return(flexmock(:bind_result, :result_code => Net::LDAP::ResultCodeSuccess))
+
+    @subject = Net::LDAP.new \
+      :connect_cb => lambda { |host, port| 42 },
+      :host => "test.mocked.com", :port => 636,
+      :force_no_page => true, # so server capabilities are not queried
+      :instrumentation_service => @service
+
+    @subject.open {}
+  end
 end
