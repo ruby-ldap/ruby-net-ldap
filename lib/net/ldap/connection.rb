@@ -6,26 +6,52 @@ class Net::LDAP::Connection #:nodoc:
   LdapVersion = 3
   MaxSaslChallenges = 10
 
-  def initialize(server)
+  def initialize(server, timeout = 5)
     @instrumentation_service = server[:instrumentation_service]
+    
+    if server[:socket]
+      @conn = server[:socket]
+    else
+      addr = Socket.getaddrinfo(server[:host], nil)
+      sockaddr = Socket.pack_sockaddr_in(server[:port], addr[0][3])
 
-    begin
-      @conn = server[:socket] || TCPSocket.new(server[:host], server[:port])
-    rescue SocketError
-      raise Net::LDAP::LdapError, "No such address or other socket error."
-    rescue Errno::ECONNREFUSED
-      raise Net::LDAP::LdapError, "Server #{server[:host]} refused connection on port #{server[:port]}."
-    rescue Errno::EHOSTUNREACH => error
-      raise Net::LDAP::LdapError, "Host #{server[:host]} was unreachable (#{error.message})"
-    rescue Errno::ETIMEDOUT
-      raise Net::LDAP::LdapError, "Connection to #{server[:host]} timed out."
+      Socket.new(Socket.const_get(addr[0][0]), Socket::SOCK_STREAM, 0).tap do |socket|
+        socket.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
+
+        begin
+          socket.connect_nonblock(sockaddr)
+        rescue IO::WaitWritable  
+          if IO.select(nil, [socket], nil, timeout)
+            begin
+              @conn = socket.connect_nonblock(sockaddr)
+            rescue Errno::EISCONN
+              # Good news everybody, the socket is connected!
+            rescue SocketError
+              raise Net::LDAP::LdapError, "No such address or other socket error."
+            rescue Errno::ECONNREFUSED
+              raise Net::LDAP::LdapError, "Server #{server[:host]} refused connection on port #{server[:port]}."
+            rescue Errno::EHOSTUNREACH => error
+              raise Net::LDAP::LdapError, "Host #{server[:host]} was unreachable (#{error.message})"
+            rescue
+              # An unexpected exception was raised - the connection is no good.
+              socket.close
+              raise
+            end
+          else
+            # IO.select returns nil when the socket is not ready before timeout 
+            # seconds have elapsed
+            socket.close
+            raise "Connection timeout"
+          end
+        end
+      end
+      
+      if server[:encryption]
+        setup_encryption server[:encryption]
+      end
+
+      yield self if block_given?
     end
-
-    if server[:encryption]
-      setup_encryption server[:encryption]
-    end
-
-    yield self if block_given?
   end
 
   module GetbyteForSSLSocket
