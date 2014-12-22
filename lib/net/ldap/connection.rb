@@ -16,14 +16,15 @@ class Net::LDAP::Connection #:nodoc:
       sockaddr = Socket.pack_sockaddr_in(server[:port], addr[0][3])
 
       Socket.new(Socket.const_get(addr[0][0]), Socket::SOCK_STREAM, 0).tap do |socket|
-        socket.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
+        @conn = socket
+        @conn.setsockopt(Socket::IPPROTO_TCP, Socket::TCP_NODELAY, 1)
 
         begin
-          socket.connect_nonblock(sockaddr)
+          @conn.connect_nonblock(sockaddr)
         rescue IO::WaitWritable  
           if IO.select(nil, [socket], nil, timeout)
             begin
-              @conn = socket.connect_nonblock(sockaddr)
+              @conn.connect_nonblock(sockaddr)
             rescue Errno::EISCONN
               # Good news everybody, the socket is connected!
             rescue SocketError
@@ -34,13 +35,11 @@ class Net::LDAP::Connection #:nodoc:
               raise Net::LDAP::LdapError, "Host #{server[:host]} was unreachable (#{error.message})"
             rescue
               # An unexpected exception was raised - the connection is no good.
-              socket.close
               raise
             end
           else
             # IO.select returns nil when the socket is not ready before timeout 
             # seconds have elapsed
-            socket.close
             raise "Connection timeout"
           end
         end
