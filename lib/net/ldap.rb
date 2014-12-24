@@ -670,12 +670,7 @@ class Net::LDAP
 
     instrument "open.net_ldap" do |payload|
       begin
-        @open_connection =
-          Net::LDAP::Connection.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
+        @open_connection = new_connection
         payload[:connection] = @open_connection
         payload[:bind]       = @open_connection.bind(@auth)
         yield self
@@ -745,27 +740,11 @@ class Net::LDAP
     result_set = return_result_set ? [] : nil
 
     instrument "search.net_ldap", args do |payload|
-      if @open_connection
-        @result = @open_connection.search(args) { |entry|
+      @result = use_connection(args) do |conn|
+        conn.search(args) { |entry|
           result_set << entry if result_set
           yield entry if block_given?
         }
-      else
-        begin
-          conn = Net::LDAP::Connection.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
-          if (@result = conn.bind(args[:auth] || @auth)).result_code == Net::LDAP::ResultCodeSuccess
-            @result = conn.search(args) { |entry|
-              result_set << entry if result_set
-              yield entry if block_given?
-            }
-          end
-        ensure
-          conn.close if conn
-        end
       end
 
       if return_result_set
@@ -844,11 +823,7 @@ class Net::LDAP
         payload[:bind]       = @result = @open_connection.bind(auth)
       else
         begin
-          conn = Connection.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
+          conn = new_connection
           payload[:connection] = conn
           payload[:bind]       = @result = conn.bind(auth)
         ensure
@@ -946,22 +921,8 @@ class Net::LDAP
   #  end
   def add(args)
     instrument "add.net_ldap", args do |payload|
-      if @open_connection
-        @result = @open_connection.add(args)
-      else
-        @result = 0
-        begin
-          conn = Connection.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
-          if (@result = conn.bind(args[:auth] || @auth)).result_code == Net::LDAP::ResultCodeSuccess
-            @result = conn.add(args)
-          end
-        ensure
-          conn.close if conn
-        end
+      @result = use_connection(args) do |conn|
+        conn.add(args)
       end
       @result.success?
     end
@@ -1050,24 +1011,9 @@ class Net::LDAP
   # does _not_ imply transactional atomicity, which LDAP does not provide.
   def modify(args)
     instrument "modify.net_ldap", args do |payload|
-      if @open_connection
-        @result = @open_connection.modify(args)
-      else
-        @result = 0
-        begin
-          conn = Connection.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
-          if (@result = conn.bind(args[:auth] || @auth)).result_code == Net::LDAP::ResultCodeSuccess
-            @result = conn.modify(args)
-          end
-        ensure
-          conn.close if conn
-        end
+      @result = use_connection(args) do |conn|
+        conn.modify(args)
       end
-
       @result.success?
     end
   end
@@ -1127,22 +1073,8 @@ class Net::LDAP
   # _Documentation_ _stub_
   def rename(args)
     instrument "rename.net_ldap", args do |payload|
-      if @open_connection
-        @result = @open_connection.rename(args)
-      else
-        @result = 0
-        begin
-          conn = Connection.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
-          if (@result = conn.bind(args[:auth] || @auth)).result_code == Net::LDAP::ResultCodeSuccess
-            @result = conn.rename(args)
-          end
-        ensure
-          conn.close if conn
-        end
+      @result = use_connection(args) do |conn|
+        conn.rename(args)
       end
       @result.success?
     end
@@ -1160,22 +1092,8 @@ class Net::LDAP
   #  ldap.delete :dn => dn
   def delete(args)
     instrument "delete.net_ldap", args do |payload|
-      if @open_connection
-        @result = @open_connection.delete(args)
-      else
-        @result = 0
-        begin
-          conn = Connection.new \
-            :host                    => @host,
-            :port                    => @port,
-            :encryption              => @encryption,
-            :instrumentation_service => @instrumentation_service
-          if (@result = conn.bind(args[:auth] || @auth)).result_code == Net::LDAP::ResultCodeSuccess
-            @result = conn.delete(args)
-          end
-        ensure
-          conn.close
-        end
+      @result = use_connection(args) do |conn|
+        conn.delete(args)
       end
       @result.success?
     end
@@ -1276,5 +1194,37 @@ class Net::LDAP
     return false if @force_no_page
     @server_caps ||= search_root_dse
     @server_caps[:supportedcontrol].include?(Net::LDAP::LDAPControls::PAGED_RESULTS)
+  end
+
+  private
+
+  # Yields an open connection if there is one, otherwise establishes a new
+  # connection, binds, and yields it. If binding fails, it will return the
+  # result from that, and :use_connection: will not yield at all. If not
+  # the return value is whatever is returned from the block.
+  def use_connection(args)
+    if @open_connection
+      yield @open_connection
+    else
+      begin
+        conn = new_connection
+        if (result = conn.bind(args[:auth] || @auth)).result_code == Net::LDAP::ResultCodeSuccess
+          yield conn
+        else
+          return result
+        end
+      ensure
+        conn.close if conn
+      end
+    end
+  end
+
+  # Establish a new connection to the LDAP server
+  def new_connection
+    Net::LDAP::Connection.new \
+      :host                    => @host,
+      :port                    => @port,
+      :encryption              => @encryption,
+      :instrumentation_service => @instrumentation_service
   end
 end # class LDAP
