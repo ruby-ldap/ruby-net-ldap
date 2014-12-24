@@ -139,6 +139,7 @@ class Net::LDAP::Connection #:nodoc:
   # generously contributing the :start_tls path.
   #++
   def setup_encryption(args)
+    args[:tls_options] ||= {}
     case args[:method]
     when :simple_tls
       @conn = self.class.wrap_with_ssl(@conn, args[:tls_options])

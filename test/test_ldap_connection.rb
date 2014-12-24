@@ -222,7 +222,7 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
       and_return(result2)
     mock.should_receive(:write)
     conn = Net::LDAP::Connection.new(:socket => mock)
-    flexmock(Net::LDAP::Connection).should_receive(:wrap_with_ssl).with(mock, nil).
+    flexmock(Net::LDAP::Connection).should_receive(:wrap_with_ssl).with(mock, {}).
       and_return(mock)
 
     conn.next_msgid # simulates ongoing query

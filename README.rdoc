@@ -1,4 +1,4 @@
-= Net::LDAP for Ruby {<img src="https://travis-ci.org/github/ruby-net-ldap.png" />}[https://travis-ci.org/github/ruby-net-ldap]
+= Net::LDAP for Ruby {<img src="https://travis-ci.org/ruby-ldap/ruby-net-ldap.png" />}[https://travis-ci.org/github/ruby-net-ldap]
 
 == Description
 
@@ -41,8 +41,8 @@ Simply require either 'net-ldap' or 'net/ldap'.
 
 This section is for gem maintainers to cut a new version of the gem.
 
-* Update lib/html/pipeline/version.rb to next version number X.X.X following {semver}(http://semver.org/).
-* Update CHANGELOG.md. Get latest changes with `git log --oneline vLAST_RELEASE..HEAD | grep Merge`
+* Update lib/net/ldap/version.rb to next version number X.X.X following {semver}(http://semver.org/).
+* Update `History.rdoc`. Get latest changes with `git log --oneline vLAST_RELEASE..HEAD | grep Merge`
 * On the master branch, run `script/release`
 
 :include: Contributors.rdoc

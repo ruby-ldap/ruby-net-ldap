@@ -6,6 +6,18 @@ require 'flexmock/test_unit'
 # Whether integration tests should be run.
 INTEGRATION = ENV.fetch("INTEGRATION", "skip") != "skip"
 
+# The CA file to verify certs against for tests.
+# Override with CA_FILE env variable; otherwise checks for the VM-specific path
+# and falls back to the test/fixtures/cacert.pem for local testing.
+CA_FILE =
+  ENV.fetch("CA_FILE") do
+    if File.exist?("/etc/ssl/certs/cacert.pem")
+      "/etc/ssl/certs/cacert.pem"
+    else
+      File.expand_path("fixtures/cacert.pem", File.dirname(__FILE__))
+    end
+  end
+
 if RUBY_VERSION < "2.0"
   class String
     def b
