@@ -2,14 +2,14 @@ require_relative 'test_helper'
 
 class TestLDAPConnection < Test::Unit::TestCase
   def test_unresponsive_host
-    assert_raise Net::LDAP::LdapError do
+    assert_raise Net::LDAP::Error do
       Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
     end
   end
 
   def test_blocked_port
     flexmock(TCPSocket).should_receive(:new).and_raise(SocketError)
-    assert_raise Net::LDAP::LdapError do
+    assert_raise Net::LDAP::Error do
       Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
     end
   end
