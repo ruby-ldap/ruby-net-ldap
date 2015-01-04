@@ -12,13 +12,13 @@ class Net::LDAP::Connection #:nodoc:
     begin
       @conn = server[:socket] || TCPSocket.new(server[:host], server[:port])
     rescue SocketError
-      raise Net::LDAP::LdapError, "No such address or other socket error."
+      raise Net::LDAP::Error, "No such address or other socket error."
     rescue Errno::ECONNREFUSED
-      raise Net::LDAP::LdapError, "Server #{server[:host]} refused connection on port #{server[:port]}."
+      raise Net::LDAP::Error, "Server #{server[:host]} refused connection on port #{server[:port]}."
     rescue Errno::EHOSTUNREACH => error
-      raise Net::LDAP::LdapError, "Host #{server[:host]} was unreachable (#{error.message})"
+      raise Net::LDAP::Error, "Host #{server[:host]} was unreachable (#{error.message})"
     rescue Errno::ETIMEDOUT
-      raise Net::LDAP::LdapError, "Connection to #{server[:host]} timed out."
+      raise Net::LDAP::Error, "Connection to #{server[:host]} timed out."
     end
 
     if server[:encryption]
@@ -42,7 +42,7 @@ class Net::LDAP::Connection #:nodoc:
   end
 
   def self.wrap_with_ssl(io, tls_options = {})
-    raise Net::LDAP::LdapError, "OpenSSL is unavailable" unless Net::LDAP::HasOpenSSL
+    raise Net::LDAP::Error, "OpenSSL is unavailable" unless Net::LDAP::HasOpenSSL
 
     ctx = OpenSSL::SSL::SSLContext.new
 
@@ -67,7 +67,7 @@ class Net::LDAP::Connection #:nodoc:
   # successfully-opened @conn instance variable, which is a TCP connection.
   # Depending on the received arguments, we establish SSL, potentially
   # replacing the value of @conn accordingly. Don't generate any errors here
-  # if no encryption is requested. DO raise Net::LDAP::LdapError objects if encryption
+  # if no encryption is requested. DO raise Net::LDAP::Error objects if encryption
   # is requested and we have trouble setting it up. That includes if OpenSSL
   # is not set up on the machine. (Question: how does the Ruby OpenSSL
   # wrapper react in that case?) DO NOT filter exceptions raised by the
@@ -105,16 +105,16 @@ class Net::LDAP::Connection #:nodoc:
       pdu = queued_read(message_id)
 
       if pdu.nil? || pdu.app_tag != Net::LDAP::PDU::ExtendedResponse
-        raise Net::LDAP::LdapError, "no start_tls result"
+        raise Net::LDAP::Error, "no start_tls result"
       end
 
       if pdu.result_code.zero?
         @conn = self.class.wrap_with_ssl(@conn, args[:tls_options])
       else
-        raise Net::LDAP::LdapError, "start_tls failed: #{pdu.result_code}"
+        raise Net::LDAP::Error, "start_tls failed: #{pdu.result_code}"
       end
     else
-      raise Net::LDAP::LdapError, "unsupported encryption method #{args[:method]}"
+      raise Net::LDAP::Error, "unsupported encryption method #{args[:method]}"
     end
   end
 
@@ -225,7 +225,7 @@ class Net::LDAP::Connection #:nodoc:
       elsif meth == :gss_spnego
         bind_gss_spnego(auth)
       else
-        raise Net::LDAP::LdapError, "Unsupported auth method (#{meth})"
+        raise Net::LDAP::Error, "Unsupported auth method (#{meth})"
       end
     end
   end
@@ -241,7 +241,7 @@ class Net::LDAP::Connection #:nodoc:
                   ["", ""]
                 end
 
-    raise Net::LDAP::LdapError, "Invalid binding information" unless (user && psw)
+    raise Net::LDAP::Error, "Invalid binding information" unless (user && psw)
 
     message_id = next_msgid
     request    = [
@@ -253,7 +253,7 @@ class Net::LDAP::Connection #:nodoc:
     pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::BindResult
-      raise Net::LDAP::LdapError, "no bind result"
+      raise Net::LDAP::Error, "no bind result"
     end
 
     pdu
@@ -283,7 +283,7 @@ class Net::LDAP::Connection #:nodoc:
   def bind_sasl(auth)
     mech, cred, chall = auth[:mechanism], auth[:initial_credential],
       auth[:challenge_response]
-    raise Net::LDAP::LdapError, "Invalid binding information" unless (mech && cred && chall)
+    raise Net::LDAP::Error, "Invalid binding information" unless (mech && cred && chall)
 
     message_id = next_msgid
 
@@ -298,16 +298,16 @@ class Net::LDAP::Connection #:nodoc:
       pdu = queued_read(message_id)
 
       if !pdu || pdu.app_tag != Net::LDAP::PDU::BindResult
-        raise Net::LDAP::LdapError, "no bind result"
+        raise Net::LDAP::Error, "no bind result"
       end
 
       return pdu unless pdu.result_code == Net::LDAP::ResultCodeSaslBindInProgress
-      raise Net::LDAP::LdapError, "sasl-challenge overflow" if ((n += 1) > MaxSaslChallenges)
+      raise Net::LDAP::Error, "sasl-challenge overflow" if ((n += 1) > MaxSaslChallenges)
 
       cred = chall.call(pdu.result_server_sasl_creds)
     }
 
-    raise Net::LDAP::LdapError, "why are we here?"
+    raise Net::LDAP::Error, "why are we here?"
   end
   private :bind_sasl
 
@@ -326,7 +326,7 @@ class Net::LDAP::Connection #:nodoc:
     require 'ntlm'
 
     user, psw = [auth[:username] || auth[:dn], auth[:password]]
-    raise Net::LDAP::LdapError, "Invalid binding information" unless (user && psw)
+    raise Net::LDAP::Error, "Invalid binding information" unless (user && psw)
 
     nego = proc { |challenge|
       t2_msg = NTLM::Message.parse(challenge)
@@ -412,10 +412,10 @@ class Net::LDAP::Connection #:nodoc:
     sort   = args.fetch(:sort_controls, false)
 
     # arg validation
-    raise Net::LDAP::LdapError, "search base is required" unless base
-    raise Net::LDAP::LdapError, "invalid search-size" unless size >= 0
-    raise Net::LDAP::LdapError, "invalid search scope" unless Net::LDAP::SearchScopes.include?(scope)
-    raise Net::LDAP::LdapError, "invalid alias dereferencing value" unless Net::LDAP::DerefAliasesArray.include?(deref)
+    raise Net::LDAP::Error, "search base is required" unless base
+    raise Net::LDAP::Error, "invalid search-size" unless size >= 0
+    raise Net::LDAP::Error, "invalid search scope" unless Net::LDAP::SearchScopes.include?(scope)
+    raise Net::LDAP::Error, "invalid alias dereferencing value" unless Net::LDAP::DerefAliasesArray.include?(deref)
 
     # arg transforms
     filter = Net::LDAP::Filter.construct(filter) if filter.is_a?(String)
@@ -527,7 +527,7 @@ class Net::LDAP::Connection #:nodoc:
             end
             break
           else
-            raise Net::LDAP::LdapError, "invalid response-type in search: #{pdu.app_tag}"
+            raise Net::LDAP::Error, "invalid response-type in search: #{pdu.app_tag}"
           end
         end
 
@@ -624,7 +624,7 @@ class Net::LDAP::Connection #:nodoc:
     pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::ModifyResponse
-      raise Net::LDAP::LdapError, "response missing or invalid"
+      raise Net::LDAP::Error, "response missing or invalid"
     end
 
     pdu
@@ -638,7 +638,7 @@ class Net::LDAP::Connection #:nodoc:
   # to the error message and the matched-DN returned by the server.
   #++
   def add(args)
-    add_dn = args[:dn] or raise Net::LDAP::LdapError, "Unable to add empty DN"
+    add_dn = args[:dn] or raise Net::LDAP::Error, "Unable to add empty DN"
     add_attrs = []
     a = args[:attributes] and a.each { |k, v|
       add_attrs << [ k.to_s.to_ber, Array(v).map { |m| m.to_ber}.to_ber_set ].to_ber_sequence
@@ -651,7 +651,7 @@ class Net::LDAP::Connection #:nodoc:
     pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::AddResponse
-      raise Net::LDAP::LdapError, "response missing or invalid"
+      raise Net::LDAP::Error, "response missing or invalid"
     end
 
     pdu
@@ -674,7 +674,7 @@ class Net::LDAP::Connection #:nodoc:
     pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::ModifyRDNResponse
-      raise Net::LDAP::LdapError.new "response missing or invalid"
+      raise Net::LDAP::Error.new "response missing or invalid"
     end
 
     pdu
@@ -693,7 +693,7 @@ class Net::LDAP::Connection #:nodoc:
     pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::DeleteResponse
-      raise Net::LDAP::LdapError, "response missing or invalid"
+      raise Net::LDAP::Error, "response missing or invalid"
     end
 
     pdu
