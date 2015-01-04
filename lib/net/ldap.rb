@@ -247,6 +247,33 @@ class Net::LDAP
   include Net::LDAP::Instrumentation
 
   class LdapError < StandardError; end
+  class AlreadyOpenedError < LdapError; end
+  class SocketError < LdapError; end
+  class ConnectionRefusedError < LdapError; end
+  class NoOpenSSLError < LdapError; end
+  class NoStartTLSResultError < LdapError; end
+  class StartTLSError < LdapError; end
+  class EncryptionUnsupportedError < LdapError; end
+  class EncMethodUnsupportedError < LdapError; end
+  class AuthMethodUnsupportedError < LdapError; end
+  class BindingInformationInvalidError < LdapError; end
+  class NoBindResultError < LdapError; end
+  class SASLChallengeOverflowError < LdapError; end
+  class SearchSizeInvalidError < LdapError; end
+  class SearchScopeInvalidError < LdapError; end
+  class ResponseTypeInvalidError < LdapError; end
+  class ResponseMissingOrInvalidError < LdapError; end
+  class EmptyDNError < LdapError; end
+  class HashTypeUnsupportedError < LdapError; end
+  class OperatorError < LdapError; end
+  class SubstringFilterError < LdapError; end
+  class SearchFilterError < LdapError; end
+  class BERInvalidError < LdapError; end
+  class SearchFilterTypeUnknownError < LdapError; end
+  class BadAttributeError < LdapError; end
+  class FilterTypeUnknownError < LdapError; end
+  class FilterSyntaxInvalidError < LdapError; end
+  class EntryOverflowError < LdapError; end
 
   SearchScope_BaseObject = 0
   SearchScope_SingleLevel = 1
@@ -666,7 +693,7 @@ class Net::LDAP
     # anything with the bind results. We then pass self to the caller's
     # block, where he will execute his LDAP operations. Of course they will
     # all generate auth failures if the bind was unsuccessful.
-    raise Net::LDAP::LdapError, "Open already in progress" if @open_connection
+    raise Net::LDAP::AlreadyOpenedError, "Open already in progress" if @open_connection
 
     instrument "open.net_ldap" do |payload|
       begin

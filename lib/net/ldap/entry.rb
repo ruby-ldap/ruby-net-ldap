@@ -71,7 +71,7 @@ class Net::LDAP::Entry
 
       return nil if ds.empty?
 
-      raise Net::LDAP::LdapError, "Too many LDIF entries" unless ds.size == 1
+      raise Net::LDAP::EntryOverflowError, "Too many LDIF entries" unless ds.size == 1
 
       entry = ds.to_entries.first
 
