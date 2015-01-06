@@ -27,7 +27,7 @@ class Net::LDAP::Password
       when :sha
          attribute_value = '{SHA}' + Base64.encode64(Digest::SHA1.digest(str)).chomp! 
       when :ssha
-         srand; salt = (rand * 1000).to_i.to_s 
+         srand; salt = SecureRandom.random_bytes(16)
          attribute_value = '{SSHA}' + Base64.encode64(Digest::SHA1.digest(str + salt) + salt).chomp!
       else
          raise Net::LDAP::HashTypeUnsupportedError, "Unsupported password-hash type (#{type})"
