@@ -1,4 +1,10 @@
 class Net::LDAP
+  class LdapError < StandardError
+    def message
+      "Deprecation warning: Net::LDAP::LdapError is no longer used. Use Net::LDAP::Error or rescue one of it's subclasses. \n" + super
+    end
+  end
+
   class Error < StandardError; end
 
   class AlreadyOpenedError < Error; end
