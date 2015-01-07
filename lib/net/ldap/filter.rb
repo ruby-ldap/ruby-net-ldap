@@ -644,18 +644,9 @@ class Net::LDAP::Filter
   end
 
   ##
-  # If the argument is a string, converts escaped characters (e.g., "\\28") to unescaped characters.
-  # If the argument is a number, just return as-is.
-  # Otherwise, an exception is thrown and the rhs argument is rejected.
-  # ("(").
+  # Converts escaped characters (e.g., "\\28") to unescaped characters
   def unescape(right)
-    if defined? right.gsub
-      right.gsub(/\\([a-fA-F\d]{2})/) { [$1.hex].pack("U") }
-    elsif right.is_a? Fixnum
-      right.to_s
-    else
-      raise ArgumentError, "Did not know how to convert argument \"#{right}\" into the rhs of an LDAP filter"
-    end
+    right.to_s.gsub(/\\([a-fA-F\d]{2})/) { [$1.hex].pack("U") }
   end
   private :unescape
 
