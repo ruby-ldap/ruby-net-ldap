@@ -577,7 +577,7 @@ class Net::LDAP::Connection #:nodoc:
 
     # in the exceptional case some messages were *not* consumed from the queue,
     # instrument the event but do not fail.
-    unless messages.nil? or messages.empty?
+    if !messages.nil? && !messages.empty?
       instrument "search_messages_unread.net_ldap_connection",
                  message_id: message_id, messages: messages
     end
