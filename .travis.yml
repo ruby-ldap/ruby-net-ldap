@@ -15,7 +15,7 @@ install:
   - if [ "$INTEGRATION" = "openldap" ]; then ./script/install-openldap; fi
   - bundle install
 
-script: bundle exec rake
+script: bundle exec rake ci
 
 matrix:
   allow_failures:

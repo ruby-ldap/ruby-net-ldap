@@ -37,12 +37,27 @@ sources.
 
 Simply require either 'net-ldap' or 'net/ldap'.
 
+== Develop
+
+This task will run the test suite and the
+{RuboCop}[https://github.com/bbatsov/rubocop] static code analyzer.
+
+  rake rubotest
+
+To run the integration tests against an LDAP server:
+
+  cd test/support/vm/openldap
+  vagrant up
+  cd ../../../..
+  INTEGRATION=openldap bundle exec rake rubotest
+
 == Release
 
 This section is for gem maintainers to cut a new version of the gem.
 
 * Update lib/net/ldap/version.rb to next version number X.X.X following {semver}(http://semver.org/).
 * Update `History.rdoc`. Get latest changes with `git log --oneline vLAST_RELEASE..HEAD | grep Merge`
+
 * On the master branch, run `script/release`
 
 :include: Contributors.rdoc
