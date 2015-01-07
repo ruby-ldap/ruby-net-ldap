@@ -12,6 +12,7 @@ class Net::LDAP
   class ConnectionRefusedError < Error; end
   class NoOpenSSLError < Error; end
   class NoStartTLSResultError < Error; end
+  class NoSearchBaseError < Error; end
   class StartTLSError < Error; end
   class EncryptionUnsupportedError < Error; end
   class EncMethodUnsupportedError < Error; end
