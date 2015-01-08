@@ -645,9 +645,8 @@ class Net::LDAP::Filter
 
   ##
   # Converts escaped characters (e.g., "\\28") to unescaped characters
-  # ("(").
   def unescape(right)
-    right.gsub(/\\([a-fA-F\d]{2})/) { [$1.hex].pack("U") }
+    right.to_s.gsub(/\\([a-fA-F\d]{2})/) { [$1.hex].pack("U") }
   end
   private :unescape
 
