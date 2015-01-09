@@ -23,11 +23,11 @@ class Net::LDAP::Password
     def generate(type, str)
       case type
       when :md5
-         attribute_value = '{MD5}' + Base64.encode64(Digest::MD5.digest(str)).chomp! 
+         attribute_value = '{MD5}' + Base64.encode64(Digest::MD5.digest(str)).chomp!
       when :sha
-         attribute_value = '{SHA}' + Base64.encode64(Digest::SHA1.digest(str)).chomp! 
+         attribute_value = '{SHA}' + Base64.encode64(Digest::SHA1.digest(str)).chomp!
       when :ssha
-         srand; salt = SecureRandom.random_bytes(16)
+         salt = SecureRandom.random_bytes(16)
          attribute_value = '{SSHA}' + Base64.encode64(Digest::SHA1.digest(str + salt) + salt).chomp!
       else
          raise Net::LDAP::HashTypeUnsupportedError, "Unsupported password-hash type (#{type})"
