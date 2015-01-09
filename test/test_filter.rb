@@ -215,4 +215,9 @@ class TestFilterRSpec < Test::Unit::TestCase
     filter = Net::LDAP::Filter.parse_ber(ber.read_ber(Net::LDAP::AsnSyntax))
     assert_equal "(objectclass=#{escaped}*#{escaped}*#{escaped})", filter.to_s
   end
+
+  def test_unescape_fixnums
+    filter = Net::LDAP::Filter.eq("objectclass", 3)
+    assert_equal "\xA3\x10\x04\vobjectclass\x04\x013".b, filter.to_ber
+  end
 end
