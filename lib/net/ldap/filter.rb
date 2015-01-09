@@ -310,8 +310,8 @@ class Net::LDAP::Filter
         present?(ber.to_s)
       when 0xa9 # context-specific constructed 9, "extensible comparison"
         raise Net::LDAP::SearchFilterError, "Invalid extensible search filter, should be at least two elements" if ber.size < 2
-        
-        # Reassembles the extensible filter parts 
+
+        # Reassembles the extensible filter parts
         # (["sn", "2.4.6.8.10", "Barbara Jones", '1'])
         type = value = dn = rule = nil
         ber.each do |element|
