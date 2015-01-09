@@ -412,10 +412,10 @@ class Net::LDAP::Connection #:nodoc:
     sort   = args.fetch(:sort_controls, false)
 
     # arg validation
-    raise Net::LDAP::NoSearchBaseError, "search base is required" unless base
-    raise Net::LDAP::SearchSizeInvalidError, "invalid search-size" unless size >= 0
-    raise Net::LDAP::SearchScopeInvalidError, "invalid search scope" unless Net::LDAP::SearchScopes.include?(scope)
-    raise Net::LDAP::Error, "invalid alias dereferencing value" unless Net::LDAP::DerefAliasesArray.include?(deref)
+    raise ArgumentError, "search base is required" unless base
+    raise ArgumentError, "invalid search-size" unless size >= 0
+    raise ArgumentError, "invalid search scope" unless Net::LDAP::SearchScopes.include?(scope)
+    raise ArgumentError, "invalid alias dereferencing value" unless Net::LDAP::DerefAliasesArray.include?(deref)
 
     # arg transforms
     filter = Net::LDAP::Filter.construct(filter) if filter.is_a?(String)
