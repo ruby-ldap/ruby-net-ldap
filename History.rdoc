@@ -1,3 +1,12 @@
+=== Net::LDAP 0.11
+* Major enhancements:
+  * #183 Specific errors subclassing Net::LDAP::Error
+* Bug fixes:
+  * #176 Fix nil tls options
+  * #184 Search guards against nil queued reads. Connection#unescape handles numerics
+* Code clean-up:
+  * #180 Refactor connection establishment
+
 === Net::LDAP 0.10.1
 * Bug fixes:
   * Fix Integer BER encoding of signed values
