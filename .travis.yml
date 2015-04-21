@@ -12,7 +12,7 @@ env:
   - INTEGRATION=openldap
 
 install:
-  - if [ "$INTEGRATION" = "openldap" ]; then ./script/install-openldap; fi
+  - if [ "$INTEGRATION" = "openldap" ]; then sudo script/install-openldap; fi
   - bundle install
 
 script: bundle exec rake ci
