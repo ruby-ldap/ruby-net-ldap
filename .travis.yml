@@ -11,8 +11,10 @@ rvm:
 env:
   - INTEGRATION=openldap
 
-install:
+before_install:
   - if [ "$INTEGRATION" = "openldap" ]; then ./script/install-openldap; fi
+
+install:
   - bundle install
 
 script: bundle exec rake ci
