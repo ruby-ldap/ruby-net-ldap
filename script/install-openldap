@@ -5,6 +5,8 @@ set -x
 BASE_PATH="$( cd `dirname $0`/../test/fixtures/openldap && pwd )"
 SEED_PATH="$( cd `dirname $0`/../test/fixtures          && pwd )"
 
+sudo apt-get update -qq
+
 dpkg -s slapd time ldap-utils gnutls-bin ssl-cert > /dev/null ||\
   DEBIAN_FRONTEND=noninteractive apt-get update  -y --force-yes && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes slapd time ldap-utils gnutls-bin ssl-cert
