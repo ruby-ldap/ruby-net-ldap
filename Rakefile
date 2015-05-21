@@ -1,4 +1,3 @@
-#!/usr/bin/env rake
 # -*- ruby encoding: utf-8 -*-
 # vim: syntax=ruby
 
