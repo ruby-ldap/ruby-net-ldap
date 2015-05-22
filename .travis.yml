@@ -5,7 +5,6 @@ rvm:
   - 2.1.2
   # optional
   - jruby-19mode
-  - rbx-19mode
   - rbx-2
 
 env:
