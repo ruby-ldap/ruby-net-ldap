@@ -32,4 +32,5 @@ the most recent LDAP RFCs (4510-4519, plutions of 4520-4532).}
   s.add_development_dependency("flexmock", "~> 1.3")
   s.add_development_dependency("rake", "~> 10.0")
   s.add_development_dependency("rubocop", "~> 0.28.0")
+  s.add_development_dependency("test-unit")
 end
