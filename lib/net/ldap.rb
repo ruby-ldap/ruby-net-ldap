@@ -440,6 +440,10 @@ class Net::LDAP
   # described below. The following arguments are supported:
   # * :host => the LDAP server's IP-address (default 127.0.0.1)
   # * :port => the LDAP server's TCP port (default 389)
+  # * :connect_cb => a Proc that will be called when a new connection is
+  #   needed. This should return an actual Ruby IO object. Useful for
+  #   manually handling connecting, like if you want to go through a proxy
+  #   server. It will receive :host: and :port: as arguments.
   # * :auth => a Hash containing authorization parameters. Currently
   #   supported values include: {:method => :anonymous} and {:method =>
   #   :simple, :username => your_user_name, :password => your_password }
@@ -468,6 +472,7 @@ class Net::LDAP
   def initialize(args = {})
     @host = args[:host] || DefaultHost
     @port = args[:port] || DefaultPort
+    @connect_cb = args[:connect_cb]
     @verbose = false # Make this configurable with a switch on the class.
     @auth = args[:auth] || DefaultAuth
     @base = args[:base] || DefaultTreebase
@@ -1220,7 +1225,9 @@ class Net::LDAP
 
   # Establish a new connection to the LDAP server
   def new_connection
+    socket = @connect_cb.call(@host, @port) if @connect_cb
     Net::LDAP::Connection.new \
+      :socket                  => socket,
       :host                    => @host,
       :port                    => @port,
       :encryption              => @encryption,
