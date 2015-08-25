@@ -296,9 +296,8 @@ end
 class Net::BER::BerIdentifiedString < String
   attr_accessor :ber_identifier
   def initialize args
+    args.force_encoding('UTF-8') if args.respond_to(:force_encoding)
     super args
-    # LDAP uses UTF-8 encoded strings
-    self.encode('UTF-8') if self.respond_to?(:encoding) rescue self
   end
 end
 
