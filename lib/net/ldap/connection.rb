@@ -14,7 +14,7 @@ class Net::LDAP::Connection #:nodoc:
     rescue SocketError
       raise Net::LDAP::Error, "No such address or other socket error."
     rescue Errno::ECONNREFUSED
-      raise Net::LDAP::Error, "Server #{server[:host]} refused connection on port #{server[:port]}."
+      raise Net::LDAP::ConnectionRefusedError, "Server #{server[:host]} refused connection on port #{server[:port]}."
     rescue Errno::EHOSTUNREACH => error
       raise Net::LDAP::Error, "Host #{server[:host]} was unreachable (#{error.message})"
     rescue Errno::ETIMEDOUT

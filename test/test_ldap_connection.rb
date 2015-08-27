@@ -14,6 +14,13 @@ class TestLDAPConnection < Test::Unit::TestCase
     end
   end
 
+  def test_connection_refused
+    flexmock(TCPSocket).should_receive(:new).and_raise(Errno::ECONNREFUSED)
+    assert_raise Net::LDAP::ConnectionRefusedError do
+      Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+    end
+  end
+
   def test_raises_unknown_exceptions
     error = Class.new(StandardError)
     flexmock(TCPSocket).should_receive(:new).and_raise(error)
