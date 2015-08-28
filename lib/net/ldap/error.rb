@@ -9,7 +9,21 @@ class Net::LDAP
 
   class AlreadyOpenedError < Error; end
   class SocketError < Error; end
-  class ConnectionRefusedError < Error; end
+  class ConnectionRefusedError < Error;
+    def initialize(*args)
+      warn warning_message
+      super
+    end
+
+    def message
+      warning_message + super
+    end
+
+    private
+    def warning_message
+      "Deprecation warning: Net::LDAP::ConnectionRefused will be deprecated. Use Errno::ECONNREFUSED instead. \n"
+    end
+  end
   class NoOpenSSLError < Error; end
   class NoStartTLSResultError < Error; end
   class NoSearchBaseError < Error; end
