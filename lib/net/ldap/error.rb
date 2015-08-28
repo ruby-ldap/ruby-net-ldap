@@ -11,17 +11,18 @@ class Net::LDAP
   class SocketError < Error; end
   class ConnectionRefusedError < Error;
     def initialize(*args)
-      warn warning_message
+      warn_deprecation_message
       super
     end
 
     def message
-      warning_message + super
+      warn_deprecation_message
+      super
     end
 
     private
-    def warning_message
-      "Deprecation warning: Net::LDAP::ConnectionRefused will be deprecated. Use Errno::ECONNREFUSED instead. \n"
+    def warn_deprecation_message
+      warn "Deprecation warning: Net::LDAP::ConnectionRefused will be deprecated. Use Errno::ECONNREFUSED instead."
     end
   end
   class NoOpenSSLError < Error; end
