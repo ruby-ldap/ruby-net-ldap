@@ -57,4 +57,10 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
     assert_equal "(uid=user1)", payload[:filter]
     assert_equal result.size, payload[:size]
   end
+
+  def test_obscure_auth
+    password = "opensesame"
+    @subject.auth "joe_user", password
+    assert_not_include(@subject.inspect, password)
+  end
 end
