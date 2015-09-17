@@ -1197,7 +1197,9 @@ class Net::LDAP
 
   # Mask auth password
   def inspect
-    super.gsub @auth[:password], "*******" if @auth[:password]
+    inspected = super
+    inspected.gsub! @auth[:password], "*******" if @auth[:password]
+    inspected
   end
 
   private

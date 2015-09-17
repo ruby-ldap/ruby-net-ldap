@@ -60,6 +60,7 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
 
   def test_obscure_auth
     password = "opensesame"
+    assert_include(@subject.inspect, "anonymous")
     @subject.auth "joe_user", password
     assert_not_include(@subject.inspect, password)
   end
