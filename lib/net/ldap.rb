@@ -1195,6 +1195,13 @@ class Net::LDAP
     @server_caps[:supportedcontrol].include?(Net::LDAP::LDAPControls::PAGED_RESULTS)
   end
 
+  # Mask auth password
+  def inspect
+    inspected = super
+    inspected.gsub! @auth[:password], "*******" if @auth[:password]
+    inspected
+  end
+
   private
 
   # Yields an open connection if there is one, otherwise establishes a new
