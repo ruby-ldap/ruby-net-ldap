@@ -37,6 +37,14 @@ sources.
 
 Simply require either 'net-ldap' or 'net/ldap'.
 
+== Extensions
+
+This library focuses on the core LDAP RFCs referenced in the description.
+However, we recognize there are commonly used extensions to the spec that are
+useful. If there is another library which handles it, we list it here.
+
+* {resolv-srv}[https://rubygems.org/gems/resolv-srv]: Support RFC2782 SRV record lookup and failover
+
 == Develop
 
 This task will run the test suite and the
