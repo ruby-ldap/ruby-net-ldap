@@ -55,10 +55,11 @@ To run the integration tests against an LDAP server:
 
 This section is for gem maintainers to cut a new version of the gem.
 
+* Check out a new branch `release-VERSION`
 * Update lib/net/ldap/version.rb to next version number X.X.X following {semver}(http://semver.org/).
 * Update `History.rdoc`. Get latest changes with `script/changelog`
-
-* On the master branch, run `script/release`
+* Open a pull request with these changes for review
+* After merging, on the master branch, run `script/release`
 
 :include: Contributors.rdoc
 
