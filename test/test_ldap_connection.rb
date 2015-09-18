@@ -1,6 +1,14 @@
 require_relative 'test_helper'
 
 class TestLDAPConnection < Test::Unit::TestCase
+  def capture_stderr
+    stderr, $stderr = $stderr, StringIO.new
+    yield
+    $stderr.string
+  ensure
+    $stderr = stderr
+  end
+
   def test_unresponsive_host
     assert_raise Net::LDAP::Error do
       Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
@@ -12,6 +20,16 @@ class TestLDAPConnection < Test::Unit::TestCase
     assert_raise Net::LDAP::Error do
       Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
     end
+  end
+
+  def test_connection_refused
+    flexmock(TCPSocket).should_receive(:new).and_raise(Errno::ECONNREFUSED)
+    stderr = capture_stderr do
+      assert_raise Net::LDAP::ConnectionRefusedError do
+        Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+      end
+    end
+    assert_equal("Deprecation warning: Net::LDAP::ConnectionRefused will be deprecated. Use Errno::ECONNREFUSED instead.\n",  stderr)
   end
 
   def test_raises_unknown_exceptions
