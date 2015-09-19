@@ -1,4 +1,4 @@
-=== Net::LDAP 0.12
+=== Net::LDAP 0.12.0
 
 * Correctly set BerIdentifiedString values to UTF-8  {#212}[https://github.com/ruby-ldap/ruby-net-ldap/pull/212]
 * Raise Net::LDAP::ConnectionRefusedError when new connection is refused. {#213}[https://github.com/ruby-ldap/ruby-net-ldap/pull/213]
