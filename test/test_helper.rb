@@ -56,7 +56,7 @@ class LDAPIntegrationTestCase < Test::Unit::TestCase
     @service = MockInstrumentationService.new
     @ldap = Net::LDAP.new \
       host:           ENV.fetch('INTEGRATION_HOST', 'localhost'),
-      port:           389,
+      port:           ENV.fetch('INTEGRATION_PORT', 389),
       admin_user:     'uid=admin,dc=rubyldap,dc=com',
       admin_password: 'passworD1',
       search_domains: %w(dc=rubyldap,dc=com),
