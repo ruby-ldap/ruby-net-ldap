@@ -1,3 +1,16 @@
+=== Net::LDAP 0.12.0
+
+* Correctly set BerIdentifiedString values to UTF-8  {#212}[https://github.com/ruby-ldap/ruby-net-ldap/pull/212]
+* Raise Net::LDAP::ConnectionRefusedError when new connection is refused. {#213}[https://github.com/ruby-ldap/ruby-net-ldap/pull/213]
+* obscure auth password upon #inspect, added test, closes #216 {#217}[https://github.com/ruby-ldap/ruby-net-ldap/pull/217]
+* Fixing incorrect error class name {#207}[https://github.com/ruby-ldap/ruby-net-ldap/pull/207]
+* Travis update {#205}[https://github.com/ruby-ldap/ruby-net-ldap/pull/205]
+* Remove obsolete rbx-19mode from Travis {#204}[https://github.com/ruby-ldap/ruby-net-ldap/pull/204]
+* mv "sudo" from script/install-openldap to .travis.yml {#199}[https://github.com/ruby-ldap/ruby-net-ldap/pull/199]
+* Remove meaningless shebang {#200}[https://github.com/ruby-ldap/ruby-net-ldap/pull/200]
+* Fix Travis CI build {#202}[https://github.com/ruby-ldap/ruby-net-ldap/pull/202]
+* README.rdoc: fix travis link {#195}[https://github.com/ruby-ldap/ruby-net-ldap/pull/195]
+
 === Net::LDAP 0.11
 * Major enhancements:
   * #183 Specific errors subclassing Net::LDAP::Error
