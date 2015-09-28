@@ -17,7 +17,7 @@ class TestLDAPConnection < Test::Unit::TestCase
             ]
     flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[0]).once.and_return(nil)
     flexmock(TCPSocket).should_receive(:new).ordered.never
-    Net::LDAP::Connection.new(:hosts => hosts.to_enum(:each))
+    Net::LDAP::Connection.new(:hosts => hosts)
   end
 
   def test_list_of_hosts_with_first_host_failure
@@ -29,7 +29,7 @@ class TestLDAPConnection < Test::Unit::TestCase
     flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[0]).once.and_raise(SocketError)
     flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[1]).once.and_return(nil)
     flexmock(TCPSocket).should_receive(:new).ordered.never
-    Net::LDAP::Connection.new(:hosts => hosts.to_enum(:each))
+    Net::LDAP::Connection.new(:hosts => hosts)
   end
 
   def test_list_of_hosts_with_all_hosts_failure
@@ -43,7 +43,7 @@ class TestLDAPConnection < Test::Unit::TestCase
     flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[2]).once.and_raise(SocketError)
     flexmock(TCPSocket).should_receive(:new).ordered.never
     assert_raise Net::LDAP::Error do
-      Net::LDAP::Connection.new(:hosts => hosts.to_enum(:each))
+      Net::LDAP::Connection.new(:hosts => hosts)
     end
   end
 
