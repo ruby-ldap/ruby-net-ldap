@@ -8,24 +8,56 @@ class Net::LDAP::Connection #:nodoc:
 
   def initialize(server)
     @instrumentation_service = server[:instrumentation_service]
+    server[:hosts] = [[server[:host], server[:port]]] if server[:hosts].nil?
 
+    if server[:socket]
+      prepare_socket(server)
+    else
+      open_connection(server)
+    end
+
+    yield self if block_given?
+  end
+
+  def prepare_socket(server)
+    @conn = server[:socket]
+
+    if server[:encryption]
+      setup_encryption server[:encryption]
+    end
+  end
+
+  def open_connection(server)
+    errors = []
+    server[:hosts].each do |host, port|
+      begin
+        return connect_to_host(host, port, server)
+      rescue Net::LDAP::Error
+        errors << $!
+      end
+    end
+
+    raise errors.first if errors.size == 1
+    raise Net::LDAP::Error,
+      "Unable to connect to any given server: \n  #{errors.join("\n  ")}"
+  end
+
+  def connect_to_host(host, port, server)
     begin
-      @conn = server[:socket] || TCPSocket.new(server[:host], server[:port])
+      @conn = TCPSocket.new(host, port)
     rescue SocketError
       raise Net::LDAP::Error, "No such address or other socket error."
     rescue Errno::ECONNREFUSED
-      raise Net::LDAP::ConnectionRefusedError, "Server #{server[:host]} refused connection on port #{server[:port]}."
+      raise Net::LDAP::ConnectionRefusedError, "Server #{host} refused connection on port #{port}."
     rescue Errno::EHOSTUNREACH => error
-      raise Net::LDAP::Error, "Host #{server[:host]} was unreachable (#{error.message})"
+      raise Net::LDAP::Error, "Host #{host} was unreachable (#{error.message})"
     rescue Errno::ETIMEDOUT
-      raise Net::LDAP::Error, "Connection to #{server[:host]} timed out."
+      raise Net::LDAP::Error, "Connection to #{host} timed out."
     end
 
     if server[:encryption]
       setup_encryption server[:encryption]
     end
-
-    yield self if block_given?
   end
 
   module GetbyteForSSLSocket
@@ -63,18 +95,18 @@ class Net::LDAP::Connection #:nodoc:
   end
 
   #--
-  # Helper method called only from new, and only after we have a
-  # successfully-opened @conn instance variable, which is a TCP connection.
-  # Depending on the received arguments, we establish SSL, potentially
-  # replacing the value of @conn accordingly. Don't generate any errors here
-  # if no encryption is requested. DO raise Net::LDAP::Error objects if encryption
-  # is requested and we have trouble setting it up. That includes if OpenSSL
-  # is not set up on the machine. (Question: how does the Ruby OpenSSL
-  # wrapper react in that case?) DO NOT filter exceptions raised by the
-  # OpenSSL library. Let them pass back to the user. That should make it
-  # easier for us to debug the problem reports. Presumably (hopefully?) that
-  # will also produce recognizable errors if someone tries to use this on a
-  # machine without OpenSSL.
+  # Helper method called only from prepare_socket or open_connection, and only
+  # after we have a successfully-opened @conn instance variable, which is a TCP
+  # connection.  Depending on the received arguments, we establish SSL,
+  # potentially replacing the value of @conn accordingly. Don't generate any
+  # errors here if no encryption is requested. DO raise Net::LDAP::Error objects
+  # if encryption is requested and we have trouble setting it up. That includes
+  # if OpenSSL is not set up on the machine. (Question: how does the Ruby
+  # OpenSSL wrapper react in that case?) DO NOT filter exceptions raised by the
+  # OpenSSL library. Let them pass back to the user. That should make it easier
+  # for us to debug the problem reports. Presumably (hopefully?) that will also
+  # produce recognizable errors if someone tries to use this on a machine
+  # without OpenSSL.
   #
   # The simple_tls method is intended as the simplest, stupidest, easiest
   # solution for people who want nothing more than encrypted comms with the

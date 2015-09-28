@@ -432,6 +432,7 @@ class Net::LDAP
 
   attr_accessor :host
   attr_accessor :port
+  attr_accessor :hosts
   attr_accessor :base
 
   # Instantiate an object of type Net::LDAP to perform directory operations.
@@ -440,6 +441,8 @@ class Net::LDAP
   # described below. The following arguments are supported:
   # * :host => the LDAP server's IP-address (default 127.0.0.1)
   # * :port => the LDAP server's TCP port (default 389)
+  # * :hosts => an enumerable of pairs of hosts and corresponding ports with
+  #   which to attempt opening connections (default [[host, port]])
   # * :auth => a Hash containing authorization parameters. Currently
   #   supported values include: {:method => :anonymous} and {:method =>
   #   :simple, :username => your_user_name, :password => your_password }
@@ -468,6 +471,7 @@ class Net::LDAP
   def initialize(args = {})
     @host = args[:host] || DefaultHost
     @port = args[:port] || DefaultPort
+    @hosts = args[:hosts]
     @verbose = false # Make this configurable with a switch on the class.
     @auth = args[:auth] || DefaultAuth
     @base = args[:base] || DefaultTreebase
@@ -1230,6 +1234,7 @@ class Net::LDAP
     Net::LDAP::Connection.new \
       :host                    => @host,
       :port                    => @port,
+      :hosts                   => @hosts,
       :encryption              => @encryption,
       :instrumentation_service => @instrumentation_service
   end
