@@ -8,56 +8,54 @@ class Net::LDAP::Connection #:nodoc:
 
   def initialize(server)
     @instrumentation_service = server[:instrumentation_service]
-    server[:hosts] = [[server[:host], server[:port]]] if server[:hosts].nil?
 
     if server[:socket]
       prepare_socket(server)
     else
+      server[:hosts] = [[server[:host], server[:port]]] if server[:hosts].nil?
       open_connection(server)
     end
 
     yield self if block_given?
   end
 
-  def prepare_socket(server)
-    @conn = server[:socket]
+  def prepare_socket(server, close = false)
+    socket = server[:socket]
+    encryption = server[:encryption]
 
-    if server[:encryption]
-      setup_encryption server[:encryption]
-    end
+    @conn = socket
+    setup_encryption encryption if encryption
+  rescue
+    # Ensure the connection is closed when requested in the event of an SSL
+    # setup failure.
+    @conn.close if close
+    @conn = nil
+    raise
   end
 
   def open_connection(server)
+    hosts = server[:hosts]
+    encryption = server[:encryption]
+
     errors = []
-    server[:hosts].each do |host, port|
+    hosts.each do |host, port|
       begin
-        return connect_to_host(host, port, server)
-      rescue Net::LDAP::Error
-        errors << $!
+        prepare_socket(server.merge(socket: TCPSocket.new(host, port)), true)
+        return
+      rescue Net::LDAP::Error, SocketError, SystemCallError,
+             OpenSSL::SSL::SSLError
+        errors << [$!, host, port]
       end
     end
 
-    raise errors.first if errors.size == 1
+    if errors.size == 1
+      error = errors.first.first
+      raise Net::LDAP::ConnectionRefusedError, error.message if error.kind_of? Errno::ECONNREFUSED
+      raise Net::LDAP::Error, error.message
+    end
+
     raise Net::LDAP::Error,
-      "Unable to connect to any given server: \n  #{errors.join("\n  ")}"
-  end
-
-  def connect_to_host(host, port, server)
-    begin
-      @conn = TCPSocket.new(host, port)
-    rescue SocketError
-      raise Net::LDAP::Error, "No such address or other socket error."
-    rescue Errno::ECONNREFUSED
-      raise Net::LDAP::ConnectionRefusedError, "Server #{host} refused connection on port #{port}."
-    rescue Errno::EHOSTUNREACH => error
-      raise Net::LDAP::Error, "Host #{host} was unreachable (#{error.message})"
-    rescue Errno::ETIMEDOUT
-      raise Net::LDAP::Error, "Connection to #{host} timed out."
-    end
-
-    if server[:encryption]
-      setup_encryption server[:encryption]
-    end
+      "Unable to connect to any given server: \n  #{errors.map { |e, h, p| "#{e.class}: #{e.message} (#{h}:#{p})" }.join("\n  ")}"
   end
 
   module GetbyteForSSLSocket
