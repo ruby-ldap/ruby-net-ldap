@@ -1,7 +1,7 @@
 module Net
   class LDAP
     class AuthAdapter
-      def self.regiseter(names, adapter)
+      def self.register(names, adapter)
         names = Array(names)
         @adapters ||= {}
         names.each do |name|
