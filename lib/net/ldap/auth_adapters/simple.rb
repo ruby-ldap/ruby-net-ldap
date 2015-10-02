@@ -19,7 +19,7 @@ module Net
             psw.to_ber_contextspecific(0)
           ].to_ber_appsequence(Net::LDAP::PDU::BindRequest)
 
-          @connection.write(request, nil, message_id)
+          @connection.send(:write, request, nil, message_id)
           pdu = @connection.queued_read(message_id)
 
           if !pdu || pdu.app_tag != Net::LDAP::PDU::BindResult
