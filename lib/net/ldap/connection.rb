@@ -251,8 +251,8 @@ class Net::LDAP::Connection #:nodoc:
     instrument "bind.net_ldap_connection" do |payload|
       payload[:method] = meth = auth[:method]
       require "net/ldap/auth_adapters/#{meth}"
-      adapter = Net::LDAP::AuthAdapterp[meth]
-      adapter.bind(auth)
+      adapter = Net::LDAP::AuthAdapter[meth]
+      adapter.new(self).bind(auth)
       # if [:simple, :anonymous, :anon].include?(meth)
       #   bind_simple auth
       # elsif meth == :sasl
