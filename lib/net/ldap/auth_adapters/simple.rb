@@ -15,7 +15,7 @@ module Net
 
           message_id = @connection.next_msgid
           request    = [
-            LdapVersion.to_ber, user.to_ber,
+            Net::LDAP::Connection::LdapVersion.to_ber, user.to_ber,
             psw.to_ber_contextspecific(0)
           ].to_ber_appsequence(Net::LDAP::PDU::BindRequest)
 
