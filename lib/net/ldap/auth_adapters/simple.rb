@@ -1,3 +1,5 @@
+require 'net/ldap/auth_adapter'
+
 module Net
   class LDAP
     module AuthAdapters
