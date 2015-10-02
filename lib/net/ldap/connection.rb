@@ -266,35 +266,6 @@ class Net::LDAP::Connection #:nodoc:
   end
 
   #--
-  # Implements a simple user/psw authentication. Accessed by calling #bind
-  # with a method of :simple or :anonymous.
-  #++
-  def bind_simple(auth)
-    user, psw = if auth[:method] == :simple
-                  [auth[:username] || auth[:dn], auth[:password]]
-                else
-                  ["", ""]
-                end
-
-    raise Net::LDAP::BindingInformationInvalidError, "Invalid binding information" unless (user && psw)
-
-    message_id = next_msgid
-    request    = [
-      LdapVersion.to_ber, user.to_ber,
-      psw.to_ber_contextspecific(0)
-    ].to_ber_appsequence(Net::LDAP::PDU::BindRequest)
-
-    write(request, nil, message_id)
-    pdu = queued_read(message_id)
-
-    if !pdu || pdu.app_tag != Net::LDAP::PDU::BindResult
-      raise Net::LDAP::NoBindResultError, "no bind result"
-    end
-
-    pdu
-  end
-
-  #--
   # Required parameters: :mechanism, :initial_credential and
   # :challenge_response
   #
