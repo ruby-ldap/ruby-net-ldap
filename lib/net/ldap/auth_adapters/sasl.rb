@@ -4,6 +4,27 @@ module Net
   class LDAP
     module AuthAdapters
       class Sasl < Net::LDAP::AuthAdapter
+        #--
+        # Required parameters: :mechanism, :initial_credential and
+        # :challenge_response
+        #
+        # Mechanism is a string value that will be passed in the SASL-packet's
+        # "mechanism" field.
+        #
+        # Initial credential is most likely a string. It's passed in the initial
+        # BindRequest that goes to the server. In some protocols, it may be empty.
+        #
+        # Challenge-response is a Ruby proc that takes a single parameter and
+        # returns an object that will typically be a string. The
+        # challenge-response block is called when the server returns a
+        # BindResponse with a result code of 14 (saslBindInProgress). The
+        # challenge-response block receives a parameter containing the data
+        # returned by the server in the saslServerCreds field of the LDAP
+        # BindResponse packet. The challenge-response block may be called multiple
+        # times during the course of a SASL authentication, and each time it must
+        # return a value that will be passed back to the server as the credential
+        # data in the next BindRequest packet.
+        #++
         def bind(auth)
           mech, cred, chall = auth[:mechanism], auth[:initial_credential],
             auth[:challenge_response]
