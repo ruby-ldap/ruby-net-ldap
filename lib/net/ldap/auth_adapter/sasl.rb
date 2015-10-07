@@ -2,7 +2,7 @@ require 'net/ldap/auth_adapter'
 
 module Net
   class LDAP
-    module AuthAdapter
+    class AuthAdapter
       class Sasl < Net::LDAP::AuthAdapter
         #--
         # Required parameters: :mechanism, :initial_credential and
@@ -58,5 +58,3 @@ module Net
     end
   end
 end
-
-Net::LDAP::AuthAdapter.register(:sasl, Net::LDAP::AuthAdapters::Sasl)

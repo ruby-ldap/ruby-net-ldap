@@ -38,5 +38,3 @@ module Net
     end
   end
 end
-
-Net::LDAP::Adapter.register(:gss_spnego, Net::LDAP::AuthAdapters::GSS_SPNEGO)

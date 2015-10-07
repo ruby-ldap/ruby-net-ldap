@@ -250,7 +250,6 @@ class Net::LDAP::Connection #:nodoc:
   def bind(auth)
     instrument "bind.net_ldap_connection" do |payload|
       payload[:method] = meth = auth[:method]
-      require "net/ldap/auth_adapters/#{meth}"
       adapter = Net::LDAP::AuthAdapter[meth]
       adapter.new(self).bind(auth)
     end

@@ -32,5 +32,3 @@ module Net
     end
   end
 end
-
-Net::LDAP::AuthAdapter.register(:simple, Net::LDAP::AuthAdapters::Simple)
