@@ -2,7 +2,7 @@ require 'net/ldap/auth_adapter'
 
 module Net
   class LDAP
-    module AuthAdapters
+    class AuthAdapter
       class Simple < AuthAdapter
         def bind(auth)
           user, psw = if auth[:method] == :simple

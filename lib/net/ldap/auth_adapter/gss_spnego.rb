@@ -1,5 +1,5 @@
 require 'net/ldap/auth_adapter'
-require 'net/ldap/auth_adapters/sasl'
+require 'net/ldap/auth_adapter/sasl'
 
 module Net
   class LDAP
