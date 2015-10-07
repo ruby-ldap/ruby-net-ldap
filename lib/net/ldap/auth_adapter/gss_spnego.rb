@@ -29,7 +29,7 @@ module Net
             t3_msg.serialize
           }
 
-          Net::LDAP::AuthAdapter.new(@connection).
+          Net::LDAP::AuthAdapter::Sasl.new(@connection).
             bind(:method => :sasl, :mechanism => "GSS-SPNEGO",
                     :initial_credential => NTLM::Message::Type1.new.serialize,
                     :challenge_response => nego)
