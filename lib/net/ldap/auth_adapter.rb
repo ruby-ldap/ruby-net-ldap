@@ -10,7 +10,11 @@ module Net
       end
 
       def self.[](name)
-        @adapters[name]
+        a = @adapters[name]
+        if a.nil?
+          raise Net::LDAP::AuthMethodUnsupportedError, "Unsupported auth method (#{name})"
+        end
+        return a
       end
 
       def initialize(conn)
