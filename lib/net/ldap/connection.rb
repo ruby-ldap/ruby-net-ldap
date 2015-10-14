@@ -55,6 +55,10 @@ class Net::LDAP::Connection #:nodoc:
       raise Net::LDAP::Error, "Connection to #{host} timed out."
     end
 
+    if server[:timeout]
+      @conn.read_ber_timeout = server[:timeout]
+    end
+
     if server[:encryption]
       setup_encryption server[:encryption]
     end

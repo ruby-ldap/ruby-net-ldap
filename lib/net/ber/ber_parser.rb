@@ -25,6 +25,9 @@ module Net::BER::BERParser
   BuiltinSyntax = Net::BER.compile_syntax(:universal => universal,
                                           :context_specific => context)
 
+  # Public: specify the BER socket read timeouts, nil by default (no timeout).
+  attr_accessor :read_ber_timeout
+
   ##
   # This is an extract of our BER object parsing to simplify our
   # understanding of how we parse basic BER object types.
@@ -133,7 +136,7 @@ module Net::BER::BERParser
   # invalid BER length case. Because the "lengthlength" value was not used
   # inside of #read_ber, we no longer return it.
   def read_ber_length
-    n = getbyte
+    n = getbyte_nonblock
 
     if n <= 0x7f
       n
@@ -143,10 +146,9 @@ module Net::BER::BERParser
       raise Net::BER::BerError, "Invalid BER length 0xFF detected."
     else
       v = 0
-      read(n & 0x7f).each_byte do |b|
+      read_ber_nonblock(n & 0x7f).each_byte do |b|
         v = (v << 8) + b
       end
-
       v
     end
   end
@@ -166,7 +168,7 @@ module Net::BER::BERParser
     # from streams that don't block when we ask for more data (like
     # StringIOs). At it is, this can throw TypeErrors and other nasties.
 
-    id = getbyte or return nil  # don't trash this value, we'll use it later
+    id = read_ber_id or return nil  # don't trash this value, we'll use it later
     content_length = read_ber_length
 
     yield id, content_length if block_given?
@@ -174,9 +176,46 @@ module Net::BER::BERParser
     if -1 == content_length
       raise Net::BER::BerError, "Indeterminite BER content length not implemented."
     else
-      data = read(content_length)
+      data = read_ber_nonblock(content_length)
     end
 
     parse_ber_object(syntax, id, data)
   end
+
+  # Internal: Returns the BER message ID or nil.
+  def read_ber_id
+    getbyte_nonblock
+  end
+  private :read_ber_id
+
+  # Internal: Replaces `getbyte` with nonblocking implementation.
+  def getbyte_nonblock
+    begin
+      read_nonblock(1).ord
+    rescue IO::WaitReadable
+      if IO.select([self], nil, nil, read_ber_timeout)
+        read_nonblock(1).ord
+      else
+        raise Net::LDAP::LdapError, "Timed out reading from the socket"
+      end
+    end
+  rescue EOFError
+    # nothing to read on the socket (StringIO)
+    nil
+  end
+  private :getbyte_nonblock
+
+  # Internal: Read `len` bytes, respecting timeout.
+  def read_ber_nonblock(len)
+    begin
+      read_nonblock(len)
+    rescue IO::WaitReadable
+      if IO.select([self], nil, nil, read_ber_timeout)
+        read_nonblock(len)
+      else
+        raise Net::LDAP::LdapError, "Timed out reading from the socket"
+      end
+    end
+  end
+  private :read_ber_nonblock
 end
