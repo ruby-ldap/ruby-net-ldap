@@ -47,12 +47,17 @@ class TestEntryLDIF < Test::Unit::TestCase
       %Q{dn: something
 foo: foo
 barAttribute: bar
-      })
+})
   end
 
   def test_attribute
     assert_equal ['foo'], @entry.foo
     assert_equal ['foo'], @entry.Foo
+  end
+
+  def test_to_h
+    hash = {:dn => ['something'], foo: ['foo'], barattribute: ['bar']}
+    assert_equal hash, @entry.to_h
   end
 
   def test_modify_attribute
