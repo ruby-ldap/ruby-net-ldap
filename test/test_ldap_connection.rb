@@ -42,7 +42,7 @@ class TestLDAPConnection < Test::Unit::TestCase
     flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[1]).once.and_raise(SocketError)
     flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[2]).once.and_raise(SocketError)
     flexmock(TCPSocket).should_receive(:new).ordered.never
-    assert_raise Net::LDAP::Error do
+    assert_raise Net::LDAP::ConnectionError do
       Net::LDAP::Connection.new(:hosts => hosts)
     end
   end

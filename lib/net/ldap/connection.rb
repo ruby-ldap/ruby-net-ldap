@@ -48,14 +48,7 @@ class Net::LDAP::Connection #:nodoc:
       end
     end
 
-    if errors.size == 1
-      error = errors.first.first
-      raise Net::LDAP::ConnectionRefusedError, error.message if error.kind_of? Errno::ECONNREFUSED
-      raise Net::LDAP::Error, error.message
-    end
-
-    raise Net::LDAP::Error,
-      "Unable to connect to any given server: \n  #{errors.map { |e, h, p| "#{e.class}: #{e.message} (#{h}:#{p})" }.join("\n  ")}"
+    raise Net::LDAP::ConnectionError.new(errors)
   end
 
   module GetbyteForSSLSocket
