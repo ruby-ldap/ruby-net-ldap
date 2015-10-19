@@ -43,8 +43,8 @@ class Net::LDAP::Connection #:nodoc:
         prepare_socket(server.merge(socket: TCPSocket.new(host, port)), true)
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
-             OpenSSL::SSL::SSLError
-        errors << [$!, host, port]
+             OpenSSL::SSL::SSLError => e
+        errors << [e, host, port]
       end
     end
 
