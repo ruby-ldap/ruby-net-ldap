@@ -19,18 +19,12 @@ class Net::LDAP::Connection #:nodoc:
     yield self if block_given?
   end
 
-  def prepare_socket(server, close = false)
+  def prepare_socket(server)
     socket = server[:socket]
     encryption = server[:encryption]
 
     @conn = socket
     setup_encryption encryption if encryption
-  rescue
-    # Ensure the connection is closed when requested in the event of an SSL
-    # setup failure.
-    @conn.close if close
-    @conn = nil
-    raise
   end
 
   def open_connection(server)
@@ -40,10 +34,14 @@ class Net::LDAP::Connection #:nodoc:
     errors = []
     hosts.each do |host, port|
       begin
-        prepare_socket(server.merge(socket: TCPSocket.new(host, port)), true)
+        socket = TCPSocket.new(host, port)
+        prepare_socket(server.merge(socket: socket))
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
              OpenSSL::SSL::SSLError => e
+        # Ensure the connection is closed in the event a setup failure.
+        socket.close unless socket.nil?
+        socket = nil
         errors << [e, host, port]
       end
     end
