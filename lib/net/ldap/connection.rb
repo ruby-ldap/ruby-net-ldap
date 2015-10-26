@@ -34,14 +34,12 @@ class Net::LDAP::Connection #:nodoc:
     errors = []
     hosts.each do |host, port|
       begin
-        socket = TCPSocket.new(host, port)
-        prepare_socket(server.merge(socket: socket))
+        prepare_socket(server.merge(socket: TCPSocket.new(host, port)))
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
              OpenSSL::SSL::SSLError => e
         # Ensure the connection is closed in the event a setup failure.
-        socket.close unless socket.nil?
-        socket = nil
+        close
         errors << [e, host, port]
       end
     end
@@ -145,6 +143,7 @@ class Net::LDAP::Connection #:nodoc:
   # have to call it, but perhaps it will come in handy someday.
   #++
   def close
+    return if @conn.nil?
     @conn.close
     @conn = nil
   end
