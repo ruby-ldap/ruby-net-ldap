@@ -1,5 +1,10 @@
 === Net::LDAP 0.12.0
 
+* DRY up connection handling logic {#224}[https://github.com/ruby-ldap/ruby-net-ldap/pull/224]
+* Define auth adapters {#226}[https://github.com/ruby-ldap/ruby-net-ldap/pull/226]
+* add slash to attribute value filter {#225}[https://github.com/ruby-ldap/ruby-net-ldap/pull/225]
+* Add the ability to provide a list of hosts for a connection {#223}[https://github.com/ruby-ldap/ruby-net-ldap/pull/223]
+* Specify the port of LDAP server by giving INTEGRATION_PORT {#221}[https://github.com/ruby-ldap/ruby-net-ldap/pull/221]
 * Correctly set BerIdentifiedString values to UTF-8  {#212}[https://github.com/ruby-ldap/ruby-net-ldap/pull/212]
 * Raise Net::LDAP::ConnectionRefusedError when new connection is refused. {#213}[https://github.com/ruby-ldap/ruby-net-ldap/pull/213]
 * obscure auth password upon #inspect, added test, closes #216 {#217}[https://github.com/ruby-ldap/ruby-net-ldap/pull/217]
