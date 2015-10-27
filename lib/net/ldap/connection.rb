@@ -8,11 +8,11 @@ class Net::LDAP::Connection #:nodoc:
 
   def initialize(server)
     @instrumentation_service = server[:instrumentation_service]
-    server[:hosts] = [[server[:host], server[:port]]] if server[:hosts].nil?
 
     if server[:socket]
       prepare_socket(server)
     else
+      server[:hosts] = [[server[:host], server[:port]]] if server[:hosts].nil?
       open_connection(server)
     end
 
@@ -20,44 +20,31 @@ class Net::LDAP::Connection #:nodoc:
   end
 
   def prepare_socket(server)
-    @conn = server[:socket]
+    socket = server[:socket]
+    encryption = server[:encryption]
 
-    if server[:encryption]
-      setup_encryption server[:encryption]
-    end
+    @conn = socket
+    setup_encryption encryption if encryption
   end
 
   def open_connection(server)
+    hosts = server[:hosts]
+    encryption = server[:encryption]
+
     errors = []
-    server[:hosts].each do |host, port|
+    hosts.each do |host, port|
       begin
-        return connect_to_host(host, port, server)
-      rescue Net::LDAP::Error
-        errors << $!
+        prepare_socket(server.merge(socket: TCPSocket.new(host, port)))
+        return
+      rescue Net::LDAP::Error, SocketError, SystemCallError,
+             OpenSSL::SSL::SSLError => e
+        # Ensure the connection is closed in the event a setup failure.
+        close
+        errors << [e, host, port]
       end
     end
 
-    raise errors.first if errors.size == 1
-    raise Net::LDAP::Error,
-      "Unable to connect to any given server: \n  #{errors.join("\n  ")}"
-  end
-
-  def connect_to_host(host, port, server)
-    begin
-      @conn = TCPSocket.new(host, port)
-    rescue SocketError
-      raise Net::LDAP::Error, "No such address or other socket error."
-    rescue Errno::ECONNREFUSED
-      raise Net::LDAP::ConnectionRefusedError, "Server #{host} refused connection on port #{port}."
-    rescue Errno::EHOSTUNREACH => error
-      raise Net::LDAP::Error, "Host #{host} was unreachable (#{error.message})"
-    rescue Errno::ETIMEDOUT
-      raise Net::LDAP::Error, "Connection to #{host} timed out."
-    end
-
-    if server[:encryption]
-      setup_encryption server[:encryption]
-    end
+    raise Net::LDAP::ConnectionError.new(errors)
   end
 
   module GetbyteForSSLSocket
@@ -156,6 +143,7 @@ class Net::LDAP::Connection #:nodoc:
   # have to call it, but perhaps it will come in handy someday.
   #++
   def close
+    return if @conn.nil?
     @conn.close
     @conn = nil
   end
