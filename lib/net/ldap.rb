@@ -1243,5 +1243,11 @@ class Net::LDAP
       :hosts                   => @hosts,
       :encryption              => @encryption,
       :instrumentation_service => @instrumentation_service
+  rescue Errno::ECONNREFUSED, Net::LDAP::ConnectionRefusedError => e
+    @result = {
+      :resultCode   => 52,
+      :errorMessage => ResultStrings[ResultCodeUnavailable]
+    }
+    raise e
   end
 end # class LDAP

@@ -47,6 +47,19 @@ class TestLDAPConnection < Test::Unit::TestCase
     end
   end
 
+  def test_result_for_connection_failed_is_set
+    flexmock(TCPSocket).should_receive(:new).and_raise(Errno::ECONNREFUSED)
+
+    ldap_client = Net::LDAP.new(host: '127.0.0.1', port: 12345)
+
+    assert_raise Net::LDAP::ConnectionRefusedError do
+      ldap_client.bind(method: :simple, username: 'asdf', password: 'asdf')
+    end
+
+    assert_equal(ldap_client.get_operation_result.code, 52)
+    assert_equal(ldap_client.get_operation_result.message, 'Unavailable')
+  end
+
   def test_unresponsive_host
     assert_raise Net::LDAP::Error do
       Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
