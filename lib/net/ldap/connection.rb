@@ -130,7 +130,7 @@ class Net::LDAP::Connection #:nodoc:
       if pdu.result_code.zero?
         @conn = self.class.wrap_with_ssl(@conn, args[:tls_options])
       else
-        raise Net::LDAP::StartTlSError, "start_tls failed: #{pdu.result_code}"
+        raise Net::LDAP::StartTLSError, "start_tls failed: #{pdu.result_code}"
       end
     else
       raise Net::LDAP::EncMethodUnsupportedError, "unsupported encryption method #{args[:method]}"
