@@ -13,6 +13,15 @@ class Net::LDAP::Connection #:nodoc:
     yield self if block_given?
   end
 
+  # Allows tests to parameterize what socket class to use
+  def socket_class
+    @socket_class || TCPSocket
+  end
+
+  def socket_class=(socket_class)
+    @socket_class = socket_class
+  end
+
   def prepare_socket(server)
     socket = server[:socket]
     encryption = server[:encryption]
@@ -28,7 +37,7 @@ class Net::LDAP::Connection #:nodoc:
     errors = []
     hosts.each do |host, port|
       begin
-        prepare_socket(server.merge(socket: TCPSocket.new(host, port)))
+        prepare_socket(server.merge(socket: socket_class.new(host, port)))
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
              OpenSSL::SSL::SSLError => e
