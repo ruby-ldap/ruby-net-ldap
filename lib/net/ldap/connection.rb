@@ -6,6 +6,14 @@ class Net::LDAP::Connection #:nodoc:
   LdapVersion = 3
   MaxSaslChallenges = 10
 
+  # Initialize a connection to an LDAP server
+  #
+  # :server
+  #   :hosts   Array of tuples specifying host, port
+  #   :host    host
+  #   :port    port
+  #   :socket  prepared socket
+  #
   def initialize(server = {})
     @server = server
     @instrumentation_service = server[:instrumentation_service]
