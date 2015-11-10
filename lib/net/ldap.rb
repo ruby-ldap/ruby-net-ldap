@@ -1237,12 +1237,16 @@ class Net::LDAP
 
   # Establish a new connection to the LDAP server
   def new_connection
-    Net::LDAP::Connection.new \
+    connection = Net::LDAP::Connection.new \
       :host                    => @host,
       :port                    => @port,
       :hosts                   => @hosts,
       :encryption              => @encryption,
       :instrumentation_service => @instrumentation_service
+
+    # Force connect to see if there's a connection error
+    connection.socket
+    connection
   rescue Errno::ECONNREFUSED, Net::LDAP::ConnectionRefusedError => e
     @result = {
       :resultCode   => 52,
