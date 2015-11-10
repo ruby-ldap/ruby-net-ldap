@@ -595,9 +595,8 @@ class Net::LDAP::Connection #:nodoc:
     pdu
   end
 
-  private
-
-  # Returns a Socket like object used internally to communicate with LDAP server
+  # Internal: Returns a Socket like object used internally to communicate with
+  # LDAP server.
   #
   # Typically a TCPSocket, but can be a OpenSSL::SSL::SSLSocket
   def socket
