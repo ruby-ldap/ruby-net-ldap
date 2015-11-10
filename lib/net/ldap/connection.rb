@@ -606,6 +606,13 @@ class Net::LDAP::Connection #:nodoc:
     # First refactoring uses the existing methods open_connection and
     # prepare_socket to set @conn. Next cleanup would centralize connection
     # handling here.
-    open_connection(@server)
+    if @server[:socket]
+      prepare_socket(@server)
+    else
+      @server[:hosts] = [[@server[:host], @server[:port]]] if @server[:hosts].nil?
+      open_connection(@server)
+    end
+
+    @conn
   end
 end # class Connection
