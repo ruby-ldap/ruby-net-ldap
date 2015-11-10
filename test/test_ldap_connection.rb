@@ -9,41 +9,53 @@ class TestLDAPConnection < Test::Unit::TestCase
     $stderr = stderr
   end
 
+  # Fake socket for testing
+  #
+  # FakeTCPSocket.new("success", 636)
+  # FakeTCPSocket.new("fail.SocketError", 636)  # raises SocketError
+  class FakeTCPSocket
+    def initialize(host, port)
+      status, error = host.split(".")
+      if status == "fail"
+        raise Object.const_get(error)
+      end
+    end
+  end
+
   def test_list_of_hosts_with_first_host_successful
     hosts = [
-      ['test.mocked.com', 636],
-      ['test2.mocked.com', 636],
-      ['test3.mocked.com', 636],
+      ["success.host", 636],
+      ["fail.SocketError", 636],
+      ["fail.SocketError", 636],
     ]
-    flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[0]).once.and_return(nil)
-    flexmock(TCPSocket).should_receive(:new).ordered.never
-    Net::LDAP::Connection.new(:hosts => hosts)
+
+    connection = Net::LDAP::Connection.new(:hosts => hosts)
+    connection.socket_class = FakeTCPSocket
+    connection.socket
   end
 
   def test_list_of_hosts_with_first_host_failure
     hosts = [
-      ['test.mocked.com', 636],
-      ['test2.mocked.com', 636],
-      ['test3.mocked.com', 636],
+      ["fail.SocketError", 636],
+      ["success.host", 636],
+      ["fail.SocketError", 636],
     ]
-    flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[0]).once.and_raise(SocketError)
-    flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[1]).once.and_return(nil)
-    flexmock(TCPSocket).should_receive(:new).ordered.never
-    Net::LDAP::Connection.new(:hosts => hosts)
+    connection = Net::LDAP::Connection.new(:hosts => hosts)
+    connection.socket_class = FakeTCPSocket
+    connection.socket
   end
 
   def test_list_of_hosts_with_all_hosts_failure
     hosts = [
-      ['test.mocked.com', 636],
-      ['test2.mocked.com', 636],
-      ['test3.mocked.com', 636],
+      ["fail.SocketError", 636],
+      ["fail.SocketError", 636],
+      ["fail.SocketError", 636],
     ]
-    flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[0]).once.and_raise(SocketError)
-    flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[1]).once.and_raise(SocketError)
-    flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[2]).once.and_raise(SocketError)
-    flexmock(TCPSocket).should_receive(:new).ordered.never
+
+    connection = Net::LDAP::Connection.new(:hosts => hosts)
+    connection.socket_class = FakeTCPSocket
     assert_raise Net::LDAP::ConnectionError do
-      Net::LDAP::Connection.new(:hosts => hosts)
+      connection.socket
     end
   end
 
