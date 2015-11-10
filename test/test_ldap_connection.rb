@@ -59,6 +59,7 @@ class TestLDAPConnection < Test::Unit::TestCase
     end
   end
 
+  # This belongs in test_ldap, not test_ldap_connection
   def test_result_for_connection_failed_is_set
     flexmock(TCPSocket).should_receive(:new).and_raise(Errno::ECONNREFUSED)
 
@@ -73,33 +74,36 @@ class TestLDAPConnection < Test::Unit::TestCase
   end
 
   def test_unresponsive_host
+    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ETIMEDOUT", :port => 636)
+    connection.socket_class = FakeTCPSocket
     assert_raise Net::LDAP::Error do
-      Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+      connection.socket
     end
   end
 
   def test_blocked_port
-    flexmock(TCPSocket).should_receive(:new).and_raise(SocketError)
+    connection = Net::LDAP::Connection.new(:host => "fail.SocketError", :port => 636)
+    connection.socket_class = FakeTCPSocket
     assert_raise Net::LDAP::Error do
-      Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+      connection.socket
     end
   end
 
   def test_connection_refused
-    flexmock(TCPSocket).should_receive(:new).and_raise(Errno::ECONNREFUSED)
+    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ECONNREFUSED", :port => 636)
+    connection.socket_class = FakeTCPSocket
     stderr = capture_stderr do
       assert_raise Net::LDAP::ConnectionRefusedError do
-        Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+        connection.socket
       end
     end
     assert_equal("Deprecation warning: Net::LDAP::ConnectionRefused will be deprecated. Use Errno::ECONNREFUSED instead.\n",  stderr)
   end
 
   def test_raises_unknown_exceptions
-    error = Class.new(StandardError)
-    flexmock(TCPSocket).should_receive(:new).and_raise(error)
-    assert_raise error do
-      Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+    connection = Net::LDAP::Connection.new(:host => "fail.StandardError", :port => 636)
+    assert_raise Net::LDAP::Error do
+      connection.socket
     end
   end
 
