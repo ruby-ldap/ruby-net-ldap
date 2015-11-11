@@ -21,6 +21,7 @@ class Net::LDAP
     end
 
     private
+
     def warn_deprecation_message
       warn "Deprecation warning: Net::LDAP::ConnectionRefused will be deprecated. Use Errno::ECONNREFUSED instead."
     end
