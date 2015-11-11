@@ -1,3 +1,8 @@
+=== Net::LDAP 0.12.1
+
+* Whitespace formatting cleanup {#236}[https://github.com/ruby-ldap/ruby-net-ldap/pull/236]
+* Set operation result if LDAP server is not accessible {#232}[https://github.com/ruby-ldap/ruby-net-ldap/pull/232]
+
 === Net::LDAP 0.12.0
 
 * DRY up connection handling logic {#224}[https://github.com/ruby-ldap/ruby-net-ldap/pull/224]
