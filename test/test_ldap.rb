@@ -1,6 +1,28 @@
 require 'test_helper'
 
 class TestLDAPInstrumentation < Test::Unit::TestCase
+  # Fake Net::LDAP::Connection for testing
+  class FakeConnection
+    # It's difficult to instantiate Net::LDAP::PDU objects. Faking out what we
+    # need here until that object is brought under test and has it's constructor
+    # cleaned up.
+    class Result < Struct.new(:success?, :result_code); end
+
+    def initialize
+      @bind_success = Result.new(true, Net::LDAP::ResultCodeSuccess)
+      @search_success = Result.new(true, Net::LDAP::ResultCodeSizeLimitExceeded)
+    end
+
+    def bind(args = {})
+      @bind_success
+    end
+
+    def search(*args)
+      yield @search_success if block_given?
+      @search_success
+    end
+  end
+
   def setup
     @connection = flexmock(:connection, :close => true)
     flexmock(Net::LDAP::Connection).should_receive(:new).and_return(@connection)
@@ -15,8 +37,9 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
   def test_instrument_bind
     events = @service.subscribe "bind.net_ldap"
 
-    bind_result = flexmock(:bind_result, :success? => true)
-    flexmock(@connection).should_receive(:bind).with(Hash).and_return(bind_result)
+    fake_connection = FakeConnection.new
+    @subject.connection = fake_connection
+    bind_result = fake_connection.bind
 
     assert @subject.bind
 
@@ -28,10 +51,9 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
   def test_instrument_search
     events = @service.subscribe "search.net_ldap"
 
-    flexmock(@connection).should_receive(:bind).and_return(flexmock(:bind_result, :result_code => Net::LDAP::ResultCodeSuccess))
-    flexmock(@connection).should_receive(:search).with(Hash, Proc).
-                yields(entry = Net::LDAP::Entry.new("uid=user1,ou=users,dc=example,dc=com")).
-                and_return(flexmock(:search_result, :success? => true, :result_code => Net::LDAP::ResultCodeSuccess))
+    fake_connection = FakeConnection.new
+    @subject.connection = fake_connection
+    entry = fake_connection.search
 
     refute_nil @subject.search(:filter => "(uid=user1)")
 
@@ -44,10 +66,9 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
   def test_instrument_search_with_size
     events = @service.subscribe "search.net_ldap"
 
-    flexmock(@connection).should_receive(:bind).and_return(flexmock(:bind_result, :result_code => Net::LDAP::ResultCodeSuccess))
-    flexmock(@connection).should_receive(:search).with(Hash, Proc).
-                yields(entry = Net::LDAP::Entry.new("uid=user1,ou=users,dc=example,dc=com")).
-                and_return(flexmock(:search_result, :success? => true, :result_code => Net::LDAP::ResultCodeSizeLimitExceeded))
+    fake_connection = FakeConnection.new
+    @subject.connection = fake_connection
+    entry = fake_connection.search
 
     refute_nil @subject.search(:filter => "(uid=user1)", :size => 1)
 

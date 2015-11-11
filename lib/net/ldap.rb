@@ -1212,6 +1212,11 @@ class Net::LDAP
     inspected
   end
 
+  # Internal: Set @open_connection for testing
+  def connection=(connection)
+    @open_connection = connection
+  end
+
   private
 
   # Yields an open connection if there is one, otherwise establishes a new
