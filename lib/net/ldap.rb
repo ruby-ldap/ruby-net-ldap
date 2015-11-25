@@ -590,6 +590,7 @@ class Net::LDAP
   #   }
   def encryption(args)
     return if args.nil?
+    return @encryption = args if args.is_a? Hash
 
     case method = args.to_sym
     when :simple_tls, :start_tls
