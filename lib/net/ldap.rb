@@ -589,9 +589,11 @@ class Net::LDAP
   #     :tls_options => { :ca_file => "/etc/cafile.pem", :ssl_version => "TLSv1_1" }
   #   }
   def encryption(args)
-    case args
+    return if args.nil?
+
+    case method = args.to_sym
     when :simple_tls, :start_tls
-      args = { :method => args, :tls_options => {} }
+      args = { :method => method, :tls_options => {} }
     end
     @encryption = args
   end
