@@ -26,7 +26,7 @@ the most recent LDAP RFCs (4510-4519, plutions of 4520-4532).}
   s.homepage = %q{http://github.com/ruby-ldap/ruby-net-ldap}
   s.rdoc_options = ["--main", "README.rdoc"]
   s.require_paths = ["lib"]
-  s.required_ruby_version = ">= 1.9.3"
+  s.required_ruby_version = ">= 2.0.0"
   s.summary = %q{Net::LDAP for Ruby (also called net-ldap) implements client access for the Lightweight Directory Access Protocol (LDAP), an IETF standard protocol for accessing distributed directory services}
 
   s.add_development_dependency("flexmock", "~> 1.3")
