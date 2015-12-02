@@ -4,7 +4,6 @@ rvm:
   - 2.1
   - 2.2
   # optional
-  - 2.3.0-preview1
   - ruby-head
   - jruby-19mode
   - jruby-head
@@ -21,7 +20,6 @@ script: bundle exec rake ci
 
 matrix:
   allow_failures:
-    - rvm: 2.3.0-preview1
     - rvm: ruby-head
     - rvm: jruby-19mode
     - rvm: jruby-head
