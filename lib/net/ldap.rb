@@ -590,6 +590,7 @@ class Net::LDAP
   # This method is deprecated. 
   #
   def encryption(args)
+    warn "Deprecation warning: please give :encryption option as a Hash to Net::LDAP.new"
     return if args.nil?
     return @encryption = args if args.is_a? Hash
 
