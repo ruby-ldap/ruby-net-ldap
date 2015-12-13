@@ -461,11 +461,52 @@ class Net::LDAP
   #   call to #search, that value will override any treebase value you give
   #   here.
   # * :encryption => specifies the encryption to be used in communicating
-  #   with the LDAP server. The value is either a Hash containing additional
-  #   parameters, or the Symbol :simple_tls, which is equivalent to
-  #   specifying the Hash {:method => :simple_tls}. There is a fairly large
-  #   range of potential values that may be given for this parameter. See
-  #   #encryption for details.
+  #   with the LDAP server. The value must be a Hash containing additional
+  #   parameters, which consists of two keys:
+  #     method: - :simple_tls or :start_tls
+  #     options: - Hash of options for that method
+  #   The :simple_tls encryption method encrypts <i>all</i> communications
+  #   with the LDAP server. It completely establishes SSL/TLS encryption with
+  #   the LDAP server before any LDAP-protocol data is exchanged. There is no
+  #   plaintext negotiation and no special encryption-request controls are
+  #   sent to the server. <i>The :simple_tls option is the simplest, easiest
+  #   way to encrypt communications between Net::LDAP and LDAP servers.</i>
+  #   It's intended for cases where you have an implicit level of trust in the
+  #   authenticity of the LDAP server. No validation of the LDAP server's SSL
+  #   certificate is performed. This means that :simple_tls will not produce
+  #   errors if the LDAP server's encryption certificate is not signed by a
+  #   well-known Certification Authority. If you get communications or
+  #   protocol errors when using this option, check with your LDAP server
+  #   administrator. Pay particular attention to the TCP port you are
+  #   connecting to. It's impossible for an LDAP server to support plaintext
+  #   LDAP communications and <i>simple TLS</i> connections on the same port.
+  #   The standard TCP port for unencrypted LDAP connections is 389, but the
+  #   standard port for simple-TLS encrypted connections is 636. Be sure you
+  #   are using the correct port.
+  #
+  #   The :start_tls like the :simple_tls encryption method also encrypts all
+  #   communcations with the LDAP server. With the exception that it operates
+  #   over the standard TCP port.
+  #  
+  #   In order to verify certificates and enable other TLS options, the
+  #   :tls_options hash can be passed alongside :simple_tls or :start_tls.
+  #   This hash contains any options that can be passed to
+  #   OpenSSL::SSL::SSLContext#set_params(). The most common options passed
+  #   should be OpenSSL::SSL::SSLContext::DEFAULT_PARAMS, or the :ca_file option,
+  #   which contains a path to a Certificate Authority file (PEM-encoded).
+  #  
+  #   Example for a default setup without custom settings:
+  #     {
+  #       :method => :simple_tls,
+  #       :tls_options => OpenSSL::SSL::SSLContext::DEFAULT_PARAMS
+  #     }
+  #  
+  #   Example for specifying a CA-File and only allowing TLSv1.1 connections:
+  #  
+  #     {
+  #       :method => :start_tls,
+  #       :tls_options => { :ca_file => "/etc/cafile.pem", :ssl_version => "TLSv1_1" }
+  #     }
   # * :force_no_page => Set to true to prevent paged results even if your
   #   server says it supports them. This is a fix for MS Active Directory
   # * :instrumentation_service => An object responsible for instrumenting
@@ -482,7 +523,7 @@ class Net::LDAP
     @auth = args[:auth] || DefaultAuth
     @base = args[:base] || DefaultTreebase
     @force_no_page = args[:force_no_page] || DefaultForceNoPage
-    encryption args[:encryption] # may be nil
+    @encryption = args[:encryption] # may be nil
 
     if pr = @auth[:password] and pr.respond_to?(:call)
       @auth[:password] = pr.call
@@ -546,48 +587,8 @@ class Net::LDAP
   # additional capabilities are added, more configuration values will be
   # added here.
   #
-  # The :simple_tls encryption method encrypts <i>all</i> communications
-  # with the LDAP server. It completely establishes SSL/TLS encryption with
-  # the LDAP server before any LDAP-protocol data is exchanged. There is no
-  # plaintext negotiation and no special encryption-request controls are
-  # sent to the server. <i>The :simple_tls option is the simplest, easiest
-  # way to encrypt communications between Net::LDAP and LDAP servers.</i>
-  # It's intended for cases where you have an implicit level of trust in the
-  # authenticity of the LDAP server. No validation of the LDAP server's SSL
-  # certificate is performed. This means that :simple_tls will not produce
-  # errors if the LDAP server's encryption certificate is not signed by a
-  # well-known Certification Authority. If you get communications or
-  # protocol errors when using this option, check with your LDAP server
-  # administrator. Pay particular attention to the TCP port you are
-  # connecting to. It's impossible for an LDAP server to support plaintext
-  # LDAP communications and <i>simple TLS</i> connections on the same port.
-  # The standard TCP port for unencrypted LDAP connections is 389, but the
-  # standard port for simple-TLS encrypted connections is 636. Be sure you
-  # are using the correct port.
+  # This method is deprecated. 
   #
-  # The :start_tls like the :simple_tls encryption method also encrypts all
-  # communcations with the LDAP server. With the exception that it operates
-  # over the standard TCP port.
-  #
-  # In order to verify certificates and enable other TLS options, the
-  # :tls_options hash can be passed alongside :simple_tls or :start_tls.
-  # This hash contains any options that can be passed to
-  # OpenSSL::SSL::SSLContext#set_params(). The most common options passed
-  # should be OpenSSL::SSL::SSLContext::DEFAULT_PARAMS, or the :ca_file option,
-  # which contains a path to a Certificate Authority file (PEM-encoded).
-  #
-  # Example for a default setup without custom settings:
-  #   {
-  #     :method => :simple_tls,
-  #     :tls_options => OpenSSL::SSL::SSLContext::DEFAULT_PARAMS
-  #   }
-  #
-  # Example for specifying a CA-File and only allowing TLSv1.1 connections:
-  #
-  #   {
-  #     :method => :start_tls,
-  #     :tls_options => { :ca_file => "/etc/cafile.pem", :ssl_version => "TLSv1_1" }
-  #   }
   def encryption(args)
     return if args.nil?
     return @encryption = args if args.is_a? Hash
