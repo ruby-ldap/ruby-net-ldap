@@ -15,8 +15,8 @@ class TestLDAPConnection < Test::Unit::TestCase
       ['test2.mocked.com', 636],
       ['test3.mocked.com', 636],
     ]
-    flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[0]).once.and_return(nil)
-    flexmock(TCPSocket).should_receive(:new).ordered.never
+    flexmock(Socket).should_receive(:tcp).ordered.with(*hosts[0], { connect_timeout: 5 }).once.and_return(nil)
+    flexmock(Socket).should_receive(:tcp).ordered.never
     Net::LDAP::Connection.new(:hosts => hosts)
   end
 
@@ -26,9 +26,9 @@ class TestLDAPConnection < Test::Unit::TestCase
       ['test2.mocked.com', 636],
       ['test3.mocked.com', 636],
     ]
-    flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[0]).once.and_raise(SocketError)
-    flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[1]).once.and_return(nil)
-    flexmock(TCPSocket).should_receive(:new).ordered.never
+    flexmock(Socket).should_receive(:tcp).ordered.with(*hosts[0], { connect_timeout: 5 }).once.and_raise(SocketError)
+    flexmock(Socket).should_receive(:tcp).ordered.with(*hosts[1], { connect_timeout: 5 }).once.and_return(nil)
+    flexmock(Socket).should_receive(:tcp).ordered.never
     Net::LDAP::Connection.new(:hosts => hosts)
   end
 
@@ -38,17 +38,17 @@ class TestLDAPConnection < Test::Unit::TestCase
       ['test2.mocked.com', 636],
       ['test3.mocked.com', 636],
     ]
-    flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[0]).once.and_raise(SocketError)
-    flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[1]).once.and_raise(SocketError)
-    flexmock(TCPSocket).should_receive(:new).ordered.with(*hosts[2]).once.and_raise(SocketError)
-    flexmock(TCPSocket).should_receive(:new).ordered.never
+    flexmock(Socket).should_receive(:tcp).ordered.with(*hosts[0], { connect_timeout: 5 }).once.and_raise(SocketError)
+    flexmock(Socket).should_receive(:tcp).ordered.with(*hosts[1], { connect_timeout: 5 }).once.and_raise(SocketError)
+    flexmock(Socket).should_receive(:tcp).ordered.with(*hosts[2], { connect_timeout: 5 }).once.and_raise(SocketError)
+    flexmock(Socket).should_receive(:tcp).ordered.never
     assert_raise Net::LDAP::ConnectionError do
       Net::LDAP::Connection.new(:hosts => hosts)
     end
   end
 
   def test_result_for_connection_failed_is_set
-    flexmock(TCPSocket).should_receive(:new).and_raise(Errno::ECONNREFUSED)
+    flexmock(Socket).should_receive(:tcp).and_raise(Errno::ECONNREFUSED)
 
     ldap_client = Net::LDAP.new(host: '127.0.0.1', port: 12345)
 
@@ -67,14 +67,14 @@ class TestLDAPConnection < Test::Unit::TestCase
   end
 
   def test_blocked_port
-    flexmock(TCPSocket).should_receive(:new).and_raise(SocketError)
+    flexmock(Socket).should_receive(:tcp).and_raise(SocketError)
     assert_raise Net::LDAP::Error do
       Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
     end
   end
 
   def test_connection_refused
-    flexmock(TCPSocket).should_receive(:new).and_raise(Errno::ECONNREFUSED)
+    flexmock(Socket).should_receive(:tcp).and_raise(Errno::ECONNREFUSED)
     stderr = capture_stderr do
       assert_raise Net::LDAP::ConnectionRefusedError do
         Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
@@ -83,9 +83,18 @@ class TestLDAPConnection < Test::Unit::TestCase
     assert_equal("Deprecation warning: Net::LDAP::ConnectionRefused will be deprecated. Use Errno::ECONNREFUSED instead.\n",  stderr)
   end
 
+  def test_connection_timedout
+    flexmock(Socket).should_receive(:tcp).and_raise(Errno::ETIMEDOUT)
+    stderr = capture_stderr do
+      assert_raise Net::LDAP::Error do
+        Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+      end
+    end
+  end
+
   def test_raises_unknown_exceptions
     error = Class.new(StandardError)
-    flexmock(TCPSocket).should_receive(:new).and_raise(error)
+    flexmock(Socket).should_receive(:tcp).and_raise(error)
     assert_raise error do
       Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
     end
@@ -328,7 +337,7 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
   def setup
     @tcp_socket = flexmock(:connection)
     @tcp_socket.should_receive(:write)
-    flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
+    flexmock(Socket).should_receive(:tcp).and_return(@tcp_socket)
     @connection = Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
   end
 
@@ -357,7 +366,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def setup
     @tcp_socket = flexmock(:connection)
     @tcp_socket.should_receive(:write)
-    flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
+    flexmock(Socket).should_receive(:tcp).and_return(@tcp_socket)
 
     @service = MockInstrumentationService.new
     @connection = Net::LDAP::Connection.new \

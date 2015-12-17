@@ -79,6 +79,14 @@ Net::LDAP::AuthAdapter.register(:sasl, Net::LDAP::AuthAdapter::Sasl)
 #
 #  p ldap.get_operation_result
 #
+# === Setting connect timeout
+#
+# By default, Net::LDAP uses TCP sockets with a connection timeout of 5 seconds.
+#
+# This value can be tweaked passing the :connect_timeout parameter.
+# i.e.
+#  ldap = Net::LDAP.new ...,
+#                       :connect_timeout => 3
 #
 # == A Brief Introduction to LDAP
 #
@@ -487,22 +495,22 @@ class Net::LDAP
   #   The :start_tls like the :simple_tls encryption method also encrypts all
   #   communcations with the LDAP server. With the exception that it operates
   #   over the standard TCP port.
-  #  
+  #
   #   In order to verify certificates and enable other TLS options, the
   #   :tls_options hash can be passed alongside :simple_tls or :start_tls.
   #   This hash contains any options that can be passed to
   #   OpenSSL::SSL::SSLContext#set_params(). The most common options passed
   #   should be OpenSSL::SSL::SSLContext::DEFAULT_PARAMS, or the :ca_file option,
   #   which contains a path to a Certificate Authority file (PEM-encoded).
-  #  
+  #
   #   Example for a default setup without custom settings:
   #     {
   #       :method => :simple_tls,
   #       :tls_options => OpenSSL::SSL::SSLContext::DEFAULT_PARAMS
   #     }
-  #  
+  #
   #   Example for specifying a CA-File and only allowing TLSv1.1 connections:
-  #  
+  #
   #     {
   #       :method => :start_tls,
   #       :tls_options => { :ca_file => "/etc/cafile.pem", :ssl_version => "TLSv1_1" }
@@ -524,6 +532,7 @@ class Net::LDAP
     @base = args[:base] || DefaultTreebase
     @force_no_page = args[:force_no_page] || DefaultForceNoPage
     @encryption = args[:encryption] # may be nil
+    @connect_timeout = args[:connect_timeout]
 
     if pr = @auth[:password] and pr.respond_to?(:call)
       @auth[:password] = pr.call
@@ -587,7 +596,7 @@ class Net::LDAP
   # additional capabilities are added, more configuration values will be
   # added here.
   #
-  # This method is deprecated. 
+  # This method is deprecated.
   #
   def encryption(args)
     warn "Deprecation warning: please give :encryption option as a Hash to Net::LDAP.new"
@@ -1247,8 +1256,9 @@ class Net::LDAP
       :port                    => @port,
       :hosts                   => @hosts,
       :encryption              => @encryption,
-      :instrumentation_service => @instrumentation_service
-  rescue Errno::ECONNREFUSED, Net::LDAP::ConnectionRefusedError => e
+      :instrumentation_service => @instrumentation_service,
+      :connect_timeout         => @connect_timeout
+  rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT, Net::LDAP::ConnectionRefusedError => e
     @result = {
       :resultCode   => 52,
       :errorMessage => ResultStrings[ResultCodeUnavailable]
