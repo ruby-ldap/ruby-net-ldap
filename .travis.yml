@@ -12,6 +12,9 @@ rvm:
 env:
   - INTEGRATION=openldap
 
+before_install:
+  - gem update bundler
+
 install:
   - if [ "$INTEGRATION" = "openldap" ]; then sudo script/install-openldap; fi
   - bundle install
