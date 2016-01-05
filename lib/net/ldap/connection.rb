@@ -3,6 +3,9 @@
 class Net::LDAP::Connection #:nodoc:
   include Net::LDAP::Instrumentation
 
+  # Seconds before failing for socket connect timeout
+  DefaultConnectTimeout = 5
+
   LdapVersion = 3
   MaxSaslChallenges = 10
 
@@ -31,10 +34,14 @@ class Net::LDAP::Connection #:nodoc:
     hosts = server[:hosts]
     encryption = server[:encryption]
 
+    socket_opts = {
+      connect_timeout: server[:connect_timeout] || DefaultConnectTimeout
+    }
+
     errors = []
     hosts.each do |host, port|
       begin
-        prepare_socket(server.merge(socket: TCPSocket.new(host, port)))
+        prepare_socket(server.merge(socket: Socket.tcp(host, port, socket_opts)))
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
              OpenSSL::SSL::SSLError => e

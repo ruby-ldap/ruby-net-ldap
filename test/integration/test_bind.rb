@@ -5,6 +5,14 @@ class TestBindIntegration < LDAPIntegrationTestCase
     assert @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: "passworD1"), @ldap.get_operation_result.inspect
   end
 
+  def test_bind_timeout
+    @ldap.port = 8389
+    error = assert_raise Net::LDAP::Error do
+      @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: "passworD1")
+    end
+    assert_equal('Connection timed out - user specified timeout', error.message)
+  end
+
   def test_bind_anonymous_fail
     refute @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: ""), @ldap.get_operation_result.inspect
 
