@@ -539,6 +539,51 @@ class Net::LDAP::Connection #:nodoc:
     pdu
   end
 
+  ##
+  # Password Modify
+  #
+  # http://tools.ietf.org/html/rfc3062
+  #
+  # passwdModifyOID OBJECT IDENTIFIER ::= 1.3.6.1.4.1.4203.1.11.1
+  #
+  # PasswdModifyRequestValue ::= SEQUENCE {
+  #   userIdentity    [0]  OCTET STRING OPTIONAL
+  #   oldPasswd       [1]  OCTET STRING OPTIONAL
+  #   newPasswd       [2]  OCTET STRING OPTIONAL }
+  #
+  # PasswdModifyResponseValue ::= SEQUENCE {
+  #   genPasswd       [0]     OCTET STRING OPTIONAL }
+  #
+  # Encoded request:
+  #
+  #   00\x02\x01\x02w+\x80\x171.3.6.1.4.1.4203.1.11.1\x81\x100\x0E\x81\x05old\x82\x05new
+  #
+  def password_modify(args)
+    dn = args[:dn]
+    raise ArgumentError, 'DN is required' if !dn || dn.empty?
+
+    ext_seq = [Net::LDAP::PasswdModifyOid.to_ber_contextspecific(0)]
+
+    unless args[:old_password].nil?
+      pwd_seq = [args[:old_password].to_ber(0x81)]
+      pwd_seq << args[:new_password].to_ber(0x82) unless args[:new_password].nil?
+      ext_seq << pwd_seq.to_ber_sequence.to_ber(0x81)
+    end
+
+    request = ext_seq.to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
+
+    message_id = next_msgid
+
+    write(request, nil, message_id)
+    pdu = queued_read(message_id)
+
+    if !pdu || pdu.app_tag != Net::LDAP::PDU::ExtendedResponse
+      raise Net::LDAP::ResponseMissingError, "response missing or invalid"
+    end
+
+    pdu
+  end
+
   #--
   # TODO: need to support a time limit, in case the server fails to respond.
   # Unlike other operation-methods in this class, we return a result hash

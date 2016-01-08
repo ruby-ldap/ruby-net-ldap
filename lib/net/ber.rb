@@ -106,6 +106,7 @@ module Net # :nodoc:
   # <tr><th>CHARACTER STRING</th><th>C</th><td>29: 61 (0x3d, 0b00111101)</td></tr>
   # <tr><th>BMPString</th><th>P</th><td>30: 30 (0x1e, 0b00011110)</td></tr>
   # <tr><th>BMPString</th><th>C</th><td>30: 62 (0x3e, 0b00111110)</td></tr>
+  # <tr><th>ExtendedResponse</th><th>C</th><td>107: 139 (0x8b, 0b010001011)</td></tr>
   # </table>
   module BER
     VERSION = Net::LDAP::VERSION
