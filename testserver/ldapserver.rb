@@ -133,21 +133,21 @@ module LdapServer
     # TODO, what if this returns nil?
     filter = Net::LDAP::Filter.parse_ldap_filter( filters )
 
-    $ldif.each {|dn, entry|
+    $ldif.each do |dn, entry|
       if filter.match( entry )
         attrs = []
-        entry.each {|k, v|
+        entry.each do |k, v|
           if requested_attrs == :all or requested_attrs.include?(k.downcase)
             attrvals = v.map {|v1| v1.to_ber}.to_ber_set
             attrs << [k.to_ber, attrvals].to_ber_sequence
           end
-        }
+        end
 
         appseq = [dn.to_ber, attrs.to_ber_sequence].to_ber_appsequence(4)
         pkt = [msgid.to_ber, appseq].to_ber_sequence
         send_data pkt
       end
-    }
+    end
 
 
     send_ldap_response 5, pdu[0].to_i, 0, "", "Was that what you wanted?"
@@ -201,10 +201,9 @@ if __FILE__ == $0
 
   require 'net/ldap'
 
-  EventMachine.run {
+  EventMachine.run do
     $logger.info "starting LDAP server on 127.0.0.1 port 3890"
     EventMachine.start_server "127.0.0.1", 3890, LdapServer
     EventMachine.add_periodic_timer 60, proc {$logger.info "heartbeat"}
-  }
+  end
 end
-

@@ -68,10 +68,10 @@ class TestLdif < Test::Unit::TestCase
   # TODO, INADEQUATE. We need some more tests
   # to verify the content.
   def test_ldif
-    File.open(TestLdifFilename, "r") {|f|
+    File.open(TestLdifFilename, "r") do |f|
       ds = Net::LDAP::Dataset::read_ldif(f)
       assert_equal(13, ds.length)
-    }
+    end
   end
 
   # Must test folded lines and base64-encoded lines as well as normal ones.
@@ -84,13 +84,13 @@ class TestLdif < Test::Unit::TestCase
     entries = data.lines.grep(/^dn:\s*/) { $'.chomp }
     dn_entries = entries.dup
 
-    ds = Net::LDAP::Dataset::read_ldif(io) { |type, value|
+    ds = Net::LDAP::Dataset::read_ldif(io) do |type, value|
       case type
       when :dn
         assert_equal(dn_entries.first, value)
         dn_entries.shift
       end
-    }
+    end
     assert_equal(entries.size, ds.size)
     assert_equal(entries.sort, ds.to_ldif.grep(/^dn:\s*/) { $'.chomp })
   end
