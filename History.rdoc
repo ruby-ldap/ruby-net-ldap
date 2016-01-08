@@ -1,3 +1,18 @@
+=== Net::LDAP 0.13.0
+
+* Set a connect_timeout for the creation of a socket {#243}[https://github.com/ruby-ldap/ruby-net-ldap/pull/243]
+* Update bundler before installing gems with bundler {#245}[https://github.com/ruby-ldap/ruby-net-ldap/pull/245]
+* Net::LDAP#encryption accepts string {#239}[https://github.com/ruby-ldap/ruby-net-ldap/pull/239]
+* Adds correct UTF-8 encoding to Net::BER::BerIdentifiedString {#242}[https://github.com/ruby-ldap/ruby-net-ldap/pull/242]
+* Remove 2.3.0-preview since ruby-head already is included {#241}[https://github.com/ruby-ldap/ruby-net-ldap/pull/241]
+* Drop support for ruby 1.9.3 {#240}[https://github.com/ruby-ldap/ruby-net-ldap/pull/240]
+* Fixed capitalization of StartTLSError {#234}[https://github.com/ruby-ldap/ruby-net-ldap/pull/234]
+
+=== Net::LDAP 0.12.1
+
+* Whitespace formatting cleanup {#236}[https://github.com/ruby-ldap/ruby-net-ldap/pull/236]
+* Set operation result if LDAP server is not accessible {#232}[https://github.com/ruby-ldap/ruby-net-ldap/pull/232]
+
 === Net::LDAP 0.12.0
 
 * DRY up connection handling logic {#224}[https://github.com/ruby-ldap/ruby-net-ldap/pull/224]

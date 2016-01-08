@@ -106,6 +106,7 @@ module Net # :nodoc:
   # <tr><th>CHARACTER STRING</th><th>C</th><td>29: 61 (0x3d, 0b00111101)</td></tr>
   # <tr><th>BMPString</th><th>P</th><td>30: 30 (0x1e, 0b00011110)</td></tr>
   # <tr><th>BMPString</th><th>C</th><td>30: 62 (0x3e, 0b00111110)</td></tr>
+  # <tr><th>ExtendedResponse</th><th>C</th><td>107: 139 (0x8b, 0b010001011)</td></tr>
   # </table>
   module BER
     VERSION = Net::LDAP::VERSION
@@ -293,13 +294,43 @@ end
 
 ##
 # A String object with a BER identifier attached.
+#
 class Net::BER::BerIdentifiedString < String
   attr_accessor :ber_identifier
+
+  # The binary data provided when parsing the result of the LDAP search
+  # has the encoding 'ASCII-8BIT' (which is basically 'BINARY', or 'unknown').
+  #
+  # This is the kind of a backtrace showing how the binary `data` comes to
+  # BerIdentifiedString.new(data):
+  #
+  #  @conn.read_ber(syntax)
+  #     -> StringIO.new(self).read_ber(syntax), i.e. included from module
+  #     -> Net::BER::BERParser.read_ber(syntax)
+  #        -> (private)Net::BER::BERParser.parse_ber_object(syntax, id, data)
+  #
+  # In the `#parse_ber_object` method `data`, according to its OID, is being
+  # 'casted' to one of the Net::BER:BerIdentifiedXXX classes.
+  #
+  # As we are using LDAP v3 we can safely assume that the data is encoded
+  # in UTF-8 and therefore the only thing to be done when instantiating is to
+  # switch the encoding from 'ASCII-8BIT' to 'UTF-8'.
+  #
+  # Unfortunately, there are some ActiveDirectory specific attributes
+  # (like `objectguid`) that should remain binary (do they really?).
+  # Using the `#valid_encoding?` we can trap this cases. Special cases like
+  # Japanese, Korean, etc. encodings might also profit from this. However
+  # I have no clue how this encodings function.
   def initialize args
-    super begin
-      args.respond_to?(:encode) ? args.encode('UTF-8') : args
-    rescue
-      args
+    super
+    #
+    # Check the encoding of the newly created String and set the encoding
+    # to 'UTF-8' (NOTE: we do NOT change the bytes, but only set the
+    # encoding to 'UTF-8').
+    current_encoding = encoding
+    if current_encoding == Encoding::BINARY
+      force_encoding('UTF-8')
+      force_encoding(current_encoding) unless valid_encoding?
     end
   end
 end

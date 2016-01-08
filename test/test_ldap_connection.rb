@@ -14,7 +14,7 @@ class TestLDAPConnection < Test::Unit::TestCase
   # FakeTCPSocket.new("success", 636)
   # FakeTCPSocket.new("fail.SocketError", 636)  # raises SocketError
   class FakeTCPSocket
-    def initialize(host, port)
+    def initialize(host, port, socket_opts = {})
       status, error = host.split(".")
       if status == "fail"
         raise Object.const_get(error)
@@ -40,6 +40,7 @@ class TestLDAPConnection < Test::Unit::TestCase
       ["success.host", 636],
       ["fail.SocketError", 636],
     ]
+
     connection = Net::LDAP::Connection.new(:hosts => hosts)
     connection.socket_class = FakeTCPSocket
     connection.socket
@@ -61,7 +62,7 @@ class TestLDAPConnection < Test::Unit::TestCase
 
   # This belongs in test_ldap, not test_ldap_connection
   def test_result_for_connection_failed_is_set
-    flexmock(TCPSocket).should_receive(:new).and_raise(Errno::ECONNREFUSED)
+    flexmock(Socket).should_receive(:tcp).and_raise(Errno::ECONNREFUSED)
 
     ldap_client = Net::LDAP.new(host: '127.0.0.1', port: 12345)
 
@@ -98,6 +99,15 @@ class TestLDAPConnection < Test::Unit::TestCase
       end
     end
     assert_equal("Deprecation warning: Net::LDAP::ConnectionRefused will be deprecated. Use Errno::ECONNREFUSED instead.\n",  stderr)
+  end
+
+  def test_connection_timeout
+    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ETIMEDOUT", :port => 636)
+    stderr = capture_stderr do
+      assert_raise Net::LDAP::Error do
+        connection.socket
+      end
+    end
   end
 
   def test_raises_unknown_exceptions
@@ -344,7 +354,7 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
   def setup
     @tcp_socket = flexmock(:connection)
     @tcp_socket.should_receive(:write)
-    flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
+    flexmock(Socket).should_receive(:tcp).and_return(@tcp_socket)
     @connection = Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
   end
 
@@ -373,7 +383,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def setup
     @tcp_socket = flexmock(:connection)
     @tcp_socket.should_receive(:write)
-    flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
+    flexmock(Socket).should_receive(:tcp).and_return(@tcp_socket)
 
     @service = MockInstrumentationService.new
     @connection = Net::LDAP::Connection.new \

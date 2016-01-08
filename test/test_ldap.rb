@@ -85,4 +85,10 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
     @subject.auth "joe_user", password
     assert_not_include(@subject.inspect, password)
   end
+
+  def test_encryption
+    enc = @subject.encryption('start_tls')
+
+    assert_equal enc[:method], :start_tls
+  end
 end

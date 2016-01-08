@@ -79,6 +79,14 @@ Net::LDAP::AuthAdapter.register(:sasl, Net::LDAP::AuthAdapter::Sasl)
 #
 #  p ldap.get_operation_result
 #
+# === Setting connect timeout
+#
+# By default, Net::LDAP uses TCP sockets with a connection timeout of 5 seconds.
+#
+# This value can be tweaked passing the :connect_timeout parameter.
+# i.e.
+#  ldap = Net::LDAP.new ...,
+#                       :connect_timeout => 3
 #
 # == A Brief Introduction to LDAP
 #
@@ -315,7 +323,14 @@ class Net::LDAP
     :constructed => constructed,
   }
 
+  universal = {
+    constructed: {
+      107 => :array #ExtendedResponse (PasswdModifyResponseValue)
+    }
+  }
+
   AsnSyntax = Net::BER.compile_syntax(:application => application,
+                                      :universal => universal,
                                       :context_specific => context_specific)
 
   DefaultHost = "127.0.0.1"
@@ -324,7 +339,8 @@ class Net::LDAP
   DefaultTreebase = "dc=com"
   DefaultForceNoPage = false
 
-  StartTlsOid = "1.3.6.1.4.1.1466.20037"
+  StartTlsOid = '1.3.6.1.4.1.1466.20037'
+  PasswdModifyOid = '1.3.6.1.4.1.4203.1.11.1'
 
   # https://tools.ietf.org/html/rfc4511#section-4.1.9
   # https://tools.ietf.org/html/rfc4511#appendix-A
@@ -461,11 +477,52 @@ class Net::LDAP
   #   call to #search, that value will override any treebase value you give
   #   here.
   # * :encryption => specifies the encryption to be used in communicating
-  #   with the LDAP server. The value is either a Hash containing additional
-  #   parameters, or the Symbol :simple_tls, which is equivalent to
-  #   specifying the Hash {:method => :simple_tls}. There is a fairly large
-  #   range of potential values that may be given for this parameter. See
-  #   #encryption for details.
+  #   with the LDAP server. The value must be a Hash containing additional
+  #   parameters, which consists of two keys:
+  #     method: - :simple_tls or :start_tls
+  #     options: - Hash of options for that method
+  #   The :simple_tls encryption method encrypts <i>all</i> communications
+  #   with the LDAP server. It completely establishes SSL/TLS encryption with
+  #   the LDAP server before any LDAP-protocol data is exchanged. There is no
+  #   plaintext negotiation and no special encryption-request controls are
+  #   sent to the server. <i>The :simple_tls option is the simplest, easiest
+  #   way to encrypt communications between Net::LDAP and LDAP servers.</i>
+  #   It's intended for cases where you have an implicit level of trust in the
+  #   authenticity of the LDAP server. No validation of the LDAP server's SSL
+  #   certificate is performed. This means that :simple_tls will not produce
+  #   errors if the LDAP server's encryption certificate is not signed by a
+  #   well-known Certification Authority. If you get communications or
+  #   protocol errors when using this option, check with your LDAP server
+  #   administrator. Pay particular attention to the TCP port you are
+  #   connecting to. It's impossible for an LDAP server to support plaintext
+  #   LDAP communications and <i>simple TLS</i> connections on the same port.
+  #   The standard TCP port for unencrypted LDAP connections is 389, but the
+  #   standard port for simple-TLS encrypted connections is 636. Be sure you
+  #   are using the correct port.
+  #
+  #   The :start_tls like the :simple_tls encryption method also encrypts all
+  #   communcations with the LDAP server. With the exception that it operates
+  #   over the standard TCP port.
+  #
+  #   In order to verify certificates and enable other TLS options, the
+  #   :tls_options hash can be passed alongside :simple_tls or :start_tls.
+  #   This hash contains any options that can be passed to
+  #   OpenSSL::SSL::SSLContext#set_params(). The most common options passed
+  #   should be OpenSSL::SSL::SSLContext::DEFAULT_PARAMS, or the :ca_file option,
+  #   which contains a path to a Certificate Authority file (PEM-encoded).
+  #
+  #   Example for a default setup without custom settings:
+  #     {
+  #       :method => :simple_tls,
+  #       :tls_options => OpenSSL::SSL::SSLContext::DEFAULT_PARAMS
+  #     }
+  #
+  #   Example for specifying a CA-File and only allowing TLSv1.1 connections:
+  #
+  #     {
+  #       :method => :start_tls,
+  #       :tls_options => { :ca_file => "/etc/cafile.pem", :ssl_version => "TLSv1_1" }
+  #     }
   # * :force_no_page => Set to true to prevent paged results even if your
   #   server says it supports them. This is a fix for MS Active Directory
   # * :instrumentation_service => An object responsible for instrumenting
@@ -482,7 +539,8 @@ class Net::LDAP
     @auth = args[:auth] || DefaultAuth
     @base = args[:base] || DefaultTreebase
     @force_no_page = args[:force_no_page] || DefaultForceNoPage
-    encryption args[:encryption] # may be nil
+    @encryption = args[:encryption] # may be nil
+    @connect_timeout = args[:connect_timeout]
 
     if pr = @auth[:password] and pr.respond_to?(:call)
       @auth[:password] = pr.call
@@ -546,52 +604,16 @@ class Net::LDAP
   # additional capabilities are added, more configuration values will be
   # added here.
   #
-  # The :simple_tls encryption method encrypts <i>all</i> communications
-  # with the LDAP server. It completely establishes SSL/TLS encryption with
-  # the LDAP server before any LDAP-protocol data is exchanged. There is no
-  # plaintext negotiation and no special encryption-request controls are
-  # sent to the server. <i>The :simple_tls option is the simplest, easiest
-  # way to encrypt communications between Net::LDAP and LDAP servers.</i>
-  # It's intended for cases where you have an implicit level of trust in the
-  # authenticity of the LDAP server. No validation of the LDAP server's SSL
-  # certificate is performed. This means that :simple_tls will not produce
-  # errors if the LDAP server's encryption certificate is not signed by a
-  # well-known Certification Authority. If you get communications or
-  # protocol errors when using this option, check with your LDAP server
-  # administrator. Pay particular attention to the TCP port you are
-  # connecting to. It's impossible for an LDAP server to support plaintext
-  # LDAP communications and <i>simple TLS</i> connections on the same port.
-  # The standard TCP port for unencrypted LDAP connections is 389, but the
-  # standard port for simple-TLS encrypted connections is 636. Be sure you
-  # are using the correct port.
+  # This method is deprecated.
   #
-  # The :start_tls like the :simple_tls encryption method also encrypts all
-  # communcations with the LDAP server. With the exception that it operates
-  # over the standard TCP port.
-  #
-  # In order to verify certificates and enable other TLS options, the
-  # :tls_options hash can be passed alongside :simple_tls or :start_tls.
-  # This hash contains any options that can be passed to
-  # OpenSSL::SSL::SSLContext#set_params(). The most common options passed
-  # should be OpenSSL::SSL::SSLContext::DEFAULT_PARAMS, or the :ca_file option,
-  # which contains a path to a Certificate Authority file (PEM-encoded).
-  #
-  # Example for a default setup without custom settings:
-  #   {
-  #     :method => :simple_tls,
-  #     :tls_options => OpenSSL::SSL::SSLContext::DEFAULT_PARAMS
-  #   }
-  #
-  # Example for specifying a CA-File and only allowing TLSv1.1 connections:
-  #
-  #   {
-  #     :method => :start_tls,
-  #     :tls_options => { :ca_file => "/etc/cafile.pem", :ssl_version => "TLSv1_1" }
-  #   }
   def encryption(args)
-    case args
+    warn "Deprecation warning: please give :encryption option as a Hash to Net::LDAP.new"
+    return if args.nil?
+    return @encryption = args if args.is_a? Hash
+
+    case method = args.to_sym
     when :simple_tls, :start_tls
-      args = { :method => args, :tls_options => {} }
+      args = { :method => method, :tls_options => {} }
     end
     @encryption = args
   end
@@ -637,8 +659,11 @@ class Net::LDAP
   #++
   def get_operation_result
     result = @result
-    result = result.result if result.is_a?(Net::LDAP::PDU)
     os = OpenStruct.new
+    if result.is_a?(Net::LDAP::PDU)
+      os.extended_response = result.extended_response
+      result = result.result
+    end
     if result.is_a?(Hash)
       # We might get a hash of LDAP response codes instead of a simple
       # numeric code.
@@ -1027,6 +1052,44 @@ class Net::LDAP
     end
   end
 
+  # Password Modify
+  #
+  # Change existing password:
+  #
+  #  dn = 'uid=modify-password-user1,ou=People,dc=rubyldap,dc=com'
+  #  auth = {
+  #    method: :simple,
+  #    username: dn,
+  #    password: 'passworD1'
+  #  }
+  #  ldap.password_modify(dn: dn,
+  #                       auth: auth,
+  #                       old_password: 'passworD1',
+  #                       new_password: 'passworD2')
+  #
+  # Or get the LDAP server to generate a password for you:
+  #
+  #  dn = 'uid=modify-password-user1,ou=People,dc=rubyldap,dc=com'
+  #  auth = {
+  #    method: :simple,
+  #    username: dn,
+  #    password: 'passworD1'
+  #  }
+  #  ldap.password_modify(dn: dn,
+  #                       auth: auth,
+  #                       old_password: 'passworD1')
+  #
+  #  ldap.get_operation_result.extended_response[0][0] #=> 'VtcgGf/G'
+  #
+  def password_modify(args)
+    instrument "modify_password.net_ldap", args do |payload|
+      @result = use_connection(args) do |conn|
+        conn.password_modify(args)
+      end
+      @result.success?
+    end
+  end
+
   # Add a value to an attribute. Takes the full DN of the entry to modify,
   # the name (Symbol or String) of the attribute, and the value (String or
   # Array). If the attribute does not exist (and there are no schema
@@ -1247,12 +1310,13 @@ class Net::LDAP
       :port                    => @port,
       :hosts                   => @hosts,
       :encryption              => @encryption,
-      :instrumentation_service => @instrumentation_service
+      :instrumentation_service => @instrumentation_service,
+      :connect_timeout         => @connect_timeout
 
     # Force connect to see if there's a connection error
     connection.socket
     connection
-  rescue Errno::ECONNREFUSED, Net::LDAP::ConnectionRefusedError => e
+  rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT, Net::LDAP::ConnectionRefusedError => e
     @result = {
       :resultCode   => 52,
       :errorMessage => ResultStrings[ResultCodeUnavailable]

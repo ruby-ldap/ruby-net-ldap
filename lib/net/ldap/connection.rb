@@ -3,6 +3,9 @@
 class Net::LDAP::Connection #:nodoc:
   include Net::LDAP::Instrumentation
 
+  # Seconds before failing for socket connect timeout
+  DefaultConnectTimeout = 5
+
   LdapVersion = 3
   MaxSaslChallenges = 10
 
@@ -23,7 +26,14 @@ class Net::LDAP::Connection #:nodoc:
 
   # Allows tests to parameterize what socket class to use
   def socket_class
-    @socket_class || TCPSocket
+    @socket_class || DefaultSocket
+  end
+
+  # Wrap around Socket.tcp to normalize with other Socket initializers
+  class DefaultSocket
+    def self.new(host, port, socket_opts = {})
+      Socket.tcp(host, port, socket_opts)
+    end
   end
 
   def socket_class=(socket_class)
@@ -42,10 +52,14 @@ class Net::LDAP::Connection #:nodoc:
     hosts = server[:hosts]
     encryption = server[:encryption]
 
+    socket_opts = {
+      connect_timeout: server[:connect_timeout] || DefaultConnectTimeout
+    }
+
     errors = []
     hosts.each do |host, port|
       begin
-        prepare_socket(server.merge(socket: socket_class.new(host, port)))
+        prepare_socket(server.merge(socket: socket_class.new(host, port, socket_opts)))
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
              OpenSSL::SSL::SSLError => e
@@ -141,7 +155,7 @@ class Net::LDAP::Connection #:nodoc:
       if pdu.result_code.zero?
         @conn = self.class.wrap_with_ssl(@conn, args[:tls_options])
       else
-        raise Net::LDAP::StartTlSError, "start_tls failed: #{pdu.result_code}"
+        raise Net::LDAP::StartTLSError, "start_tls failed: #{pdu.result_code}"
       end
     else
       raise Net::LDAP::EncMethodUnsupportedError, "unsupported encryption method #{args[:method]}"
@@ -538,6 +552,51 @@ class Net::LDAP::Connection #:nodoc:
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::ModifyResponse
       raise Net::LDAP::ResponseMissingOrInvalidError, "response missing or invalid"
+    end
+
+    pdu
+  end
+
+  ##
+  # Password Modify
+  #
+  # http://tools.ietf.org/html/rfc3062
+  #
+  # passwdModifyOID OBJECT IDENTIFIER ::= 1.3.6.1.4.1.4203.1.11.1
+  #
+  # PasswdModifyRequestValue ::= SEQUENCE {
+  #   userIdentity    [0]  OCTET STRING OPTIONAL
+  #   oldPasswd       [1]  OCTET STRING OPTIONAL
+  #   newPasswd       [2]  OCTET STRING OPTIONAL }
+  #
+  # PasswdModifyResponseValue ::= SEQUENCE {
+  #   genPasswd       [0]     OCTET STRING OPTIONAL }
+  #
+  # Encoded request:
+  #
+  #   00\x02\x01\x02w+\x80\x171.3.6.1.4.1.4203.1.11.1\x81\x100\x0E\x81\x05old\x82\x05new
+  #
+  def password_modify(args)
+    dn = args[:dn]
+    raise ArgumentError, 'DN is required' if !dn || dn.empty?
+
+    ext_seq = [Net::LDAP::PasswdModifyOid.to_ber_contextspecific(0)]
+
+    unless args[:old_password].nil?
+      pwd_seq = [args[:old_password].to_ber(0x81)]
+      pwd_seq << args[:new_password].to_ber(0x82) unless args[:new_password].nil?
+      ext_seq << pwd_seq.to_ber_sequence.to_ber(0x81)
+    end
+
+    request = ext_seq.to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
+
+    message_id = next_msgid
+
+    write(request, nil, message_id)
+    pdu = queued_read(message_id)
+
+    if !pdu || pdu.app_tag != Net::LDAP::PDU::ExtendedResponse
+      raise Net::LDAP::ResponseMissingError, "response missing or invalid"
     end
 
     pdu
