@@ -33,7 +33,7 @@ module Net
           message_id = @connection.next_msgid
 
           n = 0
-          loop {
+          loop do
             sasl = [mech.to_ber, cred.to_ber].to_ber_contextspecific(3)
             request = [
               Net::LDAP::Connection::LdapVersion.to_ber, "".to_ber, sasl
@@ -50,7 +50,7 @@ module Net
             raise Net::LDAP::SASLChallengeOverflowError, "sasl-challenge overflow" if ((n += 1) > MaxSaslChallenges)
 
             cred = chall.call(pdu.result_server_sasl_creds)
-          }
+          end
 
           raise Net::LDAP::SASLChallengeOverflowError, "why are we here?"
         end

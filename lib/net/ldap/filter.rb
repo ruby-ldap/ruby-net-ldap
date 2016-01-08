@@ -287,7 +287,7 @@ class Net::LDAP::Filter
       when 0xa4 # context-specific constructed 4, "substring"
         str = ""
         final = false
-        ber.last.each { |b|
+        ber.last.each do |b|
           case b.ber_identifier
           when 0x80 # context-specific primitive 0, SubstringFilter "initial"
             raise Net::LDAP::SubstringFilterError, "Unrecognized substring filter; bad initial value." if str.length > 0
@@ -298,7 +298,7 @@ class Net::LDAP::Filter
             str += "*#{escape(b)}"
             final = true
           end
-        }
+        end
         str += "*" unless final
         eq(ber.first.to_s, str)
       when 0xa5 # context-specific constructed 5, "greaterOrEqual"

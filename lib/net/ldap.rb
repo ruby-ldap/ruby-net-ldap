@@ -775,10 +775,10 @@ class Net::LDAP
 
     instrument "search.net_ldap", args do |payload|
       @result = use_connection(args) do |conn|
-        conn.search(args) { |entry|
+        conn.search(args) do |entry|
           result_set << entry if result_set
           yield entry if block_given?
-        }
+        end
       end
 
       if return_result_set
@@ -917,7 +917,7 @@ class Net::LDAP
   #  end
   def bind_as(args = {})
     result = false
-    open { |me|
+    open do |me|
       rs = search args
       if rs and rs.first and dn = rs.first.dn
         password = args[:password]
@@ -925,7 +925,7 @@ class Net::LDAP
         result = rs if bind(:method => :simple, :username => dn,
                             :password => password)
       end
-    }
+    end
     result
   end
 

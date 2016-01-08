@@ -227,9 +227,9 @@ module Net
           error_status.to_ber,
           error_index.to_ber,
           [
-            @variables.map {|n,v|
+            @variables.map do|n,v|
               [n.to_ber_oid, Net::BER::BerIdentifiedNull.new.to_ber].to_ber_sequence
-            }
+            end
           ].to_ber_sequence
         ].to_ber_contextspecific(0)
       when :get_next_request
@@ -238,9 +238,9 @@ module Net
           error_status.to_ber,
           error_index.to_ber,
           [
-            @variables.map {|n,v|
+            @variables.map do|n,v|
               [n.to_ber_oid, Net::BER::BerIdentifiedNull.new.to_ber].to_ber_sequence
-            }
+            end
           ].to_ber_sequence
         ].to_ber_contextspecific(1)
       when :get_response
@@ -249,9 +249,9 @@ module Net
           error_status.to_ber,
           error_index.to_ber,
           [
-            @variables.map {|n,v|
+            @variables.map do|n,v|
               [n.to_ber_oid, v.to_ber].to_ber_sequence
-            }
+            end
           ].to_ber_sequence
         ].to_ber_contextspecific(2)
       else

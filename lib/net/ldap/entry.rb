@@ -141,10 +141,10 @@ class Net::LDAP::Entry
   # (possibly empty) \Array of data values.
   def each # :yields: attribute-name, data-values-array
     if block_given?
-      attribute_names.each {|a|
+      attribute_names.each do|a|
         attr_name,values = a,self[a]
         yield attr_name, values
-      }
+      end
     end
   end
   alias_method :each_attribute, :each

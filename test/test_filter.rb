@@ -13,11 +13,11 @@ class TestFilter < Test::Unit::TestCase
   end
 
   def test_invalid_filter
-    assert_raises(Net::LDAP::OperatorError) {
+    assert_raises(Net::LDAP::OperatorError) do
       # This test exists to prove that our constructor blocks unknown filter
       # types. All filters must be constructed using helpers.
       Filter.__send__(:new, :xx, nil, nil)
-    }
+    end
   end
 
   def test_to_s
