@@ -29,8 +29,7 @@ class TestLDAPConnection < Test::Unit::TestCase
       ["fail.SocketError", 636],
     ]
 
-    connection = Net::LDAP::Connection.new(:hosts => hosts)
-    connection.socket_class = FakeTCPSocket
+    connection = Net::LDAP::Connection.new(:hosts => hosts, :socket_class => FakeTCPSocket)
     connection.socket
   end
 
@@ -41,8 +40,7 @@ class TestLDAPConnection < Test::Unit::TestCase
       ["fail.SocketError", 636],
     ]
 
-    connection = Net::LDAP::Connection.new(:hosts => hosts)
-    connection.socket_class = FakeTCPSocket
+    connection = Net::LDAP::Connection.new(:hosts => hosts, :socket_class => FakeTCPSocket)
     connection.socket
   end
 
@@ -53,8 +51,7 @@ class TestLDAPConnection < Test::Unit::TestCase
       ["fail.SocketError", 636],
     ]
 
-    connection = Net::LDAP::Connection.new(:hosts => hosts)
-    connection.socket_class = FakeTCPSocket
+    connection = Net::LDAP::Connection.new(:hosts => hosts, :socket_class => FakeTCPSocket)
     assert_raise Net::LDAP::ConnectionError do
       connection.socket
     end
@@ -75,24 +72,21 @@ class TestLDAPConnection < Test::Unit::TestCase
   end
 
   def test_unresponsive_host
-    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ETIMEDOUT", :port => 636)
-    connection.socket_class = FakeTCPSocket
+    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ETIMEDOUT", :port => 636, :socket_class => FakeTCPSocket)
     assert_raise Net::LDAP::Error do
       connection.socket
     end
   end
 
   def test_blocked_port
-    connection = Net::LDAP::Connection.new(:host => "fail.SocketError", :port => 636)
-    connection.socket_class = FakeTCPSocket
+    connection = Net::LDAP::Connection.new(:host => "fail.SocketError", :port => 636, :socket_class => FakeTCPSocket)
     assert_raise Net::LDAP::Error do
       connection.socket
     end
   end
 
   def test_connection_refused
-    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ECONNREFUSED", :port => 636)
-    connection.socket_class = FakeTCPSocket
+    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ECONNREFUSED", :port => 636, :socket_class => FakeTCPSocket)
     stderr = capture_stderr do
       assert_raise Net::LDAP::ConnectionRefusedError do
         connection.socket
@@ -102,7 +96,7 @@ class TestLDAPConnection < Test::Unit::TestCase
   end
 
   def test_connection_timeout
-    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ETIMEDOUT", :port => 636)
+    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ETIMEDOUT", :port => 636, :socket_class => FakeTCPSocket)
     stderr = capture_stderr do
       assert_raise Net::LDAP::Error do
         connection.socket
@@ -111,8 +105,8 @@ class TestLDAPConnection < Test::Unit::TestCase
   end
 
   def test_raises_unknown_exceptions
-    connection = Net::LDAP::Connection.new(:host => "fail.StandardError", :port => 636)
-    assert_raise Net::LDAP::Error do
+    connection = Net::LDAP::Connection.new(:host => "fail.StandardError", :port => 636, :socket_class => FakeTCPSocket)
+    assert_raise StandardError do
       connection.socket
     end
   end

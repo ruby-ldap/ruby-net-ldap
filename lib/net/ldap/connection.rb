@@ -21,19 +21,10 @@ class Net::LDAP::Connection #:nodoc:
     @server = server
     @instrumentation_service = server[:instrumentation_service]
 
+    # Allows tests to parameterize what socket class to use
+    @socket_class = server.fetch(:socket_class, DefaultSocket)
+
     yield self if block_given?
-  end
-
-  # Allows tests to parameterize what socket class to use
-  def socket_class
-    @socket_class || DefaultSocket
-  end
-
-  # Wrap around Socket.tcp to normalize with other Socket initializers
-  class DefaultSocket
-    def self.new(host, port, socket_opts = {})
-      Socket.tcp(host, port, socket_opts)
-    end
   end
 
   def socket_class=(socket_class)
@@ -59,7 +50,7 @@ class Net::LDAP::Connection #:nodoc:
     errors = []
     hosts.each do |host, port|
       begin
-        prepare_socket(server.merge(socket: socket_class.new(host, port, socket_opts)))
+        prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts)))
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
              OpenSSL::SSL::SSLError => e
@@ -689,5 +680,14 @@ class Net::LDAP::Connection #:nodoc:
     end
 
     @conn
+  end
+
+  private
+
+  # Wrap around Socket.tcp to normalize with other Socket initializers
+  class DefaultSocket
+    def self.new(host, port, socket_opts = {})
+      Socket.tcp(host, port, socket_opts)
+    end
   end
 end # class Connection

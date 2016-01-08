@@ -7,8 +7,7 @@ class TestAuthAdapter < Test::Unit::TestCase
   end
 
   def test_undefined_auth_adapter
-    conn = Net::LDAP::Connection.new(host: 'ldap.example.com', port: 379)
-    conn.socket_class = FakeSocket
+    conn = Net::LDAP::Connection.new(host: 'ldap.example.com', port: 379, :socket_class => FakeSocket)
     assert_raise Net::LDAP::AuthMethodUnsupportedError, "Unsupported auth method (foo)" do
       conn.bind(method: :foo)
     end
