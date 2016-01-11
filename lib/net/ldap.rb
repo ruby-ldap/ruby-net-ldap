@@ -1275,6 +1275,11 @@ class Net::LDAP
     inspected
   end
 
+  # Internal: Set @open_connection for testing
+  def connection=(connection)
+    @open_connection = connection
+  end
+
   private
 
   # Yields an open connection if there is one, otherwise establishes a new
@@ -1300,13 +1305,17 @@ class Net::LDAP
 
   # Establish a new connection to the LDAP server
   def new_connection
-    Net::LDAP::Connection.new \
+    connection = Net::LDAP::Connection.new \
       :host                    => @host,
       :port                    => @port,
       :hosts                   => @hosts,
       :encryption              => @encryption,
       :instrumentation_service => @instrumentation_service,
       :connect_timeout         => @connect_timeout
+
+    # Force connect to see if there's a connection error
+    connection.socket
+    connection
   rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT, Net::LDAP::ConnectionRefusedError => e
     @result = {
       :resultCode   => 52,

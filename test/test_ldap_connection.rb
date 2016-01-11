@@ -9,44 +9,55 @@ class TestLDAPConnection < Test::Unit::TestCase
     $stderr = stderr
   end
 
+  # Fake socket for testing
+  #
+  # FakeTCPSocket.new("success", 636)
+  # FakeTCPSocket.new("fail.SocketError", 636)  # raises SocketError
+  class FakeTCPSocket
+    def initialize(host, port, socket_opts = {})
+      status, error = host.split(".")
+      if status == "fail"
+        raise Object.const_get(error)
+      end
+    end
+  end
+
   def test_list_of_hosts_with_first_host_successful
     hosts = [
-      ['test.mocked.com', 636],
-      ['test2.mocked.com', 636],
-      ['test3.mocked.com', 636],
+      ["success.host", 636],
+      ["fail.SocketError", 636],
+      ["fail.SocketError", 636],
     ]
-    flexmock(Socket).should_receive(:tcp).ordered.with(*hosts[0], { connect_timeout: 5 }).once.and_return(nil)
-    flexmock(Socket).should_receive(:tcp).ordered.never
-    Net::LDAP::Connection.new(:hosts => hosts)
+
+    connection = Net::LDAP::Connection.new(:hosts => hosts, :socket_class => FakeTCPSocket)
+    connection.socket
   end
 
   def test_list_of_hosts_with_first_host_failure
     hosts = [
-      ['test.mocked.com', 636],
-      ['test2.mocked.com', 636],
-      ['test3.mocked.com', 636],
+      ["fail.SocketError", 636],
+      ["success.host", 636],
+      ["fail.SocketError", 636],
     ]
-    flexmock(Socket).should_receive(:tcp).ordered.with(*hosts[0], { connect_timeout: 5 }).once.and_raise(SocketError)
-    flexmock(Socket).should_receive(:tcp).ordered.with(*hosts[1], { connect_timeout: 5 }).once.and_return(nil)
-    flexmock(Socket).should_receive(:tcp).ordered.never
-    Net::LDAP::Connection.new(:hosts => hosts)
+
+    connection = Net::LDAP::Connection.new(:hosts => hosts, :socket_class => FakeTCPSocket)
+    connection.socket
   end
 
   def test_list_of_hosts_with_all_hosts_failure
     hosts = [
-      ['test.mocked.com', 636],
-      ['test2.mocked.com', 636],
-      ['test3.mocked.com', 636],
+      ["fail.SocketError", 636],
+      ["fail.SocketError", 636],
+      ["fail.SocketError", 636],
     ]
-    flexmock(Socket).should_receive(:tcp).ordered.with(*hosts[0], { connect_timeout: 5 }).once.and_raise(SocketError)
-    flexmock(Socket).should_receive(:tcp).ordered.with(*hosts[1], { connect_timeout: 5 }).once.and_raise(SocketError)
-    flexmock(Socket).should_receive(:tcp).ordered.with(*hosts[2], { connect_timeout: 5 }).once.and_raise(SocketError)
-    flexmock(Socket).should_receive(:tcp).ordered.never
+
+    connection = Net::LDAP::Connection.new(:hosts => hosts, :socket_class => FakeTCPSocket)
     assert_raise Net::LDAP::ConnectionError do
-      Net::LDAP::Connection.new(:hosts => hosts)
+      connection.socket
     end
   end
 
+  # This belongs in test_ldap, not test_ldap_connection
   def test_result_for_connection_failed_is_set
     flexmock(Socket).should_receive(:tcp).and_raise(Errno::ECONNREFUSED)
 
@@ -61,42 +72,42 @@ class TestLDAPConnection < Test::Unit::TestCase
   end
 
   def test_unresponsive_host
+    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ETIMEDOUT", :port => 636, :socket_class => FakeTCPSocket)
     assert_raise Net::LDAP::Error do
-      Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+      connection.socket
     end
   end
 
   def test_blocked_port
-    flexmock(Socket).should_receive(:tcp).and_raise(SocketError)
+    connection = Net::LDAP::Connection.new(:host => "fail.SocketError", :port => 636, :socket_class => FakeTCPSocket)
     assert_raise Net::LDAP::Error do
-      Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+      connection.socket
     end
   end
 
   def test_connection_refused
-    flexmock(Socket).should_receive(:tcp).and_raise(Errno::ECONNREFUSED)
+    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ECONNREFUSED", :port => 636, :socket_class => FakeTCPSocket)
     stderr = capture_stderr do
       assert_raise Net::LDAP::ConnectionRefusedError do
-        Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+        connection.socket
       end
     end
     assert_equal("Deprecation warning: Net::LDAP::ConnectionRefused will be deprecated. Use Errno::ECONNREFUSED instead.\n",  stderr)
   end
 
-  def test_connection_timedout
-    flexmock(Socket).should_receive(:tcp).and_raise(Errno::ETIMEDOUT)
+  def test_connection_timeout
+    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ETIMEDOUT", :port => 636, :socket_class => FakeTCPSocket)
     stderr = capture_stderr do
       assert_raise Net::LDAP::Error do
-        Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+        connection.socket
       end
     end
   end
 
   def test_raises_unknown_exceptions
-    error = Class.new(StandardError)
-    flexmock(Socket).should_receive(:tcp).and_raise(error)
-    assert_raise error do
-      Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+    connection = Net::LDAP::Connection.new(:host => "fail.StandardError", :port => 636, :socket_class => FakeTCPSocket)
+    assert_raise StandardError do
+      connection.socket
     end
   end
 

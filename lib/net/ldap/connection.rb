@@ -9,17 +9,26 @@ class Net::LDAP::Connection #:nodoc:
   LdapVersion = 3
   MaxSaslChallenges = 10
 
-  def initialize(server)
+  # Initialize a connection to an LDAP server
+  #
+  # :server
+  #   :hosts   Array of tuples specifying host, port
+  #   :host    host
+  #   :port    port
+  #   :socket  prepared socket
+  #
+  def initialize(server = {})
+    @server = server
     @instrumentation_service = server[:instrumentation_service]
 
-    if server[:socket]
-      prepare_socket(server)
-    else
-      server[:hosts] = [[server[:host], server[:port]]] if server[:hosts].nil?
-      open_connection(server)
-    end
+    # Allows tests to parameterize what socket class to use
+    @socket_class = server.fetch(:socket_class, DefaultSocket)
 
     yield self if block_given?
+  end
+
+  def socket_class=(socket_class)
+    @socket_class = socket_class
   end
 
   def prepare_socket(server)
@@ -41,7 +50,7 @@ class Net::LDAP::Connection #:nodoc:
     errors = []
     hosts.each do |host, port|
       begin
-        prepare_socket(server.merge(socket: Socket.tcp(host, port, socket_opts)))
+        prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts)))
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
              OpenSSL::SSL::SSLError => e
@@ -202,7 +211,7 @@ class Net::LDAP::Connection #:nodoc:
   def read(syntax = Net::LDAP::AsnSyntax)
     ber_object =
       instrument "read.net_ldap_connection", :syntax => syntax do |payload|
-        @conn.read_ber(syntax) do |id, content_length|
+        socket.read_ber(syntax) do |id, content_length|
           payload[:object_type_id] = id
           payload[:content_length] = content_length
         end
@@ -232,7 +241,7 @@ class Net::LDAP::Connection #:nodoc:
   def write(request, controls = nil, message_id = next_msgid)
     instrument "write.net_ldap_connection" do |payload|
       packet = [message_id.to_ber, request, controls].compact.to_ber_sequence
-      payload[:content_length] = @conn.write(packet)
+      payload[:content_length] = socket.write(packet)
     end
   end
   private :write
@@ -651,5 +660,34 @@ class Net::LDAP::Connection #:nodoc:
     end
 
     pdu
+  end
+
+  # Internal: Returns a Socket like object used internally to communicate with
+  # LDAP server.
+  #
+  # Typically a TCPSocket, but can be a OpenSSL::SSL::SSLSocket
+  def socket
+    return @conn if defined? @conn
+
+    # First refactoring uses the existing methods open_connection and
+    # prepare_socket to set @conn. Next cleanup would centralize connection
+    # handling here.
+    if @server[:socket]
+      prepare_socket(@server)
+    else
+      @server[:hosts] = [[@server[:host], @server[:port]]] if @server[:hosts].nil?
+      open_connection(@server)
+    end
+
+    @conn
+  end
+
+  private
+
+  # Wrap around Socket.tcp to normalize with other Socket initializers
+  class DefaultSocket
+    def self.new(host, port, socket_opts = {})
+      Socket.tcp(host, port, socket_opts)
+    end
   end
 end # class Connection

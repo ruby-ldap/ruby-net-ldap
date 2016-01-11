@@ -1,10 +1,13 @@
 require 'test_helper'
 
 class TestAuthAdapter < Test::Unit::TestCase
-  def test_undefined_auth_adapter
-    flexmock(Socket).should_receive(:tcp).ordered.with('ldap.example.com', 379, { connect_timeout: 5 }).once.and_return(nil)
+  class FakeSocket
+    def initialize(*args)
+    end
+  end
 
-    conn = Net::LDAP::Connection.new(host: 'ldap.example.com', port: 379)
+  def test_undefined_auth_adapter
+    conn = Net::LDAP::Connection.new(host: 'ldap.example.com', port: 379, :socket_class => FakeSocket)
     assert_raise Net::LDAP::AuthMethodUnsupportedError, "Unsupported auth method (foo)" do
       conn.bind(method: :foo)
     end
