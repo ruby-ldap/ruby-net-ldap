@@ -141,7 +141,7 @@ class Net::LDAP::Dataset < Hash
             # $' is the dn-value
             # Avoid the Base64 class because not all Ruby versions have it.
             dn = ($1 == ":") ? $'.unpack('m').shift : $'
-            ds[dn] = Hash.new { |k,v| k[v] = [] }
+            ds[dn] = Hash.new { |k, v| k[v] = [] }
             yield :dn, dn if block_given?
           elsif line.empty?
             dn = nil

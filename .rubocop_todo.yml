@@ -529,19 +529,6 @@ Style/SingleSpaceBeforeFirstArg:
     - 'lib/net/ldap/dataset.rb'
     - 'lib/net/ldap/instrumentation.rb'
 
-# Offense count: 24
-# Cop supports --auto-correct.
-Style/SpaceAfterComma:
-  Exclude:
-    - 'lib/net/ber/core_ext/integer.rb'
-    - 'lib/net/ber/core_ext/string.rb'
-    - 'lib/net/ldap/dataset.rb'
-    - 'lib/net/ldap/entry.rb'
-    - 'lib/net/snmp.rb'
-    - 'test/ber/core_ext/test_array.rb'
-    - 'test/ber/test_ber.rb'
-    - 'test/test_dn.rb'
-
 # Offense count: 2
 # Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles.

@@ -6,7 +6,7 @@ class TestBEREncoding < Test::Unit::TestCase
   end
 
   def test_array
-    ary = [1,2,3]
+    ary = [1, 2, 3]
     encoded_ary = ary.map { |el| el.to_ber }.to_ber
 
     assert_equal ary, encoded_ary.read_ber

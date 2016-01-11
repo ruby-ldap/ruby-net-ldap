@@ -142,7 +142,7 @@ class Net::LDAP::Entry
   def each # :yields: attribute-name, data-values-array
     if block_given?
       attribute_names.each do|a|
-        attr_name,values = a,self[a]
+        attr_name, values = a, self[a]
         yield attr_name, values
       end
     end
