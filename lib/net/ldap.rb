@@ -264,14 +264,14 @@ class Net::LDAP
   SearchScope_BaseObject = 0
   SearchScope_SingleLevel = 1
   SearchScope_WholeSubtree = 2
-  SearchScopes = [ SearchScope_BaseObject, SearchScope_SingleLevel,
-    SearchScope_WholeSubtree ]
+  SearchScopes = [SearchScope_BaseObject, SearchScope_SingleLevel,
+    SearchScope_WholeSubtree]
 
   DerefAliases_Never = 0
   DerefAliases_Search = 1
   DerefAliases_Find = 2
   DerefAliases_Always = 3
-  DerefAliasesArray = [ DerefAliases_Never, DerefAliases_Search, DerefAliases_Find, DerefAliases_Always ]
+  DerefAliasesArray = [DerefAliases_Never, DerefAliases_Search, DerefAliases_Find, DerefAliases_Always]
 
   primitive = { 2 => :null } # UnbindRequest body
   constructed = {

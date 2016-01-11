@@ -23,7 +23,7 @@
 class Net::LDAP::Filter
   ##
   # Known filter types.
-  FilterTypes = [ :ne, :eq, :ge, :le, :and, :or, :not, :ex, :bineq ]
+  FilterTypes = [:ne, :eq, :ge, :le, :and, :or, :not, :ex, :bineq]
 
   def initialize(op, left, right) #:nodoc:
     unless FilterTypes.include?(op)
