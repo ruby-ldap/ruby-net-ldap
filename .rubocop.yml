@@ -15,3 +15,6 @@ Style/ParallelAssignment:
 
 Style/TrailingComma:
   EnforcedStyleForMultiline: comma
+
+SignalException:
+  EnforcedStyle: only_raise

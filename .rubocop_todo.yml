@@ -57,7 +57,7 @@ Lint/UselessAssignment:
 
 # Offense count: 48
 Metrics/AbcSize:
-  Max: 114
+  Max: 116
 
 # Offense count: 11
 Metrics/BlockNesting:
@@ -66,7 +66,7 @@ Metrics/BlockNesting:
 # Offense count: 10
 # Configuration parameters: CountComments.
 Metrics/ClassLength:
-  Max: 423
+  Max: 429
 
 # Offense count: 21
 Metrics/CyclomaticComplexity:
@@ -226,6 +226,7 @@ Style/Documentation:
     - 'lib/net/ldap/version.rb'
     - 'lib/net/snmp.rb'
     - 'testserver/ldapserver.rb'
+    - 'lib/net/ldap/dataset.rb'
 
 # Offense count: 23
 # Cop supports --auto-correct.
@@ -294,6 +295,7 @@ Style/GuardClause:
     - 'lib/net/ber.rb'
     - 'lib/net/ldap/entry.rb'
     - 'lib/net/ldap/filter.rb'
+    - 'test/test_ldap_connection.rb'
 
 # Offense count: 149
 # Cop supports --auto-correct.
@@ -311,6 +313,7 @@ Style/IfUnlessModifier:
     - 'lib/net/ldap.rb'
     - 'lib/net/ldap/filter.rb'
     - 'lib/net/snmp.rb'
+    - 'test/test_ldap_connection.rb'
 
 # Offense count: 2
 # Cop supports --auto-correct.
@@ -597,3 +600,22 @@ Style/WhileUntilModifier:
 # Configuration parameters: WordRegex.
 Style/WordArray:
   MinSize: 2
+
+Style/TrivialAccessors:
+  Exclude:
+    - 'lib/net/ldap/pdu.rb'
+    - 'lib/net/ldap.rb'
+    - 'lib/net/ldap/connection.rb'
+
+Lint/UnusedMethodArgument:
+  Exclude:
+    - 'test/test_ldap.rb'
+    - 'test/test_ldap_connection.rb'
+    - 'test/test_search.rb'
+    - 'lib/net/ldap/pdu.rb'
+    - 'lib/net/ldap/entry.rb'
+    - 'test/test_auth_adapter.rb'
+
+Lint/UselessAccessModifier:
+  Exclude:
+    - 'lib/net/ldap/connection.rb'

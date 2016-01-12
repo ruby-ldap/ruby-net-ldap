@@ -14,7 +14,7 @@ class Net::LDAP::Password
     # STUB: This is here to fulfill the requirements of an RFC, which
     # one?
     #
-    # TODO:
+    # TODO: salted-md5 and sha1
     # * maybe salted-md5
     # * Should we provide sha1 as a synonym for sha1? I vote no because then
     #   should you also provide ssha1 for symmetry?
