@@ -22,12 +22,12 @@ module Net
           user, psw = [auth[:username] || auth[:dn], auth[:password]]
           raise Net::LDAP::BindingInformationInvalidError, "Invalid binding information" unless (user && psw)
 
-          nego = proc { |challenge|
+          nego = proc do |challenge|
             t2_msg = NTLM::Message.parse(challenge)
             t3_msg = t2_msg.response({ :user => user, :password => psw },
                                      { :ntlmv2 => true })
             t3_msg.serialize
-          }
+          end
 
           Net::LDAP::AuthAdapter::Sasl.new(@connection).bind \
             :method             => :sasl,

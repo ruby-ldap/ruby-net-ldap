@@ -16,9 +16,9 @@ class TestSnmp < Test::Unit::TestCase
 
   def test_invalid_packet
     data = "xxxx"
-    assert_raise(Net::BER::BerError) {
+    assert_raise(Net::BER::BerError) do
 ary = data.read_ber(Net::SNMP::AsnSyntax)
-    }
+    end
   end
 
   # The method String#read_ber! added by Net::BER consumes a well-formed BER
@@ -40,9 +40,9 @@ ary = data.read_ber(Net::SNMP::AsnSyntax)
   end
 
   def test_weird_packet
-    assert_raise(Net::SnmpPdu::Error) {
+    assert_raise(Net::SnmpPdu::Error) do
 Net::SnmpPdu.parse("aaaaaaaaaaaaaa")
-    }
+    end
   end
 
   def test_get_request
