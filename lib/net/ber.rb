@@ -235,7 +235,7 @@ module Net # :nodoc:
       # TODO 20100327 AZ: Should we be allocating an array of 256 values
       # that will either be +nil+ or an object type symbol, or should we
       # allocate an empty Hash since unknown values return +nil+ anyway?
-      out = [ nil ] * 256
+      out = [nil] * 256
       syntax.each do |tag_class_id, encodings|
         tag_class = TAG_CLASS[tag_class_id]
         encodings.each do |encoding_id, classes|

@@ -571,17 +571,6 @@ Style/SpaceBeforeBlockBraces:
 Style/SpaceInsideBlockBraces:
   Enabled: false
 
-# Offense count: 37
-# Cop supports --auto-correct.
-Style/SpaceInsideBrackets:
-  Exclude:
-    - 'lib/net/ber.rb'
-    - 'lib/net/ldap.rb'
-    - 'lib/net/ldap/connection.rb'
-    - 'lib/net/ldap/filter.rb'
-    - 'test/test_ldap_connection.rb'
-    - 'testserver/ldapserver.rb'
-
 # Offense count: 1
 # Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, EnforcedStyleForEmptyBraces, SupportedStyles.

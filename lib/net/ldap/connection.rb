@@ -513,9 +513,9 @@ class Net::LDAP::Connection #:nodoc:
         # TODO, fix the following line, which gives a bogus error if the
         # opcode is invalid.
         op_ber = MODIFY_OPERATIONS[op.to_sym].to_ber_enumerated
-        values = [ values ].flatten.map { |v| v.to_ber if v }.to_ber_set
-        values = [ attrib.to_s.to_ber, values ].to_ber_sequence
-        ops << [ op_ber, values ].to_ber
+        values = [values].flatten.map { |v| v.to_ber if v }.to_ber_set
+        values = [attrib.to_s.to_ber, values].to_ber_sequence
+        ops << [op_ber, values].to_ber
       end
     end
     ops
@@ -604,7 +604,7 @@ class Net::LDAP::Connection #:nodoc:
     add_dn = args[:dn] or raise Net::LDAP::EmptyDNError, "Unable to add empty DN"
     add_attrs = []
     a = args[:attributes] and a.each do |k, v|
-      add_attrs << [ k.to_s.to_ber, Array(v).map { |m| m.to_ber}.to_ber_set ].to_ber_sequence
+      add_attrs << [k.to_s.to_ber, Array(v).map { |m| m.to_ber}.to_ber_set].to_ber_sequence
     end
 
     message_id = next_msgid

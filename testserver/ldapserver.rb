@@ -156,7 +156,7 @@ module LdapServer
 
 
   def send_ldap_response pkt_tag, msgid, code, dn, text
-    send_data( [msgid.to_ber, [code.to_ber, dn.to_ber, text.to_ber].to_ber_appsequence(pkt_tag) ].to_ber )
+    send_data( [msgid.to_ber, [code.to_ber, dn.to_ber, text.to_ber].to_ber_appsequence(pkt_tag)].to_ber )
   end
 
 end
