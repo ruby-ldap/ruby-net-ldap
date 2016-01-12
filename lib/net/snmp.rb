@@ -191,7 +191,7 @@ module Net
     end
 
     def error_status= es
-      unless ErrorStatusCodes.has_key?(es)
+      unless ErrorStatusCodes.key?(es)
         raise Error.new("unknown error-status: #{es}")
       end
       @error_status = es

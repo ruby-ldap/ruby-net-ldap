@@ -206,15 +206,6 @@ Style/ConstantName:
     - 'test/test_ldif.rb'
     - 'testserver/ldapserver.rb'
 
-# Offense count: 18
-# Cop supports --auto-correct.
-Style/DeprecatedHashMethods:
-  Exclude:
-    - 'lib/net/snmp.rb'
-    - 'test/test_ldap_connection.rb'
-    - 'test/test_ldif.rb'
-    - 'test/test_search.rb'
-
 # Offense count: 21
 # Configuration parameters: Exclude.
 Style/Documentation:

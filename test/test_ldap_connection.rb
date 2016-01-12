@@ -399,8 +399,8 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
 
     # a write event
     payload, result = events.pop
-    assert payload.has_key?(:result)
-    assert payload.has_key?(:content_length)
+    assert payload.key?(:result)
+    assert payload.key?(:content_length)
   end
 
   def test_read_net_ldap_connection_event
@@ -416,7 +416,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
 
     # a read event
     payload, result = events.pop
-    assert payload.has_key?(:result)
+    assert payload.key?(:result)
     assert_equal read_result, result
   end
 
@@ -433,9 +433,9 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
 
     # a parse_pdu event
     payload, result = events.pop
-    assert payload.has_key?(:pdu)
-    assert payload.has_key?(:app_tag)
-    assert payload.has_key?(:message_id)
+    assert payload.key?(:pdu)
+    assert payload.key?(:app_tag)
+    assert payload.key?(:message_id)
     assert_equal Net::LDAP::PDU::BindResult, payload[:app_tag]
     assert_equal 1, payload[:message_id]
     pdu = payload[:pdu]
@@ -455,7 +455,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
 
     # a read event
     payload, result = events.pop
-    assert payload.has_key?(:result)
+    assert payload.key?(:result)
     assert result.success?, "should be success"
   end
 
@@ -482,8 +482,8 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
 
     # a search event
     payload, result = events.pop
-    assert payload.has_key?(:result)
-    assert payload.has_key?(:filter)
+    assert payload.key?(:result)
+    assert payload.key?(:filter)
     assert_equal "(uid=user1)", payload[:filter].to_s
     assert result
 

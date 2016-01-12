@@ -32,8 +32,8 @@ class TestSearch < Test::Unit::TestCase
     @connection.search(:filter => "test")
 
     payload, result = events.pop
-    assert payload.has_key?(:result)
-    assert payload.has_key?(:filter)
+    assert payload.key?(:result)
+    assert payload.key?(:filter)
     assert_equal "test", payload[:filter]
   end
 end
