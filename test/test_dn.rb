@@ -13,17 +13,17 @@ class TestDN < Test::Unit::TestCase
 
   def test_to_a
     dn = Net::LDAP::DN.new('cn=James, ou=Company\\,\\20LLC')
-    assert_equal ['cn','James','ou','Company, LLC'], dn.to_a
+    assert_equal ['cn', 'James', 'ou', 'Company, LLC'], dn.to_a
   end
 
   def test_to_a_parenthesis
     dn = Net::LDAP::DN.new('cn =  \ James , ou  =  "Comp\28ny"  ')
-    assert_equal ['cn',' James','ou','Comp(ny'], dn.to_a
+    assert_equal ['cn', ' James', 'ou', 'Comp(ny'], dn.to_a
   end
 
   def test_to_a_hash_symbol
     dn = Net::LDAP::DN.new('1.23.4=  #A3B4D5  ,ou=Company')
-    assert_equal ['1.23.4','#A3B4D5','ou','Company'], dn.to_a
+    assert_equal ['1.23.4', '#A3B4D5', 'ou', 'Company'], dn.to_a
   end
 
   # TODO: raise a more specific exception than RuntimeError

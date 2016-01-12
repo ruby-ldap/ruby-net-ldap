@@ -148,7 +148,7 @@ module Net
       # data[2] is error_index, always zero.
       send :error_status=, 0
       send :error_index=, 0
-      data[3].each do |n,v|
+      data[3].each do |n, v|
         # A variable-binding, of which there may be several,
         # consists of an OID and a BER null.
         # We're ignoring the null, we might want to verify it instead.
@@ -166,7 +166,7 @@ module Net
       send :request_id=, data[0].to_i
       send :error_status=, data[1].to_i
       send :error_index=, data[2].to_i
-      data[3].each do |n,v|
+      data[3].each do |n, v|
         # A variable-binding, of which there may be several,
         # consists of an OID and a BER null.
         # We're ignoring the null, we might want to verify it instead.
@@ -177,7 +177,7 @@ module Net
 
 
     def version= ver
-      unless [0,2].include?(ver)
+      unless [0, 2].include?(ver)
         raise Error.new("unknown snmp-version: #{ver}")
       end
       @version = ver
@@ -227,7 +227,7 @@ module Net
           error_status.to_ber,
           error_index.to_ber,
           [
-            @variables.map do|n,v|
+            @variables.map do|n, v|
               [n.to_ber_oid, Net::BER::BerIdentifiedNull.new.to_ber].to_ber_sequence
             end
           ].to_ber_sequence
@@ -238,7 +238,7 @@ module Net
           error_status.to_ber,
           error_index.to_ber,
           [
-            @variables.map do|n,v|
+            @variables.map do|n, v|
               [n.to_ber_oid, Net::BER::BerIdentifiedNull.new.to_ber].to_ber_sequence
             end
           ].to_ber_sequence
@@ -249,7 +249,7 @@ module Net
           error_status.to_ber,
           error_index.to_ber,
           [
-            @variables.map do|n,v|
+            @variables.map do|n, v|
               [n.to_ber_oid, v.to_ber].to_ber_sequence
             end
           ].to_ber_sequence
