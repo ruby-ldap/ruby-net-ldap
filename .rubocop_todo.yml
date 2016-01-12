@@ -592,20 +592,6 @@ Style/SymbolProc:
     - 'test/test_ldif.rb'
     - 'testserver/ldapserver.rb'
 
-# Offense count: 12
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyleForMultiline, SupportedStyles.
-Style/TrailingComma:
-  Exclude:
-    - 'lib/net/ldap.rb'
-    - 'lib/net/ldap/dn.rb'
-    - 'lib/net/snmp.rb'
-    - 'test/ber/test_ber.rb'
-    - 'test/test_dn.rb'
-    - 'test/test_filter.rb'
-    - 'test/test_ldap_connection.rb'
-    - 'testserver/ldapserver.rb'
-
 # Offense count: 5
 # Cop supports --auto-correct.
 Style/UnneededPercentQ:

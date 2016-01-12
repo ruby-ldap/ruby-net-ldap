@@ -12,7 +12,7 @@ class TestDeleteIntegration < LDAPIntegrationTestCase
       uid:  "delete-user1",
       cn:   "delete-user1",
       sn:   "delete-user1",
-      mail: "delete-user1@rubyldap.com"
+      mail: "delete-user1@rubyldap.com",
     }
     unless @ldap.search(base: @dn, scope: Net::LDAP::SearchScope_BaseObject)
       assert @ldap.add(dn: @dn, attributes: attrs), @ldap.get_operation_result.inspect

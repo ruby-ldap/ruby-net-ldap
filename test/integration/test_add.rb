@@ -14,7 +14,7 @@ class TestAddIntegration < LDAPIntegrationTestCase
       uid:  "added-user1",
       cn:   "added-user1",
       sn:   "added-user1",
-      mail: "added-user1@rubyldap.com"
+      mail: "added-user1@rubyldap.com",
     }
 
     assert @ldap.add(dn: @dn, attributes: attrs), @ldap.get_operation_result.inspect

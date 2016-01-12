@@ -13,7 +13,7 @@ class TestPasswordModifyIntegration < LDAPIntegrationTestCase
       cn: 'modify-password-user1',
       sn: 'modify-password-user1',
       mail: 'modify-password-user1@rubyldap.com',
-      userPassword: 'passworD1'
+      userPassword: 'passworD1',
     }
     unless @ldap.search(base: @dn, scope: Net::LDAP::SearchScope_BaseObject)
       assert @ldap.add(dn: @dn, attributes: attrs), @ldap.get_operation_result.inspect
@@ -23,7 +23,7 @@ class TestPasswordModifyIntegration < LDAPIntegrationTestCase
     @auth = {
       method: :simple,
       username: @dn,
-      password: 'passworD1'
+      password: 'passworD1',
     }
   end
 

@@ -63,7 +63,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
       uid:  "nested-open-added-user1",
       cn:   "nested-open-added-user1",
       sn:   "nested-open-added-user1",
-      mail: "nested-open-added-user1@rubyldap.com"
+      mail: "nested-open-added-user1@rubyldap.com",
     }
 
     @ldap.authenticate "cn=admin,dc=rubyldap,dc=com", "passworD1"
