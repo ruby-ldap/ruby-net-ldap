@@ -540,6 +540,9 @@ class Net::LDAP
     @base = args[:base] || DefaultTreebase
     @force_no_page = args[:force_no_page] || DefaultForceNoPage
     @encryption = args[:encryption] # may be nil
+    if !@encryption.nil? and !@encryption.is_a?(Hash)
+      raise ArgumentError, "encryption must be given as Hash"
+    end
     @connect_timeout = args[:connect_timeout]
 
     if pr = @auth[:password] and pr.respond_to?(:call)

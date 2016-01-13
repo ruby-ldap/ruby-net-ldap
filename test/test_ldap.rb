@@ -91,4 +91,10 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
 
     assert_equal enc[:method], :start_tls
   end
+
+  def test_initialize
+    assert_raise ArgumentError, "encryption must be given as Hash" do
+      Net::LDAP.new encryption: [ :simple_tls ]
+    end
+  end
 end
