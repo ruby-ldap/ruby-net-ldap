@@ -24,7 +24,7 @@ module LdapServer
       },
       :primitive => {
         2 => :string,              # ldapsearch sends this to unbind
-      }
+      },
     },
     :context_specific => {
       :primitive => {
@@ -34,7 +34,7 @@ module LdapServer
       :constructed => {
         3 => :array                # equality filter
       },
-    }
+    },
   }
 
   def post_init
@@ -119,7 +119,7 @@ module LdapServer
     # pdu[1][7] is the list of requested attributes.
     # If it's an empty array, that means that *all* attributes were requested.
     requested_attrs = if pdu[1][7].length > 0
-      pdu[1][7].map {|a| a.downcase}
+      pdu[1][7].map(&:downcase)
     else
       :all
     end
@@ -138,7 +138,7 @@ module LdapServer
         attrs = []
         entry.each do |k, v|
           if requested_attrs == :all or requested_attrs.include?(k.downcase)
-            attrvals = v.map {|v1| v1.to_ber}.to_ber_set
+            attrvals = v.map(&:to_ber).to_ber_set
             attrs << [k.to_ber, attrvals].to_ber_sequence
           end
         end

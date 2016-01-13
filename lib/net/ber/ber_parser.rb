@@ -14,7 +14,7 @@ module Net::BER::BERParser
   }
   constructed = {
     16 => :array,
-    17 => :array
+    17 => :array,
   }
   universal = { :primitive => primitive, :constructed => constructed }
 

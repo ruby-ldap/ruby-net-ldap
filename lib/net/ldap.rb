@@ -325,8 +325,8 @@ class Net::LDAP
 
   universal = {
     constructed: {
-      107 => :array #ExtendedResponse (PasswdModifyResponseValue)
-    }
+      107 => :array, #ExtendedResponse (PasswdModifyResponseValue)
+    },
   }
 
   AsnSyntax = Net::BER.compile_syntax(:application => application,
@@ -389,14 +389,14 @@ class Net::LDAP
     ResultCodeCompareFalse,
     ResultCodeCompareTrue,
     ResultCodeReferral,
-    ResultCodeSaslBindInProgress
+    ResultCodeSaslBindInProgress,
   ]
 
   # nonstandard list of "successful" result codes for searches
   ResultCodesSearchSuccess = [
     ResultCodeSuccess,
     ResultCodeTimeLimitExceeded,
-    ResultCodeSizeLimitExceeded
+    ResultCodeSizeLimitExceeded,
   ]
 
   # map of result code to human message
@@ -438,7 +438,7 @@ class Net::LDAP
     ResultCodeEntryAlreadyExists           => "Entry Already Exists",
     ResultCodeObjectClassModsProhibited    => "ObjectClass Modifications Prohibited",
     ResultCodeAffectsMultipleDSAs          => "Affects Multiple DSAs",
-    ResultCodeOther                        => "Other"
+    ResultCodeOther                        => "Other",
   }
 
   module LDAPControls
@@ -591,7 +591,7 @@ class Net::LDAP
     @auth = {
       :method => :simple,
       :username => username,
-      :password => password
+      :password => password,
     }
   end
   alias_method :auth, :authenticate
@@ -1208,7 +1208,7 @@ class Net::LDAP
                   :supportedExtension,
                   :supportedFeatures,
                   :supportedLdapVersion,
-                  :supportedSASLMechanisms
+                  :supportedSASLMechanisms,
                 ])
     (rs and rs.first) or Net::LDAP::Entry.new
   end
@@ -1319,7 +1319,7 @@ class Net::LDAP
   rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT, Net::LDAP::ConnectionRefusedError => e
     @result = {
       :resultCode   => 52,
-      :errorMessage => ResultStrings[ResultCodeUnavailable]
+      :errorMessage => ResultStrings[ResultCodeUnavailable],
     }
     raise e
   end

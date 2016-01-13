@@ -12,7 +12,7 @@ module Net
           2 => :integer,  # Gauge32 or Unsigned32, (RFC2578 sec 2)
           3 => :integer  # TimeTicks32, (RFC2578 sec 2)
         },
-        :constructed => {}
+        :constructed => {},
       },
       :context_specific => {
         :primitive => {},
@@ -20,8 +20,8 @@ module Net
           0 => :array,  # GetRequest PDU (RFC1157 pgh 4.1.2)
           1 => :array,  # GetNextRequest PDU (RFC1157 pgh 4.1.3)
           2 => :array    # GetResponse PDU (RFC1157 pgh 4.1.4)
-        }
-      }
+        },
+      },
     })
 
     # SNMP 32-bit counter.
@@ -70,7 +70,7 @@ module Net
       :get_next_request,
       :get_response,
       :set_request,
-      :trap
+      :trap,
     ]
     ErrorStatusCodes = { # Per RFC1157, pgh 4.1.1
       0 => "noError",
@@ -78,7 +78,7 @@ module Net
       2 => "noSuchName",
       3 => "badValue",
       4 => "readOnly",
-      5 => "genErr"
+      5 => "genErr",
     }
 
     class << self
@@ -229,8 +229,8 @@ module Net
           [
             @variables.map do|n, v|
               [n.to_ber_oid, Net::BER::BerIdentifiedNull.new.to_ber].to_ber_sequence
-            end
-          ].to_ber_sequence
+            end,
+          ].to_ber_sequence,
         ].to_ber_contextspecific(0)
       when :get_next_request
         [
@@ -240,8 +240,8 @@ module Net
           [
             @variables.map do|n, v|
               [n.to_ber_oid, Net::BER::BerIdentifiedNull.new.to_ber].to_ber_sequence
-            end
-          ].to_ber_sequence
+            end,
+          ].to_ber_sequence,
         ].to_ber_contextspecific(1)
       when :get_response
         [
@@ -251,8 +251,8 @@ module Net
           [
             @variables.map do|n, v|
               [n.to_ber_oid, v.to_ber].to_ber_sequence
-            end
-          ].to_ber_sequence
+            end,
+          ].to_ber_sequence,
         ].to_ber_contextspecific(2)
       else
         raise Error.new( "unknown pdu-type: #{pdu_type}" )

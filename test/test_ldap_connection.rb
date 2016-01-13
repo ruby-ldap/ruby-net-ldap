@@ -162,7 +162,7 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
       app_tag: Net::LDAP::PDU::SearchResult,
       code: Net::LDAP::ResultCodeSuccess,
       matched_dn: "",
-      error_message: ""
+      error_message: "",
     }.merge(options)
     result = Net::BER::BerIdentifiedArray.new([options[:code], options[:matched_dn], options[:error_message]])
     result.ber_identifier = options[:app_tag]
@@ -257,7 +257,7 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
 
     assert result = conn.rename(
       olddn:  "uid=renamable-user1,ou=People,dc=rubyldap,dc=com",
-      newrdn: "uid=renamed-user1"
+      newrdn: "uid=renamed-user1",
     )
     assert result.success?
     assert_equal 2, result.message_id
@@ -463,7 +463,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     # search data
     search_data_ber = Net::BER::BerIdentifiedArray.new([1, [
       "uid=user1,ou=People,dc=rubyldap,dc=com",
-      [["uid", ["user1"]]]
+      [["uid", ["user1"]]],
     ]])
     search_data_ber.ber_identifier = Net::LDAP::PDU::SearchReturnedData
     search_data = [1, search_data_ber]

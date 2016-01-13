@@ -29,7 +29,7 @@ class Net::LDAP::Dataset < Hash
     keys.sort.each do |dn|
       ary << "dn: #{dn}"
 
-      attributes = self[dn].keys.map { |attr| attr.to_s }.sort
+      attributes = self[dn].keys.map(&:to_s).sort
       attributes.each do |attr|
         self[dn][attr.to_sym].each do |value|
           if attr == "userpassword" or value_is_binary?(value)

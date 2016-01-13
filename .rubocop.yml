@@ -12,3 +12,6 @@ Lint/AssignmentInCondition:
 
 Style/ParallelAssignment:
   Enabled: false
+
+Style/TrailingComma:
+  EnforcedStyleForMultiline: comma
