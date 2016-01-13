@@ -270,7 +270,7 @@ class Net::BER::BerIdentifiedOid
 
   def initialize(oid)
     if oid.is_a?(String)
-      oid = oid.split(/\./).map {|s| s.to_i }
+      oid = oid.split(/\./).map(&:to_i)
     end
     @value = oid
   end

@@ -550,10 +550,10 @@ class Net::LDAP::Filter
       [self.class.eq(@left, @right).to_ber].to_ber_contextspecific(2)
     when :and
       ary = [@left.coalesce(:and), @right.coalesce(:and)].flatten
-      ary.map {|a| a.to_ber}.to_ber_contextspecific(0)
+      ary.map(&:to_ber).to_ber_contextspecific(0)
     when :or
       ary = [@left.coalesce(:or), @right.coalesce(:or)].flatten
-      ary.map {|a| a.to_ber}.to_ber_contextspecific(1)
+      ary.map(&:to_ber).to_ber_contextspecific(1)
     when :not
       [@left.to_ber].to_ber_contextspecific(2)
     end

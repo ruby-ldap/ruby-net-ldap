@@ -409,7 +409,7 @@ class Net::LDAP::Connection #:nodoc:
             Net::LDAP::LDAPControls::PAGED_RESULTS.to_ber,
             # Criticality MUST be false to interoperate with normal LDAPs.
             false.to_ber,
-            rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber,
+            rfc2696_cookie.map(&:to_ber).to_ber_sequence.to_s.to_ber,
           ].to_ber_sequence if paged
         controls << ber_sort if ber_sort
         controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
@@ -604,7 +604,7 @@ class Net::LDAP::Connection #:nodoc:
     add_dn = args[:dn] or raise Net::LDAP::EmptyDNError, "Unable to add empty DN"
     add_attrs = []
     a = args[:attributes] and a.each do |k, v|
-      add_attrs << [k.to_s.to_ber, Array(v).map { |m| m.to_ber}.to_ber_set].to_ber_sequence
+      add_attrs << [k.to_s.to_ber, Array(v).map(&:to_ber).to_ber_set].to_ber_sequence
     end
 
     message_id = next_msgid

@@ -578,20 +578,6 @@ Style/SpecialGlobalVars:
 Style/StringLiterals:
   Enabled: false
 
-# Offense count: 11
-# Cop supports --auto-correct.
-# Configuration parameters: IgnoredMethods.
-Style/SymbolProc:
-  Exclude:
-    - 'lib/net/ber.rb'
-    - 'lib/net/ber/core_ext/array.rb'
-    - 'lib/net/ldap/connection.rb'
-    - 'lib/net/ldap/dataset.rb'
-    - 'lib/net/ldap/filter.rb'
-    - 'test/ber/test_ber.rb'
-    - 'test/test_ldif.rb'
-    - 'testserver/ldapserver.rb'
-
 # Offense count: 5
 # Cop supports --auto-correct.
 Style/UnneededPercentQ:
