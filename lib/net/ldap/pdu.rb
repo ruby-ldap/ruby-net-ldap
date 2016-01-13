@@ -175,7 +175,7 @@ class Net::LDAP::PDU
     @ldap_result = {
       :resultCode => sequence[0],
       :matchedDN => sequence[1],
-      :errorMessage => sequence[2]
+      :errorMessage => sequence[2],
     }
     parse_search_referral(sequence[3]) if @ldap_result[:resultCode] == Net::LDAP::ResultCodeReferral
   end
@@ -198,7 +198,7 @@ class Net::LDAP::PDU
     @ldap_result = {
       :resultCode => sequence[0],
       :matchedDN => sequence[1],
-      :errorMessage => sequence[2]
+      :errorMessage => sequence[2],
     }
     @extended_response = sequence[3]
   end

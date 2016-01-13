@@ -24,7 +24,7 @@ module LdapServer
       },
       :primitive => {
         2 => :string,              # ldapsearch sends this to unbind
-      }
+      },
     },
     :context_specific => {
       :primitive => {
@@ -34,7 +34,7 @@ module LdapServer
       :constructed => {
         3 => :array                # equality filter
       },
-    }
+    },
   }
 
   def post_init

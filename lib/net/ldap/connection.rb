@@ -44,7 +44,7 @@ class Net::LDAP::Connection #:nodoc:
     encryption = server[:encryption]
 
     socket_opts = {
-      connect_timeout: server[:connect_timeout] || DefaultConnectTimeout
+      connect_timeout: server[:connect_timeout] || DefaultConnectTimeout,
     }
 
     errors = []
@@ -133,7 +133,7 @@ class Net::LDAP::Connection #:nodoc:
     when :start_tls
       message_id = next_msgid
       request    = [
-        Net::LDAP::StartTlsOid.to_ber_contextspecific(0)
+        Net::LDAP::StartTlsOid.to_ber_contextspecific(0),
       ].to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
 
       write(request, nil, message_id)
@@ -283,7 +283,7 @@ class Net::LDAP::Connection #:nodoc:
     sort_control = [
       Net::LDAP::LDAPControls::SORT_REQUEST.to_ber,
       false.to_ber,
-      sort_control_values.to_ber_sequence.to_s.to_ber
+      sort_control_values.to_ber_sequence.to_s.to_ber,
     ].to_ber_sequence
   end
 
@@ -396,7 +396,7 @@ class Net::LDAP::Connection #:nodoc:
           time.to_ber,
           attrs_only.to_ber,
           filter.to_ber,
-          ber_attrs.to_ber_sequence
+          ber_attrs.to_ber_sequence,
         ].to_ber_appsequence(Net::LDAP::PDU::SearchRequest)
 
         # rfc2696_cookie sometimes contains binary data from Microsoft Active Directory
@@ -409,7 +409,7 @@ class Net::LDAP::Connection #:nodoc:
             Net::LDAP::LDAPControls::PAGED_RESULTS.to_ber,
             # Criticality MUST be false to interoperate with normal LDAPs.
             false.to_ber,
-            rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber
+            rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber,
           ].to_ber_sequence if paged
         controls << ber_sort if ber_sort
         controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
@@ -503,7 +503,7 @@ class Net::LDAP::Connection #:nodoc:
   MODIFY_OPERATIONS = { #:nodoc:
     :add => 0,
     :delete => 1,
-    :replace => 2
+    :replace => 2,
   }
 
   def self.modify_ops(operations)
@@ -535,7 +535,7 @@ class Net::LDAP::Connection #:nodoc:
     message_id = next_msgid
     request    = [
       modify_dn.to_ber,
-      ops.to_ber_sequence
+      ops.to_ber_sequence,
     ].to_ber_appsequence(Net::LDAP::PDU::ModifyRequest)
 
     write(request, nil, message_id)

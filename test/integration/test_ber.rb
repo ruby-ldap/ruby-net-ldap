@@ -12,7 +12,7 @@ class TestBERIntegration < LDAPIntegrationTestCase
       filter: "(uid=user1)",
       size: 1,
       attributes: attrs,
-      attributes_only: true
+      attributes_only: true,
     ).first
 
     # matches attributes we requested
