@@ -51,8 +51,10 @@ class Net::LDAP::Connection #:nodoc:
     hosts.each do |host, port|
       begin
         prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts)))
-        if encryption[:tls_options][:verify_mode] != OpenSSL::SSL::VERIFY_NONE
+        if encryption && ! encryption[:tls_options] && encryption[:tls_options][:verify_mode]
+          if encryption[:tls_options][:verify_mode] != OpenSSL::SSL::VERIFY_NONE
             @conn.post_connection_check(host)
+          end
         end
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
