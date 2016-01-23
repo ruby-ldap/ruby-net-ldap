@@ -25,7 +25,7 @@ See Net::LDAP for documentation and usage samples.
 
 == Requirements
 
-Net::LDAP requires a Ruby 1.9.3 compatible interpreter or better.
+Net::LDAP requires a Ruby 2.0.0 compatible interpreter or better.
 
 == Install
 
