@@ -36,7 +36,7 @@ class Net::LDAP::Connection #:nodoc:
     encryption = server[:encryption]
 
     @conn = socket
-    setup_encryption encryption if encryption
+    setup_encryption({ verify_host: server[:connected_host] }.merge(encryption)) if encryption
   end
 
   def open_connection(server)
@@ -50,7 +50,7 @@ class Net::LDAP::Connection #:nodoc:
     errors = []
     hosts.each do |host, port|
       begin
-        prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts)))
+        prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts), connected_host: host))
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
              OpenSSL::SSL::SSLError => e
@@ -87,6 +87,13 @@ class Net::LDAP::Connection #:nodoc:
 
     conn = OpenSSL::SSL::SSLSocket.new(io, ctx)
     conn.connect
+
+    if tls_options[:verify_host]
+      # This raises OpenSSL::SSL::SSLError if hostname verification fails
+      conn.post_connection_check(tls_options[:verify_host])
+    else
+      warn "not verifying SSL hostname of LDAP server"
+    end
 
     # Doesn't work:
     # conn.sync_close = true
