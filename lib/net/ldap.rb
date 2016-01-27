@@ -539,7 +539,7 @@ class Net::LDAP
     @auth = args[:auth] || DefaultAuth
     @base = args[:base] || DefaultTreebase
     @force_no_page = args[:force_no_page] || DefaultForceNoPage
-    @encryption = args[:encryption] # may be nil
+    @encryption = normalize_encryption(args[:encryption]) # may be nil
     @connect_timeout = args[:connect_timeout]
 
     if pr = @auth[:password] and pr.respond_to?(:call)
@@ -609,13 +609,7 @@ class Net::LDAP
   def encryption(args)
     warn "Deprecation warning: please give :encryption option as a Hash to Net::LDAP.new"
     return if args.nil?
-    return @encryption = args if args.is_a? Hash
-
-    case method = args.to_sym
-    when :simple_tls, :start_tls
-      args = { :method => method, :tls_options => {} }
-    end
-    @encryption = args
+    @encryption = normalize_encryption(args)
   end
 
   # #open takes the same parameters as #new. #open makes a network
@@ -1323,4 +1317,17 @@ class Net::LDAP
     }
     raise e
   end
+
+  # Normalize encryption parameter the constructor accepts, expands a few
+  # convenience symbols into recognizable hashes
+  def normalize_encryption(args)
+    return if args.nil?
+    return args if args.is_a? Hash
+
+    case method = args.to_sym
+    when :simple_tls, :start_tls
+      { :method => method, :tls_options => {} }
+    end
+  end
+
 end # class LDAP
