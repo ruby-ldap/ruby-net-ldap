@@ -91,4 +91,24 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
 
     assert_equal enc[:method], :start_tls
   end
+
+  def test_normalize_encryption_symbol
+    enc = @subject.send(:normalize_encryption, :start_tls)
+    assert_equal enc, {:method => :start_tls, :tls_options => {}}
+  end
+
+  def test_normalize_encryption_nil
+    enc = @subject.send(:normalize_encryption, nil)
+    assert_equal enc, nil
+  end
+
+  def test_normalize_encryption_string
+    enc = @subject.send(:normalize_encryption, 'start_tls')
+    assert_equal enc, {:method => :start_tls, :tls_options => {}}
+  end
+
+  def test_normalize_encryption_hash
+    enc = @subject.send(:normalize_encryption, {:method => :start_tls, :tls_options => {:foo => :bar}})
+    assert_equal enc, {:method => :start_tls, :tls_options => {:foo => :bar}}
+  end
 end
