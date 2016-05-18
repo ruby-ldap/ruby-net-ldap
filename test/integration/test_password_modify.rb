@@ -3,7 +3,8 @@ require_relative '../test_helper'
 class TestPasswordModifyIntegration < LDAPIntegrationTestCase
   def setup
     super
-    @ldap.authenticate 'cn=admin,dc=rubyldap,dc=com', 'passworD1'
+    @admin_account = {dn: 'cn=admin,dc=rubyldap,dc=com', password: 'passworD1', method: :simple}
+    @ldap.authenticate @admin_account[:dn], @admin_account[:password]
 
     @dn = 'uid=modify-password-user1,ou=People,dc=rubyldap,dc=com'
 
@@ -71,6 +72,18 @@ class TestPasswordModifyIntegration < LDAPIntegrationTestCase
       'Old password should no longer be valid'
 
     assert @ldap.bind(username: @dn, password: generated_password, method: :simple),
+      'New password should be valid'
+  end
+
+  def test_password_modify_overwrite_old_password
+    assert @ldap.password_modify(dn: @dn,
+                                 auth: @admin_account,
+                                 new_password: 'passworD3')
+
+    refute @ldap.bind(username: @dn, password: 'passworD1', method: :simple),
+      'Old password should no longer be valid'
+
+    assert @ldap.bind(username: @dn, password: 'passworD3', method: :simple),
       'New password should be valid'
   end
 
