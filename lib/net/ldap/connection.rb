@@ -98,13 +98,13 @@ class Net::LDAP::Connection #:nodoc:
       if IO.select([conn], nil, nil, timeout)
         retry
       else
-        raise Net::LDAP::LdapError, "OpenSSL connection read timeout"
+        raise Net::LDAP::SocketError, "OpenSSL connection read timeout"
       end
     rescue IO::WaitWritable
       if IO.select(nil, [conn], nil, timeout)
         retry
       else
-        raise Net::LDAP::LdapError, "OpenSSL connection write timeout"
+        raise Net::LDAP::SocketError, "OpenSSL connection write timeout"
       end
     end
 
