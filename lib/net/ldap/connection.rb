@@ -89,7 +89,11 @@ class Net::LDAP::Connection #:nodoc:
     conn = OpenSSL::SSL::SSLSocket.new(io, ctx)
 
     begin
-      conn.connect_nonblock
+      if timeout
+        conn.connect_nonblock
+      else
+        conn.connect
+      end
     rescue IO::WaitReadable
       if IO.select([conn], nil, nil, timeout)
         retry
