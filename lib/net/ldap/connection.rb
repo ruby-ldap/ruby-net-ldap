@@ -77,7 +77,7 @@ class Net::LDAP::Connection #:nodoc:
     end
   end
 
-  def self.wrap_with_ssl(io, tls_options = {}, timeout)
+  def self.wrap_with_ssl(io, tls_options = {}, timeout = nil)
     raise Net::LDAP::NoOpenSSLError, "OpenSSL is unavailable" unless Net::LDAP::HasOpenSSL
 
     ctx = OpenSSL::SSL::SSLContext.new
