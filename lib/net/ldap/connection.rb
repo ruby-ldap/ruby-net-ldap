@@ -89,7 +89,7 @@ class Net::LDAP::Connection #:nodoc:
     conn = OpenSSL::SSL::SSLSocket.new(io, ctx)
 
     begin
-      if timeout
+      if timeout && !ENV['FORCE_BLOCKING_LDAP_SOCKET'] == 'true'
         conn.connect_nonblock
       else
         conn.connect
