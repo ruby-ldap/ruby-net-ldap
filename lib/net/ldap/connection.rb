@@ -31,26 +31,27 @@ class Net::LDAP::Connection #:nodoc:
     @socket_class = socket_class
   end
 
-  def prepare_socket(server)
+  def prepare_socket(server, timeout = nil)
     socket = server[:socket]
     encryption = server[:encryption]
 
     @conn = socket
-    setup_encryption encryption if encryption
+    setup_encryption(encryption, timeout) if encryption
   end
 
   def open_connection(server)
     hosts = server[:hosts]
     encryption = server[:encryption]
 
+    timeout = server[:connect_timeout] || DefaultConnectTimeout
     socket_opts = {
-      connect_timeout: server[:connect_timeout] || DefaultConnectTimeout,
+      connect_timeout: timeout,
     }
 
     errors = []
     hosts.each do |host, port|
       begin
-        prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts)))
+        prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts)), timeout)
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
              OpenSSL::SSL::SSLError => e
@@ -76,7 +77,7 @@ class Net::LDAP::Connection #:nodoc:
     end
   end
 
-  def self.wrap_with_ssl(io, tls_options = {})
+  def self.wrap_with_ssl(io, tls_options = {}, timeout = nil)
     raise Net::LDAP::NoOpenSSLError, "OpenSSL is unavailable" unless Net::LDAP::HasOpenSSL
 
     ctx = OpenSSL::SSL::SSLContext.new
@@ -86,10 +87,31 @@ class Net::LDAP::Connection #:nodoc:
     ctx.set_params(tls_options) unless tls_options.empty?
 
     conn = OpenSSL::SSL::SSLSocket.new(io, ctx)
-    conn.connect
 
-    # Doesn't work:
-    # conn.sync_close = true
+    use_nonblocking_connect = timeout && !ENV['FORCE_BLOCKING_LDAP_SOCKET'] == 'true'
+
+    begin
+      if use_nonblocking_connect
+        conn.connect_nonblock
+      else
+        conn.connect
+      end
+    rescue IO::WaitReadable
+      if IO.select([conn], nil, nil, timeout)
+        retry
+      else
+        raise Errno::ETIMEDOUT, "OpenSSL connection read timeout"
+      end
+    rescue IO::WaitWritable
+      if IO.select(nil, [conn], nil, timeout)
+        retry
+      else
+        raise Errno::ETIMEDOUT, "OpenSSL connection write timeout"
+      end
+    end
+
+    # Doesn't work? Or maybe it is needed if connect_nonblock?
+    conn.sync_close = use_nonblocking_connect && !ENV['DISABLE_SYNC_CLOSE_LDAP_SOCKET'] == 'true'
 
     conn.extend(GetbyteForSSLSocket) unless conn.respond_to?(:getbyte)
     conn.extend(FixSSLSocketSyncClose)
@@ -123,11 +145,11 @@ class Net::LDAP::Connection #:nodoc:
   # communications, as with simple_tls. Thanks for Kouhei Sutou for
   # generously contributing the :start_tls path.
   #++
-  def setup_encryption(args)
+  def setup_encryption(args, timeout = nil)
     args[:tls_options] ||= {}
     case args[:method]
     when :simple_tls
-      @conn = self.class.wrap_with_ssl(@conn, args[:tls_options])
+      @conn = self.class.wrap_with_ssl(@conn, args[:tls_options], timeout)
       # additional branches requiring server validation and peer certs, etc.
       # go here.
     when :start_tls
@@ -144,7 +166,7 @@ class Net::LDAP::Connection #:nodoc:
       end
 
       if pdu.result_code.zero?
-        @conn = self.class.wrap_with_ssl(@conn, args[:tls_options])
+        @conn = self.class.wrap_with_ssl(@conn, args[:tls_options], timeout)
       else
         raise Net::LDAP::StartTLSError, "start_tls failed: #{pdu.result_code}"
       end
