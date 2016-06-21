@@ -88,8 +88,10 @@ class Net::LDAP::Connection #:nodoc:
 
     conn = OpenSSL::SSL::SSLSocket.new(io, ctx)
 
+    use_nonblocking_connect = timeout && !ENV['FORCE_BLOCKING_LDAP_SOCKET'] == 'true'
+
     begin
-      if timeout && !ENV['FORCE_BLOCKING_LDAP_SOCKET'] == 'true'
+      if use_nonblocking_connect
         conn.connect_nonblock
       else
         conn.connect
@@ -108,8 +110,8 @@ class Net::LDAP::Connection #:nodoc:
       end
     end
 
-    # Doesn't work:
-    # conn.sync_close = true
+    # Doesn't work? Or maybe it is needed if connect_nonblock?
+    conn.sync_close = use_nonblocking_connect && !ENV['DISABLE_SYNC_CLOSE_LDAP_SOCKET'] == 'true'
 
     conn.extend(GetbyteForSSLSocket) unless conn.respond_to?(:getbyte)
     conn.extend(FixSSLSocketSyncClose)
