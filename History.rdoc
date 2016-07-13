@@ -1,3 +1,7 @@
+=== Net::LDAP 0.15.0
+
+* Respect connect_timeout when establishing SSL connections {#273}[https://github.com/ruby-ldap/ruby-net-ldap/pull/273]
+
 === Net::LDAP 0.14.0
 
 * Normalize the encryption parameter passed to the LDAP constructor {#264}[https://github.com/ruby-ldap/ruby-net-ldap/pull/264]
