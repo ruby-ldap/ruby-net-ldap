@@ -4,6 +4,8 @@ module Net
   class LDAP
     class AuthAdapter
       class Sasl < Net::LDAP::AuthAdapter
+        MaxSaslChallenges = 10
+
         #--
         # Required parameters: :mechanism, :initial_credential and
         # :challenge_response

@@ -7,7 +7,6 @@ class Net::LDAP::Connection #:nodoc:
   DefaultConnectTimeout = 5
 
   LdapVersion = 3
-  MaxSaslChallenges = 10
 
   # Initialize a connection to an LDAP server
   #
