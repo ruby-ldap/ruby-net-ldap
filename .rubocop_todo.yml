@@ -721,15 +721,6 @@ Style/TernaryParentheses:
     - 'lib/net/ldap/connection.rb'
     - 'lib/net/ldap/dataset.rb'
 
-# Offense count: 2
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyleForMultiline, SupportedStyles.
-# SupportedStyles: comma, consistent_comma, no_comma
-Style/TrailingCommaInArguments:
-  Exclude:
-    - 'test/integration/test_ber.rb'
-    - 'test/test_ldap_connection.rb'
-
 # Offense count: 1
 # Cop supports --auto-correct.
 # Configuration parameters: ExactNameMatch, AllowPredicates, AllowDSLWriters, IgnoreClassMethods, Whitelist.
