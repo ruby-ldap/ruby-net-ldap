@@ -334,13 +334,6 @@ Style/GlobalVars:
   Exclude:
     - 'testserver/ldapserver.rb'
 
-# Offense count: 2
-# Configuration parameters: MinBodyLength.
-Style/GuardClause:
-  Exclude:
-    - 'lib/net/ldap/connection.rb'
-    - 'test/test_ldap_connection.rb'
-
 # Offense count: 161
 # Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles, UseHashRocketsWithSymbolValues, PreferHashRocketsForNonAlnumEndingSymbols.

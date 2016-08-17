@@ -16,9 +16,7 @@ class TestLDAPConnection < Test::Unit::TestCase
   class FakeTCPSocket
     def initialize(host, port, socket_opts = {})
       status, error = host.split(".")
-      if status == "fail"
-        raise Object.const_get(error)
-      end
+      raise Object.const_get(error) if status == "fail"
     end
   end
 

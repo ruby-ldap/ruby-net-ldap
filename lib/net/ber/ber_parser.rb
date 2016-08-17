@@ -172,10 +172,10 @@ module Net::BER::BERParser
     yield id, content_length if block_given?
 
     if -1 == content_length
-      raise Net::BER::BerError, "Indeterminite BER content length not implemented."
-    else
-      data = read(content_length)
+      raise Net::BER::BerError,
+            "Indeterminite BER content length not implemented."
     end
+    data = read(content_length)
 
     parse_ber_object(syntax, id, data)
   end
