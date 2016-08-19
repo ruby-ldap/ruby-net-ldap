@@ -1287,7 +1287,7 @@ class Net::LDAP
       begin
         conn = new_connection
         result = conn.bind(args[:auth] || @auth)
-        return result unless result.code == Net::LDAP::ResultCodeSuccess
+        return result unless result.result_code == Net::LDAP::ResultCodeSuccess
         yield conn
       ensure
         conn.close if conn
