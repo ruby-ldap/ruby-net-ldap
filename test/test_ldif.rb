@@ -76,7 +76,7 @@ class TestLdif < Test::Unit::TestCase
 
   # Must test folded lines and base64-encoded lines as well as normal ones.
   def test_to_ldif
-    data = File.open(TestLdifFilename, "rb") { |f| f.read }
+    data = File.open(TestLdifFilename, "rb", &:read)
     io = StringIO.new(data)
 
     # added .lines to turn to array because 1.9 doesn't have

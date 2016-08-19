@@ -95,17 +95,13 @@ class Net::LDAP::Connection #:nodoc:
         conn.connect
       end
     rescue IO::WaitReadable
-      if IO.select([conn], nil, nil, timeout)
-        retry
-      else
-        raise Errno::ETIMEDOUT, "OpenSSL connection read timeout"
-      end
+      raise Errno::ETIMEDOUT, "OpenSSL connection read timeout" unless
+        IO.select([conn], nil, nil, timeout)
+      retry
     rescue IO::WaitWritable
-      if IO.select(nil, [conn], nil, timeout)
-        retry
-      else
-        raise Errno::ETIMEDOUT, "OpenSSL connection write timeout"
-      end
+      raise Errno::ETIMEDOUT, "OpenSSL connection write timeout" unless
+        IO.select(nil, [conn], nil, timeout)
+      retry
     end
 
     # Doesn't work:
@@ -163,11 +159,9 @@ class Net::LDAP::Connection #:nodoc:
         raise Net::LDAP::NoStartTLSResultError, "no start_tls result"
       end
 
-      if pdu.result_code.zero?
-        @conn = self.class.wrap_with_ssl(@conn, args[:tls_options], timeout)
-      else
-        raise Net::LDAP::StartTLSError, "start_tls failed: #{pdu.result_code}"
-      end
+      raise Net::LDAP::StartTLSError,
+            "start_tls failed: #{pdu.result_code}" unless pdu.result_code.zero?
+      @conn = self.class.wrap_with_ssl(@conn, args[:tls_options], timeout)
     else
       raise Net::LDAP::EncMethodUnsupportedError, "unsupported encryption method #{args[:method]}"
     end
@@ -197,12 +191,10 @@ class Net::LDAP::Connection #:nodoc:
 
     # read messages until we have a match for the given message_id
     while pdu = read
-      if pdu.message_id == message_id
-        return pdu
-      else
-        message_queue[pdu.message_id].push pdu
-        next
-      end
+      return pdu if pdu.message_id == message_id
+
+      message_queue[pdu.message_id].push pdu
+      next
     end
 
     pdu

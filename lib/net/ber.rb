@@ -327,11 +327,10 @@ class Net::BER::BerIdentifiedString < String
     # Check the encoding of the newly created String and set the encoding
     # to 'UTF-8' (NOTE: we do NOT change the bytes, but only set the
     # encoding to 'UTF-8').
+    return unless encoding == Encoding::BINARY
     current_encoding = encoding
-    if current_encoding == Encoding::BINARY
-      force_encoding('UTF-8')
-      force_encoding(current_encoding) unless valid_encoding?
-    end
+    force_encoding('UTF-8')
+    force_encoding(current_encoding) unless valid_encoding?
   end
 end
 
