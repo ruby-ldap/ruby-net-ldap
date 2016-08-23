@@ -48,20 +48,20 @@ chown -R openldap.openldap /var/lib/ldap
 rm -rf $TMPDIR
 
 # SSL
+export CA_CERT="/etc/ssl/certs/cacert.pem"
+export CA_KEY="/etc/ssl/private/cakey.pem"
+export CA_INFO="/etc/ssl/ca.info"
 
-sh -c "certtool --generate-privkey > /etc/ssl/private/cakey.pem"
+# If you ever need to regenerate these...
+# certtool --generate-privkey > /path/to/cakey.pem
+# certtool --generate-self-signed \
+#  --load-privkey /path/to/cakey.pem
+#  --template /path/to/ca.info
+#  --outfile /path/to/cacert.pem
 
-sh -c "cat > /etc/ssl/ca.info <<EOF
-cn = rubyldap
-ca
-cert_signing_key
-EOF"
-
-# Create the self-signed CA certificate:
-certtool --generate-self-signed \
---load-privkey /etc/ssl/private/cakey.pem \
---template /etc/ssl/ca.info \
---outfile /etc/ssl/certs/cacert.pem
+cp "${SEED_PATH}/ca/cacert.pem" "${CA_CERT}"
+cp "${SEED_PATH}/ca/cakey.pem"  "${CA_KEY}"
+cp "${SEED_PATH}/ca/ca.info"    "${CA_INFO}"
 
 # Make a private key for the server:
 certtool --generate-privkey \
@@ -71,6 +71,8 @@ certtool --generate-privkey \
 sh -c "cat > /etc/ssl/ldap01.info <<EOF
 organization = Example Company
 cn = ldap01.example.com
+dns_name = ldap01.example.com
+dns_name = ldap02.example.com
 tls_www_server
 encryption_key
 signing_key
@@ -80,15 +82,15 @@ EOF"
 # Create the server certificate
 certtool --generate-certificate \
   --load-privkey /etc/ssl/private/ldap01_slapd_key.pem \
-  --load-ca-certificate /etc/ssl/certs/cacert.pem \
-  --load-ca-privkey /etc/ssl/private/cakey.pem \
+  --load-ca-certificate "${CA_CERT}" \
+  --load-ca-privkey "${CA_KEY}" \
   --template /etc/ssl/ldap01.info \
   --outfile /etc/ssl/certs/ldap01_slapd_cert.pem
 
 ldapmodify -Y EXTERNAL -H ldapi:/// <<EOF | true
 dn: cn=config
 add: olcTLSCACertificateFile
-olcTLSCACertificateFile: /etc/ssl/certs/cacert.pem
+olcTLSCACertificateFile: ${CA_CERT}
 -
 add: olcTLSCertificateFile
 olcTLSCertificateFile: /etc/ssl/certs/ldap01_slapd_cert.pem
@@ -111,5 +113,10 @@ chmod o-r /etc/ssl/private/ldap01_slapd_key.pem
 
 # Drop packets on a secondary port used to specific timeout tests
 iptables -A INPUT -p tcp -j DROP --dport 8389
+
+# fix up /etc/hosts for cert validation
+grep ldap01 /etc/hosts || echo "127.0.0.1 ldap01.example.com" >> /etc/hosts
+grep ldap02 /etc/hosts || echo "127.0.0.1 ldap02.example.com" >> /etc/hosts
+grep bogus /etc/hosts  || echo "127.0.0.1 bogus.example.com" >> /etc/hosts
 
 service slapd restart
