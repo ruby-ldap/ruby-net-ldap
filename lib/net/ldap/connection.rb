@@ -392,12 +392,11 @@ class Net::LDAP::Connection #:nodoc:
         # should collect this into a private helper to clarify the structure
         query_limit = 0
         if size > 0
-          if paged
-            query_limit = (((size - n_results) < 126) ? (size -
-                                                              n_results) : 0)
-          else
-            query_limit = size
-          end
+          query_limit = if paged
+                          (((size - n_results) < 126) ? (size - n_results) : 0)
+                        else
+                          size
+                        end
         end
 
         request = [
