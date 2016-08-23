@@ -52,9 +52,14 @@ class Net::LDAP::Connection #:nodoc:
     hosts.each do |host, port|
       begin
         prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts)), timeout)
-        if encryption && encryption[:tls_options] &&
-           encryption[:tls_options][:verify_mode] != OpenSSL::SSL::VERIFY_NONE
-          @conn.post_connection_check(host)
+        if encryption
+          if encryption[:tls_options] &&
+             encryption[:tls_options][:verify_mode] &&
+             encryption[:tls_options][:verify_mode] == OpenSSL::SSL::VERIFY_NONE
+            warn "not verifying SSL hostname of LDAPS server '#{host}:#{port}'"
+          else
+            @conn.post_connection_check(host)
+          end
         end
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
