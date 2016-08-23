@@ -1,8 +1,27 @@
 # Local OpenLDAP Integration Testing
 
-Set up a [Vagrant](http://www.vagrantup.com/) VM to run integration tests against OpenLDAP locally.
+Set up a [Vagrant](http://www.vagrantup.com/) VM to run integration
+tests against OpenLDAP locally. *NOTE*: To support some of the SSL tests,
+Vagrant forwards localhost port 9389 to VM host port 9389. The port mapping
+goes away when you run `vagrant destroy`.
 
-To run integration tests locally:
+## Install Vagrant
+
+*NOTE*: The Vagrant gem (`gem install vagrant`) is
+[no longer supported](https://www.vagrantup.com/docs/installation/)
+
+If you use Homebrew on macOS:
+``` bash
+$ brew update
+$ brew cask install virtualbox
+$ brew cask install vagrant
+$ brew cask install vagrant-manager
+```
+
+Installing Vagrant and virtualbox on other operating systems is left
+as an exercise to the reader.
+
+## Run the tests
 
 ``` bash
 # start VM (from the correct directory)
@@ -27,6 +46,10 @@ $ export INTEGRATION_HOST=$ip
 
 # now run tests without having to set ENV variables
 $ time bundle exec rake
+
+# Once you're all done
+$ cd test/support/vm/openldap
+$ vagrant destroy
 ```
 
 You may need to `gem install vagrant` first in order to provision the VM.
