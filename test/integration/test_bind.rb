@@ -10,7 +10,9 @@ class TestBindIntegration < LDAPIntegrationTestCase
     error = assert_raise Net::LDAP::Error do
       @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: "passworD1")
     end
-    assert_equal('Connection timed out - user specified timeout', error.message)
+    msgs = ['Operation timed out - user specified timeout',
+            'Connection timed out - user specified timeout']
+    assert_send([msgs, :include?, error.message])
   end
 
   def test_bind_anonymous_fail
