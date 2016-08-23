@@ -73,6 +73,7 @@ organization = Example Company
 cn = ldap01.example.com
 dns_name = ldap01.example.com
 dns_name = ldap02.example.com
+dns_name = localhost
 tls_www_server
 encryption_key
 signing_key
