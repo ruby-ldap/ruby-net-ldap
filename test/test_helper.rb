@@ -62,5 +62,13 @@ class LDAPIntegrationTestCase < Test::Unit::TestCase
       search_domains: %w(dc=rubyldap,dc=com),
       uid:            'uid',
       instrumentation_service: @service
+
+    @ldap_multi = Net::LDAP.new \
+      hosts:          [['ldap01.example.com', 389], ['ldap02.example.com', 389]],
+      admin_user:     'uid=admin,dc=rubyldap,dc=com',
+      admin_password: 'passworD1',
+      search_domains: %w(dc=rubyldap,dc=com),
+      uid:            'uid',
+      instrumentation_service: @service
   end
 end
