@@ -42,7 +42,18 @@ class TestBindIntegration < LDAPIntegrationTestCase
            @ldap.get_operation_result.inspect
   end
 
-  def test_bind_tls_with_verify_none
+  def test_bind_tls_with_bad_hostname_verify_none_no_ca_passes
+    @ldap.host = '127.0.0.1'
+    @ldap.port = 9389 unless ENV['TRAVIS'] == 'true'
+    @ldap.encryption(
+      method:      :start_tls,
+      tls_options: { verify_mode: OpenSSL::SSL::VERIFY_NONE },
+    )
+    assert @ldap.bind(BIND_CREDS),
+           @ldap.get_operation_result.inspect
+  end
+
+  def test_bind_tls_with_bad_hostname_verify_none_no_ca_opt_merge_passes
     @ldap.host = '127.0.0.1'
     @ldap.port = 9389 unless ENV['TRAVIS'] == 'true'
     @ldap.encryption(
@@ -53,13 +64,13 @@ class TestBindIntegration < LDAPIntegrationTestCase
            @ldap.get_operation_result.inspect
   end
 
-  def test_bind_tls_with_bad_hostname
+  def test_bind_tls_with_bad_hostname_verify_peer_ca_fails
     @ldap.host = '127.0.0.1'
     @ldap.port = 9389 unless ENV['TRAVIS'] == 'true'
     @ldap.encryption(
       method:      :start_tls,
-      tls_options: TLS_OPTS.merge(verify_mode: OpenSSL::SSL::VERIFY_PEER,
-                                  ca_file:     CA_FILE),
+      tls_options: { verify_mode: OpenSSL::SSL::VERIFY_PEER,
+                     ca_file:     CA_FILE },
     )
     error = assert_raise Net::LDAP::Error,
                          Net::LDAP::ConnectionRefusedError do
@@ -71,13 +82,42 @@ class TestBindIntegration < LDAPIntegrationTestCase
     )
   end
 
-  def test_bind_tls_with_valid_hostname
+  def test_bind_tls_with_bad_hostname_ca_default_opt_merge_fails
+    @ldap.host = '127.0.0.1'
+    @ldap.port = 9389 unless ENV['TRAVIS'] == 'true'
+    @ldap.encryption(
+      method:      :start_tls,
+      tls_options: TLS_OPTS.merge(ca_file: CA_FILE),
+    )
+    error = assert_raise Net::LDAP::Error,
+                         Net::LDAP::ConnectionRefusedError do
+      @ldap.bind BIND_CREDS
+    end
+    assert_equal(
+      "hostname \"#{@ldap.host}\" does not match the server certificate",
+      error.message,
+    )
+  end
+
+  def test_bind_tls_with_valid_hostname_default_opts_passes
     @ldap.host = 'localhost'
     @ldap.port = 9389 unless ENV['TRAVIS'] == 'true'
     @ldap.encryption(
       method:      :start_tls,
       tls_options: TLS_OPTS.merge(verify_mode: OpenSSL::SSL::VERIFY_PEER,
                                   ca_file:     CA_FILE),
+    )
+    assert @ldap.bind(BIND_CREDS),
+           @ldap.get_operation_result.inspect
+  end
+
+  def test_bind_tls_with_valid_hostname_just_verify_peer_ca_passes
+    @ldap.host = 'localhost'
+    @ldap.port = 9389 unless ENV['TRAVIS'] == 'true'
+    @ldap.encryption(
+      method:      :start_tls,
+      tls_options: { verify_mode: OpenSSL::SSL::VERIFY_PEER,
+                     ca_file:     CA_FILE },
     )
     assert @ldap.bind(BIND_CREDS),
            @ldap.get_operation_result.inspect
@@ -137,7 +177,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
     @ldap.hosts = [['127.0.0.1', 389], ['bogus.example.com', 389]]
     @ldap.encryption(
       method: :start_tls,
-      tls_options: TLS_OPTS.merge(ca_file: CA_FILE),
+      tls_options: { ca_file: CA_FILE },
     )
     assert @ldap.bind(BIND_CREDS),
            @ldap.get_operation_result.inspect
