@@ -18,6 +18,14 @@ CA_FILE =
     end
   end
 
+BIND_CREDS = {
+  method:   :simple,
+  username: "uid=user1,ou=People,dc=rubyldap,dc=com",
+  password: "passworD1",
+}.freeze
+
+TLS_OPTS = OpenSSL::SSL::SSLContext::DEFAULT_PARAMS.merge({}).freeze
+
 if RUBY_VERSION < "2.0"
   class String
     def b
@@ -57,14 +65,6 @@ class LDAPIntegrationTestCase < Test::Unit::TestCase
     @ldap = Net::LDAP.new \
       host:           ENV.fetch('INTEGRATION_HOST', 'localhost'),
       port:           ENV.fetch('INTEGRATION_PORT', 389),
-      admin_user:     'uid=admin,dc=rubyldap,dc=com',
-      admin_password: 'passworD1',
-      search_domains: %w(dc=rubyldap,dc=com),
-      uid:            'uid',
-      instrumentation_service: @service
-
-    @ldap_multi = Net::LDAP.new \
-      hosts:          [['ldap01.example.com', 389], ['ldap02.example.com', 389]],
       admin_user:     'uid=admin,dc=rubyldap,dc=com',
       admin_password: 'passworD1',
       search_domains: %w(dc=rubyldap,dc=com),
