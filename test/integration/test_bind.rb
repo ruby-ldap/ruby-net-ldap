@@ -110,7 +110,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
                                   ca_file:     CA_FILE),
     )
     error = assert_raise Net::LDAP::Error,
-                         Net::LDAP::ConnectionRefusedError do
+                         Net::LDAP::ConnectionError do
       @ldap.bind BIND_CREDS
     end
     assert_equal("TODO - fix this",
