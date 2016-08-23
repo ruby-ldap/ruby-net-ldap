@@ -153,8 +153,8 @@ class TestBindIntegration < LDAPIntegrationTestCase
                          Net::LDAP::ConnectionError do
       @ldap.bind BIND_CREDS
     end
-    assert_equal("TODO - fix this",
-                 error.message)
+    assert_equal("Unable to connect to any given server: ",
+                 error.message.split("\n").shift)
   end
 
   def test_bind_tls_with_multiple_bogus_hosts_no_verification
