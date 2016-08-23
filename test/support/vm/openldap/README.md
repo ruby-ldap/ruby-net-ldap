@@ -8,7 +8,9 @@ goes away when you run `vagrant destroy`.
 ## Install Vagrant
 
 *NOTE*: The Vagrant gem (`gem install vagrant`) is
-[no longer supported](https://www.vagrantup.com/docs/installation/)
+[no longer supported](https://www.vagrantup.com/docs/installation/). If you've
+previously installed it, run `gem uninstall vagrant`. If you're an rbenv
+user, you probably want to follow that up with `rbenv rehash; hash -r`.
 
 If you use Homebrew on macOS:
 ``` bash
@@ -16,10 +18,12 @@ $ brew update
 $ brew cask install virtualbox
 $ brew cask install vagrant
 $ brew cask install vagrant-manager
+$ vagrant plugin install vagrant-vbguest
 ```
 
 Installing Vagrant and virtualbox on other operating systems is left
-as an exercise to the reader.
+as an exercise to the reader. Note the `vagrant-vbguest` plugin is required
+to update the VirtualBox guest extensions in the guest VM image.
 
 ## Run the tests
 
@@ -54,3 +58,7 @@ $ time bundle exec rake
 $ cd test/support/vm/openldap
 $ vagrant destroy
 ```
+
+If at any point your VM appears to have broken itself, `vagrant destroy`
+from the `test/support/vm/openldap` directory will blow it away. You can
+then do `vagrant up` and start over.
