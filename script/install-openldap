@@ -79,6 +79,15 @@ signing_key
 expiration_days = 3650
 EOF"
 
+# The integration server may be accessed by IP address, in which case
+# we want some of the IPs included in the cert. We skip loopback (127.0.0.1)
+# because that's the IP we use in the integration test for cert name mismatches.
+ADDRS=$(ifconfig -a | grep 'inet addr:' | cut -f 2 -d : | cut -f 1 -d ' ')
+for ip in $ADDRS; do
+  if [ "x$ip" = 'x127.0.0.1' ]; then continue; fi
+  echo "ip_address = $ip" >> /etc/ssl/ldap01.info
+done
+
 # Create the server certificate
 certtool --generate-certificate \
   --load-privkey /etc/ssl/private/ldap01_slapd_key.pem \
@@ -113,6 +122,9 @@ chmod o-r /etc/ssl/private/ldap01_slapd_key.pem
 
 # Drop packets on a secondary port used to specific timeout tests
 iptables -A INPUT -p tcp -j DROP --dport 8389
+
+# Forward a port for Vagrant
+iptables -t nat -A PREROUTING -p tcp --dport 9389 -j REDIRECT --to-port 389
 
 # fix up /etc/hosts for cert validation
 grep ldap01 /etc/hosts || echo "127.0.0.1 ldap01.example.com" >> /etc/hosts
