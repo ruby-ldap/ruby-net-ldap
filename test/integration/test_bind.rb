@@ -61,7 +61,8 @@ class TestBindIntegration < LDAPIntegrationTestCase
       tls_options: TLS_OPTS.merge(verify_mode: OpenSSL::SSL::VERIFY_PEER,
                                   ca_file:     CA_FILE),
     )
-    error = assert_raise Net::LDAP::ConnectionRefusedError do
+    error = assert_raise Net::LDAP::Error,
+                         Net::LDAP::ConnectionRefusedError do
       @ldap.bind BIND_CREDS
     end
     assert_equal(
@@ -108,7 +109,8 @@ class TestBindIntegration < LDAPIntegrationTestCase
       tls_options: TLS_OPTS.merge(verify_mode: OpenSSL::SSL::VERIFY_PEER,
                                   ca_file:     CA_FILE),
     )
-    error = assert_raise Net::LDAP::ConnectionRefusedError do
+    error = assert_raise Net::LDAP::Error,
+                         Net::LDAP::ConnectionRefusedError do
       @ldap.bind BIND_CREDS
     end
     assert_equal("TODO - fix this",
