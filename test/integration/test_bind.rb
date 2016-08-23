@@ -64,4 +64,9 @@ class TestBindIntegration < LDAPIntegrationTestCase
       error.message,
     )
   end
+
+  def test_bind_tls_with_good_hostname
+    omit_if true
+    assert_true false
+  end
 end
