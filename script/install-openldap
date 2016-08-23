@@ -110,6 +110,6 @@ chmod g+r /etc/ssl/private/ldap01_slapd_key.pem
 chmod o-r /etc/ssl/private/ldap01_slapd_key.pem
 
 # Drop packets on a secondary port used to specific timeout tests
-iptables -A OUTPUT -p tcp -j DROP --dport 8389
+iptables -A INPUT -p tcp -j DROP --dport 8389
 
 service slapd restart
