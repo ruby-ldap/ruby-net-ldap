@@ -95,6 +95,22 @@ class TestBindIntegration < LDAPIntegrationTestCase
     )
   end
 
+  def test_bind_tls_with_bad_hostname_ca_no_opt_merge_fails
+    @ldap.host = '127.0.0.1'
+    @ldap.encryption(
+      method:      :start_tls,
+      tls_options: { ca_file: CA_FILE },
+    )
+    error = assert_raise Net::LDAP::Error,
+                         Net::LDAP::ConnectionRefusedError do
+      @ldap.bind BIND_CREDS
+    end
+    assert_equal(
+      "hostname \"#{@ldap.host}\" does not match the server certificate",
+      error.message,
+    )
+  end
+
   def test_bind_tls_with_valid_hostname_default_opts_passes
     @ldap.host = 'localhost'
     @ldap.encryption(
@@ -164,7 +180,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
            @ldap.get_operation_result.inspect
   end
 
-  def test_bind_tls_with_multiple_bogus_hosts_ca_check_only
+  def test_bind_tls_with_multiple_bogus_hosts_ca_check_only_fails
     omit_unless ENV['TRAVIS'] == 'true'
 
     @ldap.host = nil
@@ -173,7 +189,11 @@ class TestBindIntegration < LDAPIntegrationTestCase
       method: :start_tls,
       tls_options: { ca_file: CA_FILE },
     )
-    assert @ldap.bind(BIND_CREDS),
-           @ldap.get_operation_result.inspect
+    error = assert_raise Net::LDAP::Error,
+                         Net::LDAP::ConnectionError do
+      @ldap.bind BIND_CREDS
+    end
+    assert_equal("Unable to connect to any given server: ",
+                 error.message.split("\n").shift)
   end
 end
