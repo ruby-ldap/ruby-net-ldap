@@ -37,8 +37,31 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_verify_none
-    tls_options = OpenSSL::SSL::SSLContext::DEFAULT_PARAMS.merge(:verify_mode => OpenSSL::SSL::VERIFY_NONE)
+    @ldap.host = '127.0.0.1'
+    @ldap.port = 9389
+    tls_options = OpenSSL::SSL::SSLContext::DEFAULT_PARAMS.merge(
+      :verify_mode => OpenSSL::SSL::VERIFY_NONE,
+    )
     @ldap.encryption(method: :start_tls, tls_options: tls_options)
     assert @ldap.bind(method: :simple, username: "uid=user1,ou=People,dc=rubyldap,dc=com", password: "passworD1"), @ldap.get_operation_result.inspect
+  end
+
+  def test_bind_tls_with_bad_hostname
+    @ldap.host = '127.0.0.1'
+    @ldap.port = 9389
+    tls_options = OpenSSL::SSL::SSLContext::DEFAULT_PARAMS.merge(
+      :verify_mode => OpenSSL::SSL::VERIFY_PEER,
+      :ca_file     => CA_FILE,
+    )
+    @ldap.encryption(method: :start_tls, tls_options: tls_options)
+    error = assert_raise Net::LDAP::Error do
+      @ldap.bind(method: :simple,
+                 username: "uid=user1,ou=People,dc=rubyldap,dc=com",
+                 password: "passworD1")
+    end
+    assert_equal(
+      "hostname \"#{@ldap.host}\" does not match the server certificate",
+      error.message,
+    )
   end
 end
