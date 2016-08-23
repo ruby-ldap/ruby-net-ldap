@@ -51,5 +51,3 @@ $ time bundle exec rake
 $ cd test/support/vm/openldap
 $ vagrant destroy
 ```
-
-You may need to `gem install vagrant` first in order to provision the VM.
