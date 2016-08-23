@@ -44,7 +44,6 @@ class TestBindIntegration < LDAPIntegrationTestCase
 
   def test_bind_tls_with_bad_hostname_verify_none_no_ca_passes
     @ldap.host = '127.0.0.1'
-    @ldap.port = 9389 unless ENV['TRAVIS'] == 'true'
     @ldap.encryption(
       method:      :start_tls,
       tls_options: { verify_mode: OpenSSL::SSL::VERIFY_NONE },
@@ -55,7 +54,6 @@ class TestBindIntegration < LDAPIntegrationTestCase
 
   def test_bind_tls_with_bad_hostname_verify_none_no_ca_opt_merge_passes
     @ldap.host = '127.0.0.1'
-    @ldap.port = 9389 unless ENV['TRAVIS'] == 'true'
     @ldap.encryption(
       method:      :start_tls,
       tls_options: TLS_OPTS.merge(verify_mode: OpenSSL::SSL::VERIFY_NONE),
@@ -66,7 +64,6 @@ class TestBindIntegration < LDAPIntegrationTestCase
 
   def test_bind_tls_with_bad_hostname_verify_peer_ca_fails
     @ldap.host = '127.0.0.1'
-    @ldap.port = 9389 unless ENV['TRAVIS'] == 'true'
     @ldap.encryption(
       method:      :start_tls,
       tls_options: { verify_mode: OpenSSL::SSL::VERIFY_PEER,
@@ -84,7 +81,6 @@ class TestBindIntegration < LDAPIntegrationTestCase
 
   def test_bind_tls_with_bad_hostname_ca_default_opt_merge_fails
     @ldap.host = '127.0.0.1'
-    @ldap.port = 9389 unless ENV['TRAVIS'] == 'true'
     @ldap.encryption(
       method:      :start_tls,
       tls_options: TLS_OPTS.merge(ca_file: CA_FILE),
@@ -101,7 +97,6 @@ class TestBindIntegration < LDAPIntegrationTestCase
 
   def test_bind_tls_with_valid_hostname_default_opts_passes
     @ldap.host = 'localhost'
-    @ldap.port = 9389 unless ENV['TRAVIS'] == 'true'
     @ldap.encryption(
       method:      :start_tls,
       tls_options: TLS_OPTS.merge(verify_mode: OpenSSL::SSL::VERIFY_PEER,
@@ -113,7 +108,6 @@ class TestBindIntegration < LDAPIntegrationTestCase
 
   def test_bind_tls_with_valid_hostname_just_verify_peer_ca_passes
     @ldap.host = 'localhost'
-    @ldap.port = 9389 unless ENV['TRAVIS'] == 'true'
     @ldap.encryption(
       method:      :start_tls,
       tls_options: { verify_mode: OpenSSL::SSL::VERIFY_PEER,

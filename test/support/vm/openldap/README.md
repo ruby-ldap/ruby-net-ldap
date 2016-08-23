@@ -34,6 +34,9 @@ $ ip=$(vagrant ssh -- "ifconfig eth1 | grep -o -E '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]
 # change back to root project directory
 $ cd ../../../..
 
+# set the TCP port for testing
+$ export INTEGRATION_PORT=9389
+
 # run all tests, including integration tests
 $ time INTEGRATION=openldap INTEGRATION_HOST=$ip bundle exec rake
 
