@@ -133,6 +133,19 @@ class TestBindIntegration < LDAPIntegrationTestCase
            @ldap.get_operation_result.inspect
   end
 
+  def test_bind_tls_with_bogus_hostname_system_ca_fails
+    @ldap.host = '127.0.0.1'
+    @ldap.encryption(method: :start_tls, tls_options: {})
+    error = assert_raise Net::LDAP::Error,
+                         Net::LDAP::ConnectionRefusedError do
+      @ldap.bind BIND_CREDS
+    end
+    assert_equal(
+      "hostname \"#{@ldap.host}\" does not match the server certificate",
+      error.message,
+    )
+  end
+
   # The following depend on /etc/hosts hacking.
   # We can do that on CI, but it's less than cool on people's dev boxes
   def test_bind_tls_with_multiple_hosts
@@ -195,5 +208,15 @@ class TestBindIntegration < LDAPIntegrationTestCase
     end
     assert_equal("Unable to connect to any given server: ",
                  error.message.split("\n").shift)
+  end
+
+  # This test is CI-only because we can't add the fixture CA
+  # to the system CA store on people's dev boxes.
+  def test_bind_tls_valid_hostname_system_ca_on_travis_passes
+    omit_unless ENV['TRAVIS'] == 'true'
+
+    @ldap.encryption(method: :start_tls, tls_options: {})
+    assert @ldap.bind(BIND_CREDS),
+           @ldap.get_operation_result.inspect
   end
 end
