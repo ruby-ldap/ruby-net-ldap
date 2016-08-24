@@ -217,7 +217,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
 
     @ldap.encryption(
       method: :start_tls,
-      tls_options: TLS_OPTS.merge(verify_mode: OpenSSL::SSL::VERIFY_PEER),
+      tls_options: { verify_mode: OpenSSL::SSL::VERIFY_PEER },
     )
     assert @ldap.bind(BIND_CREDS),
            @ldap.get_operation_result.inspect
@@ -231,7 +231,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
 
     @ldap.encryption(
       method: :start_tls,
-      tls_options: TLS_OPTS.merge(verify_mode: OpenSSL::SSL::VERIFY_PEER),
+      tls_options: { verify_mode: OpenSSL::SSL::VERIFY_PEER },
     )
     error = assert_raise Net::LDAP::Error do
       @ldap.bind BIND_CREDS
