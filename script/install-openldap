@@ -59,7 +59,7 @@ export CA_KEY="/etc/ssl/private/rubyldap-ca.key"
 cp "${SEED_PATH}/ca/cacert.pem" "${CA_CERT}"
 cp "${SEED_PATH}/ca/cakey.pem"  "${CA_KEY}"
 
-# actually add the fake CA to the system store
+# actually add the fixture CA to the system store
 update-ca-certificates
 
 # Make a private key for the server:
