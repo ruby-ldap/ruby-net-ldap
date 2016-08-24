@@ -510,7 +510,7 @@ class Net::LDAP
   #     # ... set host, bind dn, etc ...
   #     encryption: {
   #       method: :simple_tls,
-  #       tls_options: { OpenSSL::SSL::SSLContext::DEFAULT_PARAMS },
+  #       tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS,
   #     }
   #   )
   #
