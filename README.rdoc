@@ -52,12 +52,10 @@ This task will run the test suite and the
 
   rake rubotest
 
-To run the integration tests against an LDAP server:
-
-  cd test/support/vm/openldap
-  vagrant up
-  cd ../../../..
-  INTEGRATION=openldap bundle exec rake rubotest
+CI takes too long? If your local box supports
+{Vagrant}[https://www.vagrantup.com/], you can run most of the tests
+in a VM on your local box. For more details and setup instructions, see
+{test/support/vm/openldap/README.md}[https://github.com/ruby-ldap/ruby-net-ldap/tree/master/test/support/vm/openldap/README.md]
 
 == Release
 

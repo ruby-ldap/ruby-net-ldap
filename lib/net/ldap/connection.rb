@@ -52,6 +52,15 @@ class Net::LDAP::Connection #:nodoc:
     hosts.each do |host, port|
       begin
         prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts)), timeout)
+        if encryption
+          if encryption[:tls_options] &&
+             encryption[:tls_options][:verify_mode] &&
+             encryption[:tls_options][:verify_mode] == OpenSSL::SSL::VERIFY_NONE
+            warn "not verifying SSL hostname of LDAPS server '#{host}:#{port}'"
+          else
+            @conn.post_connection_check(host)
+          end
+        end
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
              OpenSSL::SSL::SSLError => e
@@ -392,12 +401,11 @@ class Net::LDAP::Connection #:nodoc:
         # should collect this into a private helper to clarify the structure
         query_limit = 0
         if size > 0
-          if paged
-            query_limit = (((size - n_results) < 126) ? (size -
-                                                              n_results) : 0)
-          else
-            query_limit = size
-          end
+          query_limit = if paged
+                          (((size - n_results) < 126) ? (size - n_results) : 0)
+                        else
+                          size
+                        end
         end
 
         request = [
