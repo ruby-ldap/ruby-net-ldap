@@ -546,6 +546,10 @@ class Net::LDAP
   def initialize(args = {})
     @uri = URI.parse(args[:uri] || '')
 
+    unless ['ldaps', 'ldap'].include? @uri.scheme
+      raise ProtocolNotSupported,
+            "scheme '#{@uri.scheme}' unsupported, use 'ldap' or 'ldaps'"
+    end
     @host = args[:host] || @uri.host || DefaultHost
     @port = args[:port] || @uri.port || DefaultPort
     @hosts = args[:hosts]

@@ -70,4 +70,5 @@ class Net::LDAP
   class FilterTypeUnknownError < Error; end
   class FilterSyntaxInvalidError < Error; end
   class EntryOverflowError < Error; end
+  class ProtocolNotSupported < Error; end
 end
