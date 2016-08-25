@@ -507,13 +507,13 @@ class Net::LDAP
   #   talking over the public internet), you need to set :tls_options
   #   something like this...
   #
-  #   Net::LDAP.new(
-  #     # ... set host, bind dn, etc ...
-  #     encryption: {
-  #       method: :simple_tls,
-  #       tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS,
-  #     }
-  #   )
+  #     Net::LDAP.new(
+  #       # ... set host, bind dn, etc ...
+  #       encryption: {
+  #         method: :simple_tls,
+  #         tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS,
+  #       }
+  #     )
   #
   #   The above will use the operating system-provided store of CA
   #   certificates to validate your LDAP server's cert.
@@ -528,17 +528,16 @@ class Net::LDAP
   #   `update-ca-certificates`), then the cert should pass validation.
   #   To ignore the OS's CA store, put your CA in a PEM-encoded file and...
   #
-  #   encryption: {
-  #     method:      :simple_tls,
-  #     tls_options: { ca_file:     '/path/to/my-little-ca.pem',
-  #                    ssl_version: 'TLSv1_1' },
-  #   }
+  #     encryption: {
+  #       method:      :simple_tls,
+  #       tls_options: { ca_file:     '/path/to/my-little-ca.pem',
+  #                      ssl_version: 'TLSv1_1' },
+  #     }
   #
   #   As you might guess, the above example also fails the connection
   #   if the client can't negotiate TLS v1.1.
-  #   tls_options is ultimately passed to OpenSSL::SSL::SSLContext#set_params
-  #   For more details, see
-  #    http://ruby-doc.org/stdlib-2.0.0/libdoc/openssl/rdoc/OpenSSL/SSL/SSLContext.html
+  #   tls_options is ultimately passed to
+  #   +OpenSSL::SSL::SSLContext#set_params+, For more details, see http://ruby-doc.org/stdlib-2.0.0/libdoc/openssl/rdoc/OpenSSL/SSL/SSLContext.html
   #
   # Instantiating a Net::LDAP object does <i>not</i> result in network
   # traffic to the LDAP server. It simply stores the connection and binding
