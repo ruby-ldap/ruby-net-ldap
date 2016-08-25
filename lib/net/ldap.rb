@@ -545,7 +545,7 @@ class Net::LDAP
   # cert validation errors itself; #bind does instead.
   def initialize(args = {})
     # URI.parse('') returns a valid URI object, but with all its
-    # attributes set to nil. This is convenient for chainging the '||'
+    # attributes set to nil. This is convenient for chained '||'
     @uri = URI.parse(args[:uri] || '')
 
     unless ['ldaps', 'ldap'].include? @uri.scheme
