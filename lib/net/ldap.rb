@@ -1,5 +1,6 @@
 # -*- ruby encoding: utf-8 -*-
 require 'ostruct'
+require 'uri'
 
 module Net # :nodoc:
   class LDAP
@@ -544,18 +545,28 @@ class Net::LDAP
   # parameters in the object. That's why Net::LDAP.new doesn't throw
   # cert validation errors itself; #bind does instead.
   def initialize(args = {})
-    @host = args[:host] || DefaultHost
-    @port = args[:port] || DefaultPort
+    @uri = URI.parse(args[:uri] || '')
+
+    @host = args[:host] || @uri.host || DefaultHost
+    @port = args[:port] || @uri.port || DefaultPort
     @hosts = args[:hosts]
     @verbose = false # Make this configurable with a switch on the class.
     @auth = args[:auth] || DefaultAuth
     @base = args[:base] || DefaultTreebase
     @force_no_page = args[:force_no_page] || DefaultForceNoPage
     @encryption = normalize_encryption(args[:encryption]) # may be nil
+    if @uri.scheme == 'ldaps'
+      @encryption ||= {}
+      @encryption[:method] = :simple_tls
+    end
     @connect_timeout = args[:connect_timeout]
 
     if pr = @auth[:password] and pr.respond_to?(:call)
       @auth[:password] = pr.call
+    elsif @uri.user || @uri.password
+      @auth[:method] = :simple
+      @auth[:username] ||= @uri.user if @uri.user
+      @auth[:password] ||= @uri.password if @uri.password
     end
 
     @instrumentation_service = args[:instrumentation_service]
