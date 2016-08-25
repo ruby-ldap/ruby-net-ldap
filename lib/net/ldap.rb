@@ -551,7 +551,11 @@ class Net::LDAP
     @hosts = args[:hosts]
     @verbose = false # Make this configurable with a switch on the class.
     @auth = args[:auth] || DefaultAuth
-    @base = args[:base] || DefaultTreebase
+    @base = args[:base] || if @uri.path && @uri.path.length > 1
+                             URI.decode(@uri.path[1..-1])
+                           else
+                             DefaultTreebase
+                           end
     @force_no_page = args[:force_no_page] || DefaultForceNoPage
     @encryption = normalize_encryption(args[:encryption]) # may be nil
     if @uri.scheme == 'ldaps'
