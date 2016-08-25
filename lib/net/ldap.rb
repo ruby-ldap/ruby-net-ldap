@@ -566,10 +566,6 @@ class Net::LDAP
 
     if pr = @auth[:password] and pr.respond_to?(:call)
       @auth[:password] = pr.call
-    elsif @uri.user || @uri.password
-      @auth[:method] = :simple
-      @auth[:username] ||= @uri.user if @uri.user
-      @auth[:password] ||= @uri.password if @uri.password
     end
 
     @instrumentation_service = args[:instrumentation_service]
