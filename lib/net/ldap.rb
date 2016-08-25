@@ -544,6 +544,8 @@ class Net::LDAP
   # parameters in the object. That's why Net::LDAP.new doesn't throw
   # cert validation errors itself; #bind does instead.
   def initialize(args = {})
+    # URI.parse('') returns a valid URI object, but with all its
+    # attributes set to nil. This is convenient for chainging the '||'
     @uri = URI.parse(args[:uri] || '')
 
     unless ['ldaps', 'ldap'].include? @uri.scheme
