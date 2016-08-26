@@ -549,7 +549,7 @@ class Net::LDAP
     # attributes set to nil. This is convenient for chained '||'
     @uri = URI.parse(args[:uri] || '')
 
-    unless ['ldaps', 'ldap'].include? @uri.scheme
+    unless [nil, 'ldaps', 'ldap'].include? @uri.scheme
       raise ProtocolNotSupported,
             "scheme '#{@uri.scheme}' unsupported, use 'ldap' or 'ldaps'"
     end
