@@ -82,6 +82,8 @@ Metrics/BlockNesting:
 # Configuration parameters: CountComments.
 Metrics/ClassLength:
   Max: 431
+  Exclude:
+    - 'lib/net/ldap.rb'
 
 # Offense count: 22
 Metrics/CyclomaticComplexity:
