@@ -547,19 +547,19 @@ class Net::LDAP
   def initialize(args = {})
     # URI.parse('') returns a valid URI object, but with all its
     # attributes set to nil. This is convenient for chained '||'
-    @uri = URI.parse(args[:uri] || '')
+    @url = URI.parse(args[:uri] || '')
 
-    unless [nil, 'ldaps', 'ldap'].include? @uri.scheme
+    unless [nil, 'ldaps', 'ldap'].include? @url.scheme
       raise ProtocolNotSupported,
-            "scheme '#{@uri.scheme}' unsupported, use 'ldap' or 'ldaps'"
+            "scheme '#{@url.scheme}' unsupported, use 'ldap' or 'ldaps'"
     end
-    @host = args[:host] || @uri.host || DefaultHost
-    @port = args[:port] || @uri.port || DefaultPort
+    @host = args[:host] || @url.host || DefaultHost
+    @port = args[:port] || @url.port || DefaultPort
     @hosts = args[:hosts]
     @verbose = false # Make this configurable with a switch on the class.
     @auth = args[:auth] || DefaultAuth
-    @base = args[:base] || if @uri.path && @uri.path.length > 1
-                             URI.decode(@uri.path[1..-1])
+    @base = args[:base] || if @url.path && @url.path.length > 1
+                             URI.decode(@url.path[1..-1])
                            else
                              DefaultTreebase
                            end
@@ -1348,7 +1348,7 @@ class Net::LDAP
       "encryption may be hash, nil, or one of [:simple_tls, :start_tls, true]"
 
     if args.nil?
-      return nil unless @uri.scheme == 'ldaps'
+      return nil unless @url.scheme == 'ldaps'
       { method:      :simple_tls,
         tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS }
     elsif args.is_a? Hash
@@ -1359,7 +1359,7 @@ class Net::LDAP
         { method:      method,
           tls_options: {} }
       when :true
-        scheme = if @uri.scheme == 'ldaps' || @port == DefaultTlsPort
+        scheme = if @url.scheme == 'ldaps' || @port == DefaultTlsPort
                    :simple_tls
                  else
                    :start_tls
