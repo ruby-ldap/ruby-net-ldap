@@ -1352,7 +1352,7 @@ class Net::LDAP
       { method:      :simple_tls,
         tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS }
     elsif args.is_a? Hash
-      if args[:tls_options].to_sym == :default
+      if !args[:tls_options].nil? && args[:tls_options].to_s.to_sym == :default
         args.merge(tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS)
       else
         args
