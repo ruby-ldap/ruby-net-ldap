@@ -51,6 +51,15 @@ class Net::LDAP::Connection #:nodoc:
     hosts.each do |host, port|
       begin
         prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts)), timeout)
+        if encryption
+          if encryption[:tls_options] &&
+             encryption[:tls_options][:verify_mode] &&
+             encryption[:tls_options][:verify_mode] == OpenSSL::SSL::VERIFY_NONE
+            warn "not verifying SSL hostname of LDAPS server '#{host}:#{port}'"
+          else
+            @conn.post_connection_check(host)
+          end
+        end
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
              OpenSSL::SSL::SSLError => e
@@ -94,17 +103,13 @@ class Net::LDAP::Connection #:nodoc:
         conn.connect
       end
     rescue IO::WaitReadable
-      if IO.select([conn], nil, nil, timeout)
-        retry
-      else
-        raise Errno::ETIMEDOUT, "OpenSSL connection read timeout"
-      end
+      raise Errno::ETIMEDOUT, "OpenSSL connection read timeout" unless
+        IO.select([conn], nil, nil, timeout)
+      retry
     rescue IO::WaitWritable
-      if IO.select(nil, [conn], nil, timeout)
-        retry
-      else
-        raise Errno::ETIMEDOUT, "OpenSSL connection write timeout"
-      end
+      raise Errno::ETIMEDOUT, "OpenSSL connection write timeout" unless
+        IO.select(nil, [conn], nil, timeout)
+      retry
     end
 
     # Doesn't work:
@@ -162,11 +167,9 @@ class Net::LDAP::Connection #:nodoc:
         raise Net::LDAP::NoStartTLSResultError, "no start_tls result"
       end
 
-      if pdu.result_code.zero?
-        @conn = self.class.wrap_with_ssl(@conn, args[:tls_options], timeout)
-      else
-        raise Net::LDAP::StartTLSError, "start_tls failed: #{pdu.result_code}"
-      end
+      raise Net::LDAP::StartTLSError,
+            "start_tls failed: #{pdu.result_code}" unless pdu.result_code.zero?
+      @conn = self.class.wrap_with_ssl(@conn, args[:tls_options], timeout)
     else
       raise Net::LDAP::EncMethodUnsupportedError, "unsupported encryption method #{args[:method]}"
     end
@@ -196,12 +199,10 @@ class Net::LDAP::Connection #:nodoc:
 
     # read messages until we have a match for the given message_id
     while pdu = read
-      if pdu.message_id == message_id
-        return pdu
-      else
-        message_queue[pdu.message_id].push pdu
-        next
-      end
+      return pdu if pdu.message_id == message_id
+
+      message_queue[pdu.message_id].push pdu
+      next
     end
 
     pdu
@@ -399,12 +400,11 @@ class Net::LDAP::Connection #:nodoc:
         # should collect this into a private helper to clarify the structure
         query_limit = 0
         if size > 0
-          if paged
-            query_limit = (((size - n_results) < 126) ? (size -
-                                                              n_results) : 0)
-          else
-            query_limit = size
-          end
+          query_limit = if paged
+                          (((size - n_results) < 126) ? (size - n_results) : 0)
+                        else
+                          size
+                        end
         end
 
         request = [
