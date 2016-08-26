@@ -336,6 +336,7 @@ class Net::LDAP
 
   DefaultHost = "127.0.0.1"
   DefaultPort = 389
+  DefaultTlsPort = 636
   DefaultAuth = { :method => :anonymous }
   DefaultTreebase = "dc=com"
   DefaultForceNoPage = false
@@ -564,10 +565,6 @@ class Net::LDAP
                            end
     @force_no_page = args[:force_no_page] || DefaultForceNoPage
     @encryption = normalize_encryption(args[:encryption]) # may be nil
-    if @uri.scheme == 'ldaps'
-      @encryption ||= {}
-      @encryption[:method] = :simple_tls
-    end
     @connect_timeout = args[:connect_timeout]
 
     if pr = @auth[:password] and pr.respond_to?(:call)
@@ -1347,12 +1344,31 @@ class Net::LDAP
   # Normalize encryption parameter the constructor accepts, expands a few
   # convenience symbols into recognizable hashes
   def normalize_encryption(args)
-    return if args.nil?
-    return args if args.is_a? Hash
+    valid_args =
+      "encryption may be hash, nil, or one of [:simple_tls, :start_tls, true]"
 
-    case method = args.to_sym
-    when :simple_tls, :start_tls
-      { :method => method, :tls_options => {} }
+    if args.nil?
+      return nil unless @uri.scheme == 'ldaps'
+      { method:      :simple_tls,
+        tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS }
+    elsif args.is_a? Hash
+      args
+    else
+      case method = args.to_s.to_sym
+      when :simple_tls, :start_tls
+        { method:      method,
+          tls_options: {} }
+      when :true
+        scheme = if @uri.scheme == 'ldaps' || @port == DefaultTlsPort
+                   :simple_tls
+                 else
+                   :start_tls
+                 end
+        { method:      scheme,
+          tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS }
+      else
+        raise ArgumentError, valid_args
+      end
     end
   end
 
