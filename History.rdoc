@@ -1,3 +1,9 @@
+=== Net::LDAP 0.16.0
+
+* Sasl fix {#281}[https://github.com/ruby-ldap/ruby-net-ldap/pull/281]
+* enable TLS hostname validation {#279}[https://github.com/ruby-ldap/ruby-net-ldap/pull/279]
+* update rubocop to 0.42.0 {#278}[https://github.com/ruby-ldap/ruby-net-ldap/pull/278]
+
 === Net::LDAP 0.15.0
 
 * Respect connect_timeout when establishing SSL connections {#273}[https://github.com/ruby-ldap/ruby-net-ldap/pull/273]
