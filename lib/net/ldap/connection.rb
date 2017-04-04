@@ -471,34 +471,9 @@ class Net::LDAP::Connection #:nodoc:
         payload[:page_count] ||= 0
         payload[:page_count]  += 1
 
-        # When we get here, we have seen a type-5 response. If there is no
-        # error AND there is an RFC-2696 cookie, then query again for the next
-        # page of results. If not, we're done. Don't screw this up or we'll
-        # break every search we do.
-        #
-        # Noticed 02Sep06, look at the read_ber call in this loop, shouldn't
-        # that have a parameter of AsnSyntax? Does this just accidentally
-        # work? According to RFC-2696, the value expected in this position is
-        # of type OCTET STRING, covered in the default syntax supported by
-        # read_ber, so I guess we're ok.
-        more_pages = false
-        if result_pdu.result_code == Net::LDAP::ResultCodeSuccess and controls
-          controls.each do |c|
-            if c.oid == Net::LDAP::LDAPControls::PAGED_RESULTS
-              # just in case some bogus server sends us more than 1 of these.
-              more_pages = false
-              if c.value and c.value.length > 0
-                cookie = c.value.read_ber[1]
-                if cookie and cookie.length > 0
-                  rfc2696_cookie[1] = cookie
-                  more_pages = true
-                end
-              end
-            end
-          end
-        end
-
-        break unless more_pages
+        cookie = next_search_result_cookie(result_pdu.result_code, controls)
+        break if cookie.nil?
+        rfc2696_cookie[1] = cookie
       end # loop
 
       # track total result count
@@ -517,6 +492,32 @@ class Net::LDAP::Connection #:nodoc:
       instrument "search_messages_unread.net_ldap_connection",
                  message_id: message_id, messages: messages
     end
+  end
+
+  ##
+  # Return RFC 2696 search result cookie
+  #
+  # RFC 2696 describes an LDAPv3 control extension for simple paging of search
+  # results. See http://www.ietf.org/rfc/rfc2696.txt.
+  #
+  # If there is no error AND there is an RFC-2696 cookie, then query again for
+  # the next page of results.
+
+  def next_search_result_cookie(result_code, controls)
+    found_cookie = nil
+    if result_code == Net::LDAP::ResultCodeSuccess && controls
+      controls.each do |c|
+        if c.oid == Net::LDAP::LDAPControls::PAGED_RESULTS
+          if c.value && c.value.length > 0
+            cookie = c.value.read_ber[1]
+            if cookie && cookie.length > 0
+              found_cookie = cookie
+            end
+          end
+        end
+      end
+    end
+    found_cookie
   end
 
   MODIFY_OPERATIONS = { #:nodoc:
