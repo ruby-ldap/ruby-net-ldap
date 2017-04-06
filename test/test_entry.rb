@@ -39,6 +39,21 @@ class TestEntry < Test::Unit::TestCase
     assert_equal ['Jensen'], @entry['Sn']
     assert_equal ['Jensen'], @entry['SN']
   end
+
+  def test_to_h
+    @entry['sn'] = 'Jensen'
+    expected     = {
+      dn: ['cn=Barbara,o=corp'],
+      sn: ['Jensen'],
+    }
+    duplicate = @entry.to_h
+    assert_equal expected, duplicate
+
+    # check that changing the duplicate
+    # does not affect the internal state
+    duplicate.delete(:sn)
+    assert_not_equal duplicate, @entry.to_h
+  end
 end
 
 class TestEntryLDIF < Test::Unit::TestCase
