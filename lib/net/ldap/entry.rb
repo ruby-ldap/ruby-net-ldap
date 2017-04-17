@@ -154,6 +154,12 @@ class Net::LDAP::Entry
     Net::LDAP::Dataset.from_entry(self).to_ldif_string
   end
 
+  ##
+  # Converts the Entry to a Hash
+  def to_h
+    @myhash
+  end
+
   def respond_to?(sym, include_all = false) #:nodoc:
     return true if valid_attribute?(self.class.attribute_name(sym))
     return super
