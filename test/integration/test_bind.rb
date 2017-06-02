@@ -122,6 +122,25 @@ class TestBindIntegration < LDAPIntegrationTestCase
            @ldap.get_operation_result.inspect
   end
 
+  def test_bind_tls_with_valid_hostname_no_tls_options_passes
+    @ldap.host = 'localhost'
+    @ldap.encryption(
+      method:      :start_tls,
+    )
+    assert @ldap.bind(BIND_CREDS),
+           @ldap.get_operation_result.inspect
+  end
+
+  def test_bind_tls_with_valid_hostname_empty_tls_options_passes
+    @ldap.host = 'localhost'
+    @ldap.encryption(
+      method:      :start_tls,
+      tls_options: {},
+    )
+    assert @ldap.bind(BIND_CREDS),
+           @ldap.get_operation_result.inspect
+  end
+
   def test_bind_tls_with_valid_hostname_just_verify_peer_ca_passes
     @ldap.host = 'localhost'
     @ldap.encryption(
