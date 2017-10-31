@@ -1,3 +1,7 @@
+=== Net::LDAP 0.16.1
+
+* Send DN and newPassword with password_modify request {#271}[https://github.com/ruby-ldap/ruby-net-ldap/pull/271]
+
 === Net::LDAP 0.16.0
 
 * Sasl fix {#281}[https://github.com/ruby-ldap/ruby-net-ldap/pull/281]
