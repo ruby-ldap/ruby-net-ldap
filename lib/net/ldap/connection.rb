@@ -592,11 +592,11 @@ class Net::LDAP::Connection #:nodoc:
 
     ext_seq = [Net::LDAP::PasswdModifyOid.to_ber_contextspecific(0)]
 
-    unless args[:old_password].nil?
-      pwd_seq = [args[:old_password].to_ber(0x81)]
-      pwd_seq << args[:new_password].to_ber(0x82) unless args[:new_password].nil?
-      ext_seq << pwd_seq.to_ber_sequence.to_ber(0x81)
-    end
+    pwd_seq = []
+    pwd_seq << dn.to_ber(0x80)
+    pwd_seq << args[:old_password].to_ber(0x81) unless args[:old_password].nil?
+    pwd_seq << args[:new_password].to_ber(0x82) unless args[:new_password].nil?
+    ext_seq << pwd_seq.to_ber_sequence.to_ber(0x81)
 
     request = ext_seq.to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
 
