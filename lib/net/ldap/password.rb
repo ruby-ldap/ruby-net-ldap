@@ -1,5 +1,6 @@
 # -*- ruby encoding: utf-8 -*-
 require 'digest/sha1'
+require 'digest/sha2'
 require 'digest/md5'
 require 'base64'
 require 'securerandom'
@@ -23,12 +24,15 @@ class Net::LDAP::Password
     def generate(type, str)
       case type
       when :md5
-         attribute_value = '{MD5}' + Base64.encode64(Digest::MD5.digest(str)).chomp!
+         attribute_value = '{MD5}' + Base64.strict_encode64(Digest::MD5.digest(str))
       when :sha
-         attribute_value = '{SHA}' + Base64.encode64(Digest::SHA1.digest(str)).chomp!
+         attribute_value = '{SHA}' + Base64.strict_encode64(Digest::SHA1.digest(str))
       when :ssha
          salt = SecureRandom.random_bytes(16)
-         attribute_value = '{SSHA}' + Base64.encode64(Digest::SHA1.digest(str + salt) + salt).chomp!
+         attribute_value = '{SSHA}' + Base64.strict_encode64(Digest::SHA1.digest(str + salt) + salt)
+      when :ssha256
+        salt = SecureRandom.random_bytes(16)
+        attribute_value = '{SSHA256}' + Base64.strict_encode64(Digest::SHA256.digest(str + salt) + salt)
       else
          raise Net::LDAP::HashTypeUnsupportedError, "Unsupported password-hash type (#{type})"
       end
