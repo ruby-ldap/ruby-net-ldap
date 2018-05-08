@@ -467,6 +467,8 @@ class Net::LDAP::Connection #:nodoc:
           end
         end
 
+
+
         # count number of pages of results
         payload[:page_count] ||= 0
         payload[:page_count]  += 1
@@ -606,7 +608,7 @@ class Net::LDAP::Connection #:nodoc:
     pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::ExtendedResponse
-      raise Net::LDAP::ResponseMissingError, "response missing or invalid"
+      raise Net::LDAP::ResponseMissingOrInvalidError, "response missing or invalid"
     end
 
     pdu
