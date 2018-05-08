@@ -467,8 +467,6 @@ class Net::LDAP::Connection #:nodoc:
           end
         end
 
-
-
         # count number of pages of results
         payload[:page_count] ||= 0
         payload[:page_count]  += 1
