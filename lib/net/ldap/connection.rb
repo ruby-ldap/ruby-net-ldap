@@ -81,8 +81,7 @@ class Net::LDAP::Connection #:nodoc:
   module FixSSLSocketSyncClose
     def close
       super
-      return if io.closed?
-      io.close
+      io.close unless io.closed?
     end
   end
 
