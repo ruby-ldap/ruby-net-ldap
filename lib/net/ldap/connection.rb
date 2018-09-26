@@ -467,6 +467,10 @@ class Net::LDAP::Connection #:nodoc:
           end
         end
 
+        if result_pdu.nil?
+          raise Net::LDAP::ResponseMissingOrInvalidError, "response missing"
+        end
+
         # count number of pages of results
         payload[:page_count] ||= 0
         payload[:page_count]  += 1
