@@ -553,6 +553,7 @@ class Net::LDAP
     @force_no_page = args[:force_no_page] || DefaultForceNoPage
     @encryption = normalize_encryption(args[:encryption]) # may be nil
     @connect_timeout = args[:connect_timeout]
+    @io_timeout = args[:io_timeout]
 
     if pr = @auth[:password] and pr.respond_to?(:call)
       @auth[:password] = pr.call
@@ -1293,14 +1294,19 @@ class Net::LDAP
   # result from that, and :use_connection: will not yield at all. If not
   # the return value is whatever is returned from the block.
   def use_connection(args)
+    timeout_args = args.slice(:io_timeout).values
     if @open_connection
-      yield @open_connection
+      @open_connection.with_timeout(*timeout_args) do
+        yield(@open_connection)
+      end
     else
       begin
         conn = new_connection
-        result = conn.bind(args[:auth] || @auth)
-        return result unless result.result_code == Net::LDAP::ResultCodeSuccess
-        yield conn
+        conn.with_timeout(*timeout_args) do
+          result = conn.bind(args[:auth] || @auth)
+          return result unless result.result_code == Net::LDAP::ResultCodeSuccess
+          yield(conn)
+        end
       ensure
         conn.close if conn
       end
@@ -1315,7 +1321,8 @@ class Net::LDAP
       :hosts                   => @hosts,
       :encryption              => @encryption,
       :instrumentation_service => @instrumentation_service,
-      :connect_timeout         => @connect_timeout
+      :connect_timeout         => @connect_timeout,
+      :io_timeout              => @io_timeout
 
     # Force connect to see if there's a connection error
     connection.socket

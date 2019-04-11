@@ -4,7 +4,7 @@ class Net::LDAP::Connection #:nodoc:
   include Net::LDAP::Instrumentation
 
   # Seconds before failing for socket connect timeout
-  DefaultConnectTimeout = 5
+  DefaultTimeout = 5
 
   LdapVersion = 3
 
@@ -38,11 +38,17 @@ class Net::LDAP::Connection #:nodoc:
     setup_encryption(encryption, timeout) if encryption
   end
 
+  # Internal: simple private method that can be replaced, if necessary, to allow this warning to be modified
+  def ssl_verify_warning(host, port)
+    warn "not verifying SSL hostname of LDAPS server '#{host}:#{port}'"
+  end
+  private :ssl_verify_warning
+
   def open_connection(server)
     hosts = server[:hosts]
     encryption = server[:encryption]
 
-    timeout = server[:connect_timeout] || DefaultConnectTimeout
+    timeout = server[:connect_timeout] || DefaultTimeout
     socket_opts = {
       connect_timeout: timeout,
     }
@@ -55,7 +61,7 @@ class Net::LDAP::Connection #:nodoc:
           if encryption[:tls_options] &&
              encryption[:tls_options][:verify_mode] &&
              encryption[:tls_options][:verify_mode] == OpenSSL::SSL::VERIFY_NONE
-            warn "not verifying SSL hostname of LDAPS server '#{host}:#{port}'"
+            ssl_verify_warning_handler(host, port)
           else
             @conn.post_connection_check(host)
           end
@@ -66,9 +72,6 @@ class Net::LDAP::Connection #:nodoc:
         # Ensure the connection is closed in the event a setup failure.
         close
         errors << [e, host, port]
-      end
-      if server[:timeout]
-        @conn.read_ber_timeout = server[:timeout]
       end
     end
 
@@ -264,7 +267,7 @@ class Net::LDAP::Connection #:nodoc:
   def write(request, controls = nil, message_id = next_msgid)
     instrument "write.net_ldap_connection" do |payload|
       packet = [message_id.to_ber, request, controls].compact.to_ber_sequence
-      payload[:content_length] = socket.write(packet)
+      payload[:content_length] = socket.ber_timeout_write(packet)
     end
   end
   private :write
@@ -274,11 +277,19 @@ class Net::LDAP::Connection #:nodoc:
     @msgid += 1
   end
 
+  ##
+  # calls with_timeout on socket, with timeout defaulting to the :io_timeout parameter
+  def with_timeout(timeout=@server[:io_timeout], &block)
+    socket.with_timeout(timeout, &block)
+  end
+
   def bind(auth)
-    instrument "bind.net_ldap_connection" do |payload|
-      payload[:method] = meth = auth[:method]
-      adapter = Net::LDAP::AuthAdapter[meth]
-      adapter.new(self).bind(auth)
+    with_timeout do
+      instrument "bind.net_ldap_connection" do |payload|
+        payload[:method] = meth = auth[:method]
+        adapter = Net::LDAP::AuthAdapter[meth]
+        adapter.new(self).bind(auth)
+      end
     end
   end
 
@@ -388,6 +399,12 @@ class Net::LDAP::Connection #:nodoc:
 
     message_id = next_msgid
 
+    timeout = if time > 0
+                time + 0.5 #give remote server half a second to respond before killing connection
+              else
+                @server[:io_timeout]
+              end
+
     instrument "search.net_ldap_connection",
                message_id: message_id,
                filter:     filter,
@@ -399,115 +416,116 @@ class Net::LDAP::Connection #:nodoc:
                referrals:  refs,
                deref:      deref,
                attributes: attrs do |payload|
-      loop do
-        # should collect this into a private helper to clarify the structure
-        query_limit = 0
-        if size > 0
-          query_limit = if paged
-                          (((size - n_results) < 126) ? (size - n_results) : 0)
-                        else
-                          size
-                        end
-        end
-
-        request = [
-          base.to_ber,
-          scope.to_ber_enumerated,
-          deref.to_ber_enumerated,
-          query_limit.to_ber, # size limit
-          time.to_ber,
-          attrs_only.to_ber,
-          filter.to_ber,
-          ber_attrs.to_ber_sequence,
-        ].to_ber_appsequence(Net::LDAP::PDU::SearchRequest)
-
-        # rfc2696_cookie sometimes contains binary data from Microsoft Active Directory
-        # this breaks when calling to_ber. (Can't force binary data to UTF-8)
-        # we have to disable paging (even though server supports it) to get around this...
-
-        controls = []
-        controls <<
-          [
-            Net::LDAP::LDAPControls::PAGED_RESULTS.to_ber,
-            # Criticality MUST be false to interoperate with normal LDAPs.
-            false.to_ber,
-            rfc2696_cookie.map(&:to_ber).to_ber_sequence.to_s.to_ber,
-          ].to_ber_sequence if paged
-        controls << ber_sort if ber_sort
-        controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
-
-        write(request, controls, message_id)
-
-        result_pdu = nil
-        controls = []
-
-        while pdu = queued_read(message_id)
-          case pdu.app_tag
-          when Net::LDAP::PDU::SearchReturnedData
-            n_results += 1
-            yield pdu.search_entry if block_given?
-          when Net::LDAP::PDU::SearchResultReferral
-            if refs
-              if block_given?
-                se = Net::LDAP::Entry.new
-                se[:search_referrals] = (pdu.search_referrals || [])
-                yield se
-              end
-            end
-          when Net::LDAP::PDU::SearchResult
-            result_pdu = pdu
-            controls = pdu.result_controls
-            if refs && pdu.result_code == Net::LDAP::ResultCodeReferral
-              if block_given?
-                se = Net::LDAP::Entry.new
-                se[:search_referrals] = (pdu.search_referrals || [])
-                yield se
-              end
-            end
-            break
-          else
-            raise Net::LDAP::ResponseTypeInvalidError, "invalid response-type in search: #{pdu.app_tag}"
+      with_timeout(timeout) do
+        loop do
+          # should collect this into a private helper to clarify the structure
+          query_limit = 0
+          if size > 0
+            query_limit = if paged
+                            (((size - n_results) < 126) ? (size - n_results) : 0)
+                          else
+                            size
+                          end
           end
-        end
 
-        if result_pdu.nil?
-          raise Net::LDAP::ResponseMissingOrInvalidError, "response missing"
-        end
+          request = [
+            base.to_ber,
+            scope.to_ber_enumerated,
+            deref.to_ber_enumerated,
+            query_limit.to_ber, # size limit
+            time.to_ber,
+            attrs_only.to_ber,
+            filter.to_ber,
+            ber_attrs.to_ber_sequence,
+          ].to_ber_appsequence(Net::LDAP::PDU::SearchRequest)
 
-        # count number of pages of results
-        payload[:page_count] ||= 0
-        payload[:page_count]  += 1
+          # rfc2696_cookie sometimes contains binary data from Microsoft Active Directory
+          # this breaks when calling to_ber. (Can't force binary data to UTF-8)
+          # we have to disable paging (even though server supports it) to get around this...
 
-        # When we get here, we have seen a type-5 response. If there is no
-        # error AND there is an RFC-2696 cookie, then query again for the next
-        # page of results. If not, we're done. Don't screw this up or we'll
-        # break every search we do.
-        #
-        # Noticed 02Sep06, look at the read_ber call in this loop, shouldn't
-        # that have a parameter of AsnSyntax? Does this just accidentally
-        # work? According to RFC-2696, the value expected in this position is
-        # of type OCTET STRING, covered in the default syntax supported by
-        # read_ber, so I guess we're ok.
-        more_pages = false
-        if result_pdu.result_code == Net::LDAP::ResultCodeSuccess and controls
-          controls.each do |c|
-            if c.oid == Net::LDAP::LDAPControls::PAGED_RESULTS
-              # just in case some bogus server sends us more than 1 of these.
-              more_pages = false
-              if c.value and c.value.length > 0
-                cookie = c.value.read_ber[1]
-                if cookie and cookie.length > 0
-                  rfc2696_cookie[1] = cookie
-                  more_pages = true
+          controls = []
+          controls <<
+            [
+              Net::LDAP::LDAPControls::PAGED_RESULTS.to_ber,
+              # Criticality MUST be false to interoperate with normal LDAPs.
+              false.to_ber,
+              rfc2696_cookie.map(&:to_ber).to_ber_sequence.to_s.to_ber,
+            ].to_ber_sequence if paged
+          controls << ber_sort if ber_sort
+          controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
+
+          write(request, controls, message_id)
+
+          result_pdu = nil
+          controls = []
+
+          while pdu = queued_read(message_id)
+            case pdu.app_tag
+            when Net::LDAP::PDU::SearchReturnedData
+              n_results += 1
+              yield pdu.search_entry if block_given?
+            when Net::LDAP::PDU::SearchResultReferral
+              if refs
+                if block_given?
+                  se = Net::LDAP::Entry.new
+                  se[:search_referrals] = (pdu.search_referrals || [])
+                  yield se
+                end
+              end
+            when Net::LDAP::PDU::SearchResult
+              result_pdu = pdu
+              controls = pdu.result_controls
+              if refs && pdu.result_code == Net::LDAP::ResultCodeReferral
+                if block_given?
+                  se = Net::LDAP::Entry.new
+                  se[:search_referrals] = (pdu.search_referrals || [])
+                  yield se
+                end
+              end
+              break
+            else
+              raise Net::LDAP::ResponseTypeInvalidError, "invalid response-type in search: #{pdu.app_tag}"
+            end
+          end
+
+          if result_pdu.nil?
+            raise Net::LDAP::ResponseMissingOrInvalidError, "response missing"
+          end
+
+          # count number of pages of results
+          payload[:page_count] ||= 0
+          payload[:page_count]  += 1
+
+          # When we get here, we have seen a type-5 response. If there is no
+          # error AND there is an RFC-2696 cookie, then query again for the next
+          # page of results. If not, we're done. Don't screw this up or we'll
+          # break every search we do.
+          #
+          # Noticed 02Sep06, look at the read_ber call in this loop, shouldn't
+          # that have a parameter of AsnSyntax? Does this just accidentally
+          # work? According to RFC-2696, the value expected in this position is
+          # of type OCTET STRING, covered in the default syntax supported by
+          # read_ber, so I guess we're ok.
+          more_pages = false
+          if result_pdu.result_code == Net::LDAP::ResultCodeSuccess and controls
+            controls.each do |c|
+              if c.oid == Net::LDAP::LDAPControls::PAGED_RESULTS
+                # just in case some bogus server sends us more than 1 of these.
+                more_pages = false
+                if c.value and c.value.length > 0
+                  cookie = c.value.read_ber[1]
+                  if cookie and cookie.length > 0
+                    rfc2696_cookie[1] = cookie
+                    more_pages = true
+                  end
                 end
               end
             end
           end
-        end
 
-        break unless more_pages
-      end # loop
-
+          break unless more_pages
+        end # loop
+      end # with_timeout
       # track total result count
       payload[:result_count] = n_results
 

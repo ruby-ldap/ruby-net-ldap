@@ -132,22 +132,25 @@ class TestLDAPConnection < Test::Unit::TestCase
 
   def test_write
     mock = flexmock("socket")
-    mock.should_receive(:write).with([1.to_ber, "request"].to_ber_sequence).and_return(true)
+    mock.extend(Net::BER::BERParser)
+    mock.should_receive(:ber_timeout_write).with([1.to_ber, "request"].to_ber_sequence).and_return(true)
     conn = Net::LDAP::Connection.new(:socket => mock)
     conn.send(:write, "request")
   end
 
   def test_write_with_controls
     mock = flexmock("socket")
-    mock.should_receive(:write).with([1.to_ber, "request", "controls"].to_ber_sequence).and_return(true)
+    mock.extend(Net::BER::BERParser)
+    mock.should_receive(:ber_timeout_write).with([1.to_ber, "request", "controls"].to_ber_sequence).and_return(true)
     conn = Net::LDAP::Connection.new(:socket => mock)
     conn.send(:write, "request", "controls")
   end
 
   def test_write_increments_msgid
     mock = flexmock("socket")
-    mock.should_receive(:write).with([1.to_ber, "request1"].to_ber_sequence).and_return(true)
-    mock.should_receive(:write).with([2.to_ber, "request2"].to_ber_sequence).and_return(true)
+    mock.extend(Net::BER::BERParser)
+    mock.should_receive(:ber_timeout_write).with([1.to_ber, "request1"].to_ber_sequence).and_return(true)
+    mock.should_receive(:ber_timeout_write).with([2.to_ber, "request2"].to_ber_sequence).and_return(true)
     conn = Net::LDAP::Connection.new(:socket => mock)
     conn.send(:write, "request1")
     conn.send(:write, "request2")
@@ -209,7 +212,7 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
     mock.should_receive(:read_ber).
       and_return(result1).
       and_return(result2)
-    mock.should_receive(:write)
+    mock.should_receive(:ber_timeout_write)
     conn = Net::LDAP::Connection.new(:socket => mock)
 
     conn.next_msgid # simulates ongoing query
@@ -230,7 +233,7 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
     mock.should_receive(:read_ber).
       and_return(result1).
       and_return(result2)
-    mock.should_receive(:write)
+    mock.should_receive(:ber_timeout_write)
     conn = Net::LDAP::Connection.new(:socket => mock)
 
     conn.next_msgid # simulates ongoing query
@@ -248,7 +251,7 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
     mock.should_receive(:read_ber).
       and_return(result1).
       and_return(result2)
-    mock.should_receive(:write)
+    mock.should_receive(:ber_timeout_write)
     conn = Net::LDAP::Connection.new(:socket => mock)
 
     conn.next_msgid # simulates ongoing query
@@ -269,7 +272,7 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
     mock.should_receive(:read_ber).
       and_return(result1).
       and_return(result2)
-    mock.should_receive(:write)
+    mock.should_receive(:ber_timeout_write)
     conn = Net::LDAP::Connection.new(:socket => mock)
 
     conn.next_msgid # simulates ongoing query
@@ -287,7 +290,7 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
     mock.should_receive(:read_ber).
       and_return(result1).
       and_return(result2)
-    mock.should_receive(:write)
+    mock.should_receive(:ber_timeout_write)
     conn = Net::LDAP::Connection.new(:socket => mock)
     flexmock(Net::LDAP::Connection).should_receive(:wrap_with_ssl).with(mock, {}, nil).
       and_return(mock)
@@ -303,10 +306,11 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
     result2 = make_message(2, app_tag: Net::LDAP::PDU::BindResult)
 
     mock = flexmock("socket")
+    mock.extend(Net::BER::BERParser)
     mock.should_receive(:read_ber).
       and_return(result1).
       and_return(result2)
-    mock.should_receive(:write)
+    mock.should_receive(:ber_timeout_write)
     conn = Net::LDAP::Connection.new(:socket => mock)
 
     conn.next_msgid # simulates ongoing query
@@ -324,10 +328,11 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
     result2 = make_message(2, app_tag: Net::LDAP::PDU::BindResult)
 
     mock = flexmock("socket")
+    mock.extend(Net::BER::BERParser)
     mock.should_receive(:read_ber).
       and_return(result1).
       and_return(result2)
-    mock.should_receive(:write)
+    mock.should_receive(:ber_timeout_write)
     conn = Net::LDAP::Connection.new(:socket => mock)
 
     conn.next_msgid # simulates ongoing query
@@ -345,7 +350,7 @@ end
 class TestLDAPConnectionErrors < Test::Unit::TestCase
   def setup
     @tcp_socket = flexmock(:connection)
-    @tcp_socket.should_receive(:write)
+    @tcp_socket.should_receive(:ber_timeout_write)
     flexmock(Socket).should_receive(:tcp).and_return(@tcp_socket)
     @connection = Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
   end
@@ -374,7 +379,8 @@ end
 class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def setup
     @tcp_socket = flexmock(:connection)
-    @tcp_socket.should_receive(:write)
+    @tcp_socket.extend(Net::BER::BERParser)
+    @tcp_socket.should_receive(:ber_timeout_write)
     flexmock(Socket).should_receive(:tcp).and_return(@tcp_socket)
 
     @service = MockInstrumentationService.new
