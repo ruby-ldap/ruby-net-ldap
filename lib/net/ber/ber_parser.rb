@@ -25,6 +25,9 @@ module Net::BER::BERParser
   BuiltinSyntax = Net::BER.compile_syntax(:universal => universal,
                                           :context_specific => context)
 
+  # Public: specify the BER socket read timeouts, nil by default (no timeout).
+  attr_accessor :read_ber_timeout
+
   ##
   # This is an extract of our BER object parsing to simplify our
   # understanding of how we parse basic BER object types.
@@ -133,7 +136,7 @@ module Net::BER::BERParser
   # invalid BER length case. Because the "lengthlength" value was not used
   # inside of #read_ber, we no longer return it.
   def read_ber_length
-    n = getbyte
+    n = ber_timeout_getbyte
 
     if n <= 0x7f
       n
@@ -143,10 +146,9 @@ module Net::BER::BERParser
       raise Net::BER::BerError, "Invalid BER length 0xFF detected."
     else
       v = 0
-      read(n & 0x7f).each_byte do |b|
+      ber_timeout_read(n & 0x7f).each_byte do |b|
         v = (v << 8) + b
       end
-
       v
     end
   end
@@ -166,7 +168,7 @@ module Net::BER::BERParser
     # from streams that don't block when we ask for more data (like
     # StringIOs). At it is, this can throw TypeErrors and other nasties.
 
-    id = getbyte or return nil  # don't trash this value, we'll use it later
+    id = read_ber_id or return nil  # don't trash this value, we'll use it later
     content_length = read_ber_length
 
     yield id, content_length if block_given?
@@ -175,8 +177,126 @@ module Net::BER::BERParser
       raise Net::BER::BerError,
             "Indeterminite BER content length not implemented."
     end
-    data = read(content_length)
+    data = ber_timeout_read(content_length)
 
     parse_ber_object(syntax, id, data)
+  end
+
+  # Internal: Returns the BER message ID or nil.
+  def read_ber_id
+    ber_timeout_getbyte
+  end
+  private :read_ber_id
+
+  # Internal: specify the BER socket read timeouts, nil by default (no timeout).
+  attr_accessor :ber_io_deadline
+  private :ber_io_deadline
+
+  ##
+  # sets a timeout of timeout seconds for read_ber and ber_timeout_write operations in the provided block the proin the future for if there is not already a earlier deadline set
+  def with_timeout(timeout)
+    timeout = timeout.to_f
+    # don't change deadline if run without timeout
+    return yield if timeout <= 0
+    # clear deadline if it is not in the future
+    self.ber_io_deadline = nil unless ber_io_timeout.to_f > 0
+    new_deadline = Time.now + timeout
+    # don't add deadline if current deadline is shorter
+    return yield if ber_io_deadline && ber_io_deadline < new_deadline
+    old_deadline = ber_io_deadline
+    begin
+      self.ber_io_deadline = new_deadline
+      yield
+    ensure
+      self.ber_io_deadline = old_deadline
+    end
+  end
+
+  # seconds until ber_io_deadline
+  def ber_io_timeout
+    ber_io_deadline ? ber_io_deadline - Time.now : nil
+  end
+  private :ber_io_timeout
+
+  def read_select!
+    return if IO.select([self], nil, nil, ber_io_timeout)
+    raise Net::LDAP::LdapError, "Timed out reading from the socket"
+  end
+  private :read_select!
+
+  def write_select!
+    return if IO.select(nil, [self], nil, ber_io_timeout)
+    raise Net::LDAP::LdapError, "Timed out reading from the socket"
+  end
+  private :write_select!
+
+  # Internal: Replaces `getbyte` with nonblocking implementation.
+  def ber_timeout_getbyte
+    begin
+      read_nonblock(1).ord
+    rescue IO::WaitReadable
+      read_select!
+      retry
+    rescue IO::WaitWritable
+      write_select!
+      retry
+    rescue EOFError
+      # nothing to read on the socket (StringIO)
+      nil
+    end
+  end
+  private :ber_timeout_getbyte
+
+  # Internal: Read `len` bytes, respecting timeout.
+  def ber_timeout_read(len)
+    buffer ||= ''.force_encoding(Encoding::ASCII_8BIT)
+    begin
+      read_nonblock(len, buffer)
+      return buffer if buffer.bytesize >= len
+    rescue IO::WaitReadable, IO::WaitWritable
+      buffer.clear
+    rescue EOFError
+      # nothing to read on the socket (StringIO)
+      nil
+    end
+    block ||= ''.force_encoding(Encoding::ASCII_8BIT)
+    len -= buffer.bytesize
+    loop do
+      begin
+        read_nonblock(len, block)
+      rescue IO::WaitReadable
+        read_select!
+        retry
+      rescue IO::WaitWritable
+        write_select!
+        retry
+      rescue EOFError
+        return buffer.empty? ? nil : buffer
+      end
+      buffer << block
+      len -= block.bytesize
+      return buffer if len <= 0
+    end
+  end
+  private :ber_timeout_read
+
+  ##
+  # Writes val as a plain write would, but respecting the dealine set by with_timeout
+  def ber_timeout_write(val)
+    total_written = 0
+    while 0 < val.bytesize
+      begin
+        written = write_nonblock(val)
+      rescue IO::WaitReadable
+        read_select!
+        retry
+      rescue IO::WaitWritable
+        write_select!
+        retry
+      end
+      total_written += written
+      val = val.byteslice(written..-1)
+    end
+    total_written
   end
 end

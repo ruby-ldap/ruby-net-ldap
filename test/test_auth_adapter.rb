@@ -2,6 +2,7 @@ require 'test_helper'
 
 class TestAuthAdapter < Test::Unit::TestCase
   class FakeSocket
+    include Net::BER::BERParser
     def initialize(*args)
     end
   end

@@ -21,6 +21,10 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
       yield @search_success if block_given?
       @search_success
     end
+
+    def with_timeout(timeout = nil, &block)
+      yield
+    end
   end
 
   def setup
