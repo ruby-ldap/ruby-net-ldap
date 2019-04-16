@@ -38,12 +38,6 @@ class Net::LDAP::Connection #:nodoc:
     setup_encryption(encryption, timeout) if encryption
   end
 
-  # Internal: simple private method that can be replaced, if necessary, to allow this warning to be modified
-  def ssl_verify_warning(host, port)
-    warn "not verifying SSL hostname of LDAPS server '#{host}:#{port}'"
-  end
-  private :ssl_verify_warning
-
   def open_connection(server)
     hosts = server[:hosts]
     encryption = server[:encryption]
@@ -61,7 +55,7 @@ class Net::LDAP::Connection #:nodoc:
           if encryption[:tls_options] &&
              encryption[:tls_options][:verify_mode] &&
              encryption[:tls_options][:verify_mode] == OpenSSL::SSL::VERIFY_NONE
-            ssl_verify_warning_handler(host, port)
+            warn "not verifying SSL hostname of LDAPS server '#{host}:#{port}'"
           else
             @conn.post_connection_check(host)
           end
