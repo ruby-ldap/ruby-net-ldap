@@ -61,7 +61,7 @@ class TestLDAPConnection < Test::Unit::TestCase
 
     ldap_client = Net::LDAP.new(host: '127.0.0.1', port: 12345)
 
-    assert_raise Net::LDAP::ConnectionRefusedError do
+    assert_raise Errno::ECONNREFUSED do
       ldap_client.bind(method: :simple, username: 'asdf', password: 'asdf')
     end
 
@@ -86,11 +86,10 @@ class TestLDAPConnection < Test::Unit::TestCase
   def test_connection_refused
     connection = Net::LDAP::Connection.new(:host => "fail.Errno::ECONNREFUSED", :port => 636, :socket_class => FakeTCPSocket)
     stderr = capture_stderr do
-      assert_raise Net::LDAP::ConnectionRefusedError do
+      assert_raise Errno::ECONNREFUSED do
         connection.socket
       end
     end
-    assert_equal("Deprecation warning: Net::LDAP::ConnectionRefused will be deprecated. Use Errno::ECONNREFUSED instead.\n",  stderr)
   end
 
   def test_connection_timeout

@@ -3,7 +3,7 @@ require_relative '../test_helper'
 class TestPasswordModifyIntegration < LDAPIntegrationTestCase
   def setup
     super
-    @admin_account = {dn: 'cn=admin,dc=rubyldap,dc=com', password: 'passworD1', method: :simple}
+    @admin_account = { dn: 'cn=admin,dc=rubyldap,dc=com', password: 'passworD1', method: :simple }
     @ldap.authenticate @admin_account[:dn], @admin_account[:password]
 
     @dn = 'uid=modify-password-user1,ou=People,dc=rubyldap,dc=com'

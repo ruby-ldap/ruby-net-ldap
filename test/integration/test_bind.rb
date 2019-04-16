@@ -70,7 +70,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
                      ca_file:     CA_FILE },
     )
     error = assert_raise Net::LDAP::Error,
-                         Net::LDAP::ConnectionRefusedError do
+                         Errno::ECONNREFUSED do
       @ldap.bind BIND_CREDS
     end
     assert_equal(
@@ -86,7 +86,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
       tls_options: TLS_OPTS.merge(ca_file: CA_FILE),
     )
     error = assert_raise Net::LDAP::Error,
-                         Net::LDAP::ConnectionRefusedError do
+                         Errno::ECONNREFUSED do
       @ldap.bind BIND_CREDS
     end
     assert_equal(
@@ -102,7 +102,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
       tls_options: { ca_file: CA_FILE },
     )
     error = assert_raise Net::LDAP::Error,
-                         Net::LDAP::ConnectionRefusedError do
+                         Errno::ECONNREFUSED do
       @ldap.bind BIND_CREDS
     end
     assert_equal(
@@ -137,7 +137,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
     @ldap.host = '127.0.0.1'
     @ldap.encryption(method: :start_tls, tls_options: {})
     error = assert_raise Net::LDAP::Error,
-                         Net::LDAP::ConnectionRefusedError do
+                         Errno::ECONNREFUSED do
       @ldap.bind BIND_CREDS
     end
     assert_equal(
