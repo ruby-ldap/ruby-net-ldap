@@ -1294,7 +1294,7 @@ class Net::LDAP
   # result from that, and :use_connection: will not yield at all. If not
   # the return value is whatever is returned from the block.
   def use_connection(args)
-    timeout_args = args.slice(:io_timeout).values
+    timeout_args = args.has_key?(:io_timeout) ? [args[:io_timeout]] : []
     if @open_connection
       @open_connection.with_timeout(*timeout_args) do
         yield(@open_connection)
