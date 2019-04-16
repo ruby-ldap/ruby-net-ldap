@@ -61,7 +61,7 @@ class Net::LDAP::Connection #:nodoc:
           if encryption[:tls_options] &&
              encryption[:tls_options][:verify_mode] &&
              encryption[:tls_options][:verify_mode] == OpenSSL::SSL::VERIFY_NONE
-            ssl_verify_warning_handler(host, port)
+            ssl_verify_warning(host, port)
           else
             @conn.post_connection_check(host)
           end
