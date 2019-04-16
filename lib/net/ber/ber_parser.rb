@@ -199,7 +199,7 @@ module Net::BER::BERParser
     # don't change deadline if run without timeout
     return yield if timeout <= 0
     # clear deadline if it is not in the future
-    self.ber_io_deadline = nil unless ber_io_timeout&.send(:>, 0)
+    self.ber_io_deadline = nil unless ber_io_timeout.to_f > 0
     new_deadline = Time.now + timeout
     # don't add deadline if current deadline is shorter
     return yield if ber_io_deadline && ber_io_deadline < new_deadline
