@@ -25,7 +25,7 @@ See Net::LDAP for documentation and usage samples.
 
 == Requirements
 
-Net::LDAP requires a Ruby 1.9.3 compatible interpreter or better.
+Net::LDAP requires a Ruby 2.0.0 compatible interpreter or better.
 
 == Install
 
@@ -37,6 +37,14 @@ sources.
 
 Simply require either 'net-ldap' or 'net/ldap'.
 
+== Extensions
+
+This library focuses on the core LDAP RFCs referenced in the description.
+However, we recognize there are commonly used extensions to the spec that are
+useful. If there is another library which handles it, we list it here.
+
+* {resolv-srv}[https://rubygems.org/gems/resolv-srv]: Support RFC2782 SRV record lookup and failover
+
 == Develop
 
 This task will run the test suite and the
@@ -44,21 +52,20 @@ This task will run the test suite and the
 
   rake rubotest
 
-To run the integration tests against an LDAP server:
-
-  cd test/support/vm/openldap
-  vagrant up
-  cd ../../../..
-  INTEGRATION=openldap bundle exec rake rubotest
+CI takes too long? If your local box supports
+{Vagrant}[https://www.vagrantup.com/], you can run most of the tests
+in a VM on your local box. For more details and setup instructions, see
+{test/support/vm/openldap/README.md}[https://github.com/ruby-ldap/ruby-net-ldap/tree/master/test/support/vm/openldap/README.md]
 
 == Release
 
 This section is for gem maintainers to cut a new version of the gem.
 
+* Check out a new branch `release-VERSION`
 * Update lib/net/ldap/version.rb to next version number X.X.X following {semver}(http://semver.org/).
-* Update `History.rdoc`. Get latest changes with `git log --oneline vLAST_RELEASE..HEAD | grep Merge`
-
-* On the master branch, run `script/release`
+* Update `History.rdoc`. Get latest changes with `script/changelog`
+* Open a pull request with these changes for review
+* After merging, on the master branch, run `script/release`
 
 :include: Contributors.rdoc
 

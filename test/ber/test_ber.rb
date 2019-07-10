@@ -6,8 +6,8 @@ class TestBEREncoding < Test::Unit::TestCase
   end
 
   def test_array
-    ary = [1,2,3]
-    encoded_ary = ary.map { |el| el.to_ber }.to_ber
+    ary = [1, 2, 3]
+    encoded_ary = ary.map(&:to_ber).to_ber
 
     assert_equal ary, encoded_ary.read_ber
   end
@@ -135,7 +135,15 @@ class TestBERIdentifiedString < Test::Unit::TestCase
     assert_equal "UTF-8", bis.encoding.name
   end
 
-  def test_ut8_data_in_utf8
+  def test_umlaut_data_in_utf8
+    data = "Müller".force_encoding("UTF-8")
+    bis = Net::BER::BerIdentifiedString.new(data)
+
+    assert bis.valid_encoding?, "should be a valid encoding"
+    assert_equal "UTF-8", bis.encoding.name
+  end
+
+  def test_utf8_data_in_utf8
     data = ["e4b8ad"].pack("H*").force_encoding("UTF-8")
     bis = Net::BER::BerIdentifiedString.new(data)
 

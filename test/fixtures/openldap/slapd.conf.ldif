@@ -3,7 +3,7 @@ objectClass: olcGlobal
 cn: config
 olcPidFile: /var/run/slapd/slapd.pid
 olcArgsFile: /var/run/slapd/slapd.args
-olcLogLevel: none
+olcLogLevel: -1
 olcToolThreads: 1
 
 dn: olcDatabase={-1}frontend,cn=config

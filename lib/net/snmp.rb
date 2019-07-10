@@ -12,7 +12,7 @@ module Net
           2 => :integer,  # Gauge32 or Unsigned32, (RFC2578 sec 2)
           3 => :integer  # TimeTicks32, (RFC2578 sec 2)
         },
-        :constructed => {}
+        :constructed => {},
       },
       :context_specific => {
         :primitive => {},
@@ -20,8 +20,8 @@ module Net
           0 => :array,  # GetRequest PDU (RFC1157 pgh 4.1.2)
           1 => :array,  # GetNextRequest PDU (RFC1157 pgh 4.1.3)
           2 => :array    # GetResponse PDU (RFC1157 pgh 4.1.4)
-        }
-      }
+        },
+      },
     })
 
     # SNMP 32-bit counter.
@@ -70,7 +70,7 @@ module Net
       :get_next_request,
       :get_response,
       :set_request,
-      :trap
+      :trap,
     ]
     ErrorStatusCodes = { # Per RFC1157, pgh 4.1.1
       0 => "noError",
@@ -78,7 +78,7 @@ module Net
       2 => "noSuchName",
       3 => "badValue",
       4 => "readOnly",
-      5 => "genErr"
+      5 => "genErr",
     }
 
     class << self
@@ -148,7 +148,7 @@ module Net
       # data[2] is error_index, always zero.
       send :error_status=, 0
       send :error_index=, 0
-      data[3].each do |n,v|
+      data[3].each do |n, v|
         # A variable-binding, of which there may be several,
         # consists of an OID and a BER null.
         # We're ignoring the null, we might want to verify it instead.
@@ -166,7 +166,7 @@ module Net
       send :request_id=, data[0].to_i
       send :error_status=, data[1].to_i
       send :error_index=, data[2].to_i
-      data[3].each do |n,v|
+      data[3].each do |n, v|
         # A variable-binding, of which there may be several,
         # consists of an OID and a BER null.
         # We're ignoring the null, we might want to verify it instead.
@@ -177,7 +177,7 @@ module Net
 
 
     def version= ver
-      unless [0,2].include?(ver)
+      unless [0, 2].include?(ver)
         raise Error.new("unknown snmp-version: #{ver}")
       end
       @version = ver
@@ -191,7 +191,7 @@ module Net
     end
 
     def error_status= es
-      unless ErrorStatusCodes.has_key?(es)
+      unless ErrorStatusCodes.key?(es)
         raise Error.new("unknown error-status: #{es}")
       end
       @error_status = es
@@ -227,10 +227,10 @@ module Net
           error_status.to_ber,
           error_index.to_ber,
           [
-            @variables.map {|n,v|
+            @variables.map do|n, v|
               [n.to_ber_oid, Net::BER::BerIdentifiedNull.new.to_ber].to_ber_sequence
-            }
-          ].to_ber_sequence
+            end,
+          ].to_ber_sequence,
         ].to_ber_contextspecific(0)
       when :get_next_request
         [
@@ -238,10 +238,10 @@ module Net
           error_status.to_ber,
           error_index.to_ber,
           [
-            @variables.map {|n,v|
+            @variables.map do|n, v|
               [n.to_ber_oid, Net::BER::BerIdentifiedNull.new.to_ber].to_ber_sequence
-            }
-          ].to_ber_sequence
+            end,
+          ].to_ber_sequence,
         ].to_ber_contextspecific(1)
       when :get_response
         [
@@ -249,10 +249,10 @@ module Net
           error_status.to_ber,
           error_index.to_ber,
           [
-            @variables.map {|n,v|
+            @variables.map do|n, v|
               [n.to_ber_oid, v.to_ber].to_ber_sequence
-            }
-          ].to_ber_sequence
+            end,
+          ].to_ber_sequence,
         ].to_ber_contextspecific(2)
       else
         raise Error.new( "unknown pdu-type: #{pdu_type}" )

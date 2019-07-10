@@ -14,9 +14,17 @@ CA_FILE =
     if File.exist?("/etc/ssl/certs/cacert.pem")
       "/etc/ssl/certs/cacert.pem"
     else
-      File.expand_path("fixtures/cacert.pem", File.dirname(__FILE__))
+      File.expand_path("fixtures/ca/cacert.pem", File.dirname(__FILE__))
     end
   end
+
+BIND_CREDS = {
+  method:   :simple,
+  username: "uid=user1,ou=People,dc=rubyldap,dc=com",
+  password: "passworD1",
+}.freeze
+
+TLS_OPTS = OpenSSL::SSL::SSLContext::DEFAULT_PARAMS.merge({}).freeze
 
 if RUBY_VERSION < "2.0"
   class String
@@ -56,7 +64,7 @@ class LDAPIntegrationTestCase < Test::Unit::TestCase
     @service = MockInstrumentationService.new
     @ldap = Net::LDAP.new \
       host:           ENV.fetch('INTEGRATION_HOST', 'localhost'),
-      port:           389,
+      port:           ENV.fetch('INTEGRATION_PORT', 389),
       admin_user:     'uid=admin,dc=rubyldap,dc=com',
       admin_password: 'passworD1',
       search_domains: %w(dc=rubyldap,dc=com),

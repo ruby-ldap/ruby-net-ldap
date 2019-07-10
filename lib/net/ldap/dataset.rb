@@ -29,7 +29,7 @@ class Net::LDAP::Dataset < Hash
     keys.sort.each do |dn|
       ary << "dn: #{dn}"
 
-      attributes = self[dn].keys.map { |attr| attr.to_s }.sort
+      attributes = self[dn].keys.map(&:to_s).sort
       attributes.each do |attr|
         self[dn][attr.to_sym].each do |value|
           if attr == "userpassword" or value_is_binary?(value)
@@ -141,7 +141,7 @@ class Net::LDAP::Dataset < Hash
             # $' is the dn-value
             # Avoid the Base64 class because not all Ruby versions have it.
             dn = ($1 == ":") ? $'.unpack('m').shift : $'
-            ds[dn] = Hash.new { |k,v| k[v] = [] }
+            ds[dn] = Hash.new { |k, v| k[v] = [] }
             yield :dn, dn if block_given?
           elsif line.empty?
             dn = nil

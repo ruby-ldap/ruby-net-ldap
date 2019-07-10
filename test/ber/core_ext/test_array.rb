@@ -6,7 +6,7 @@ class TestBERArrayExtension < Test::Unit::TestCase
     control_codes << ['1.2.3'.to_ber, true.to_ber].to_ber_sequence
     control_codes << ['1.7.9'.to_ber, false.to_ber].to_ber_sequence
     control_codes = control_codes.to_ber_sequence
-    res = [['1.2.3', true],['1.7.9',false]].to_ber_control
+    res = [['1.2.3', true], ['1.7.9', false]].to_ber_control
     assert_equal control_codes, res
   end
 

@@ -57,7 +57,7 @@ class TestSearchIntegration < LDAPIntegrationTestCase
       entries << entry
     end
 
-    payload, _ = events.pop
+    payload, = events.pop
     assert_equal 5, payload[:time]
     assert_equal entries, result
   end

@@ -1,45 +1,132 @@
 require_relative 'test_helper'
 
 class TestLDAPConnection < Test::Unit::TestCase
+  def capture_stderr
+    stderr, $stderr = $stderr, StringIO.new
+    yield
+    $stderr.string
+  ensure
+    $stderr = stderr
+  end
+
+  # Fake socket for testing
+  #
+  # FakeTCPSocket.new("success", 636)
+  # FakeTCPSocket.new("fail.SocketError", 636)  # raises SocketError
+  class FakeTCPSocket
+    def initialize(host, port, socket_opts = {})
+      status, error = host.split(".")
+      raise Object.const_get(error) if status == "fail"
+    end
+  end
+
+  def test_list_of_hosts_with_first_host_successful
+    hosts = [
+      ["success.host", 636],
+      ["fail.SocketError", 636],
+      ["fail.SocketError", 636],
+    ]
+
+    connection = Net::LDAP::Connection.new(:hosts => hosts, :socket_class => FakeTCPSocket)
+    connection.socket
+  end
+
+  def test_list_of_hosts_with_first_host_failure
+    hosts = [
+      ["fail.SocketError", 636],
+      ["success.host", 636],
+      ["fail.SocketError", 636],
+    ]
+
+    connection = Net::LDAP::Connection.new(:hosts => hosts, :socket_class => FakeTCPSocket)
+    connection.socket
+  end
+
+  def test_list_of_hosts_with_all_hosts_failure
+    hosts = [
+      ["fail.SocketError", 636],
+      ["fail.SocketError", 636],
+      ["fail.SocketError", 636],
+    ]
+
+    connection = Net::LDAP::Connection.new(:hosts => hosts, :socket_class => FakeTCPSocket)
+    assert_raise Net::LDAP::ConnectionError do
+      connection.socket
+    end
+  end
+
+  # This belongs in test_ldap, not test_ldap_connection
+  def test_result_for_connection_failed_is_set
+    flexmock(Socket).should_receive(:tcp).and_raise(Errno::ECONNREFUSED)
+
+    ldap_client = Net::LDAP.new(host: '127.0.0.1', port: 12345)
+
+    assert_raise Net::LDAP::ConnectionRefusedError do
+      ldap_client.bind(method: :simple, username: 'asdf', password: 'asdf')
+    end
+
+    assert_equal(ldap_client.get_operation_result.code, 52)
+    assert_equal(ldap_client.get_operation_result.message, 'Unavailable')
+  end
+
   def test_unresponsive_host
+    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ETIMEDOUT", :port => 636, :socket_class => FakeTCPSocket)
     assert_raise Net::LDAP::Error do
-      Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+      connection.socket
     end
   end
 
   def test_blocked_port
-    flexmock(TCPSocket).should_receive(:new).and_raise(SocketError)
+    connection = Net::LDAP::Connection.new(:host => "fail.SocketError", :port => 636, :socket_class => FakeTCPSocket)
     assert_raise Net::LDAP::Error do
-      Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+      connection.socket
+    end
+  end
+
+  def test_connection_refused
+    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ECONNREFUSED", :port => 636, :socket_class => FakeTCPSocket)
+    stderr = capture_stderr do
+      assert_raise Net::LDAP::ConnectionRefusedError do
+        connection.socket
+      end
+    end
+    assert_equal("Deprecation warning: Net::LDAP::ConnectionRefused will be deprecated. Use Errno::ECONNREFUSED instead.\n",  stderr)
+  end
+
+  def test_connection_timeout
+    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ETIMEDOUT", :port => 636, :socket_class => FakeTCPSocket)
+    stderr = capture_stderr do
+      assert_raise Net::LDAP::Error do
+        connection.socket
+      end
     end
   end
 
   def test_raises_unknown_exceptions
-    error = Class.new(StandardError)
-    flexmock(TCPSocket).should_receive(:new).and_raise(error)
-    assert_raise error do
-      Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
+    connection = Net::LDAP::Connection.new(:host => "fail.StandardError", :port => 636, :socket_class => FakeTCPSocket)
+    assert_raise StandardError do
+      connection.socket
     end
   end
 
   def test_modify_ops_delete
-    args = { :operations => [ [ :delete, "mail" ] ] }
+    args = { :operations => [[:delete, "mail"]] }
     result = Net::LDAP::Connection.modify_ops(args[:operations])
-    expected = [ "0\r\n\x01\x010\b\x04\x04mail1\x00" ]
+    expected = ["0\r\n\x01\x010\b\x04\x04mail1\x00"]
     assert_equal(expected, result)
   end
 
   def test_modify_ops_add
-    args = { :operations => [ [ :add, "mail", "testuser@example.com" ] ] }
+    args = { :operations => [[:add, "mail", "testuser@example.com"]] }
     result = Net::LDAP::Connection.modify_ops(args[:operations])
-    expected = [ "0#\n\x01\x000\x1E\x04\x04mail1\x16\x04\x14testuser@example.com" ]
+    expected = ["0#\n\x01\x000\x1E\x04\x04mail1\x16\x04\x14testuser@example.com"]
     assert_equal(expected, result)
   end
 
   def test_modify_ops_replace
-    args = { :operations =>[ [ :replace, "mail", "testuser@example.com" ] ] }
+    args = { :operations =>[[:replace, "mail", "testuser@example.com"]] }
     result = Net::LDAP::Connection.modify_ops(args[:operations])
-    expected = [ "0#\n\x01\x020\x1E\x04\x04mail1\x16\x04\x14testuser@example.com" ]
+    expected = ["0#\n\x01\x020\x1E\x04\x04mail1\x16\x04\x14testuser@example.com"]
     assert_equal(expected, result)
   end
 
@@ -73,7 +160,7 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
       app_tag: Net::LDAP::PDU::SearchResult,
       code: Net::LDAP::ResultCodeSuccess,
       matched_dn: "",
-      error_message: ""
+      error_message: "",
     }.merge(options)
     result = Net::BER::BerIdentifiedArray.new([options[:code], options[:matched_dn], options[:error_message]])
     result.ber_identifier = options[:app_tag]
@@ -168,7 +255,7 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
 
     assert result = conn.rename(
       olddn:  "uid=renamable-user1,ou=People,dc=rubyldap,dc=com",
-      newrdn: "uid=renamed-user1"
+      newrdn: "uid=renamed-user1",
     )
     assert result.success?
     assert_equal 2, result.message_id
@@ -202,7 +289,7 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
       and_return(result2)
     mock.should_receive(:write)
     conn = Net::LDAP::Connection.new(:socket => mock)
-    flexmock(Net::LDAP::Connection).should_receive(:wrap_with_ssl).with(mock, {}).
+    flexmock(Net::LDAP::Connection).should_receive(:wrap_with_ssl).with(mock, {}, nil).
       and_return(mock)
 
     conn.next_msgid # simulates ongoing query
@@ -259,7 +346,7 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
   def setup
     @tcp_socket = flexmock(:connection)
     @tcp_socket.should_receive(:write)
-    flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
+    flexmock(Socket).should_receive(:tcp).and_return(@tcp_socket)
     @connection = Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
   end
 
@@ -288,7 +375,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
   def setup
     @tcp_socket = flexmock(:connection)
     @tcp_socket.should_receive(:write)
-    flexmock(TCPSocket).should_receive(:new).and_return(@tcp_socket)
+    flexmock(Socket).should_receive(:tcp).and_return(@tcp_socket)
 
     @service = MockInstrumentationService.new
     @connection = Net::LDAP::Connection.new \
@@ -310,8 +397,8 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
 
     # a write event
     payload, result = events.pop
-    assert payload.has_key?(:result)
-    assert payload.has_key?(:content_length)
+    assert payload.key?(:result)
+    assert payload.key?(:content_length)
   end
 
   def test_read_net_ldap_connection_event
@@ -327,7 +414,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
 
     # a read event
     payload, result = events.pop
-    assert payload.has_key?(:result)
+    assert payload.key?(:result)
     assert_equal read_result, result
   end
 
@@ -344,9 +431,9 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
 
     # a parse_pdu event
     payload, result = events.pop
-    assert payload.has_key?(:pdu)
-    assert payload.has_key?(:app_tag)
-    assert payload.has_key?(:message_id)
+    assert payload.key?(:pdu)
+    assert payload.key?(:app_tag)
+    assert payload.key?(:message_id)
     assert_equal Net::LDAP::PDU::BindResult, payload[:app_tag]
     assert_equal 1, payload[:message_id]
     pdu = payload[:pdu]
@@ -366,7 +453,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
 
     # a read event
     payload, result = events.pop
-    assert payload.has_key?(:result)
+    assert payload.key?(:result)
     assert result.success?, "should be success"
   end
 
@@ -374,7 +461,7 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     # search data
     search_data_ber = Net::BER::BerIdentifiedArray.new([1, [
       "uid=user1,ou=People,dc=rubyldap,dc=com",
-      [ ["uid", ["user1"]] ]
+      [["uid", ["user1"]]],
     ]])
     search_data_ber.ber_identifier = Net::LDAP::PDU::SearchReturnedData
     search_data = [1, search_data_ber]
@@ -393,8 +480,8 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
 
     # a search event
     payload, result = events.pop
-    assert payload.has_key?(:result)
-    assert payload.has_key?(:filter)
+    assert payload.key?(:result)
+    assert payload.key?(:filter)
     assert_equal "(uid=user1)", payload[:filter].to_s
     assert result
 

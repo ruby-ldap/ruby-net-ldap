@@ -24,7 +24,7 @@ module LdapServer
       },
       :primitive => {
         2 => :string,              # ldapsearch sends this to unbind
-      }
+      },
     },
     :context_specific => {
       :primitive => {
@@ -34,7 +34,7 @@ module LdapServer
       :constructed => {
         3 => :array                # equality filter
       },
-    }
+    },
   }
 
   def post_init
@@ -119,7 +119,7 @@ module LdapServer
     # pdu[1][7] is the list of requested attributes.
     # If it's an empty array, that means that *all* attributes were requested.
     requested_attrs = if pdu[1][7].length > 0
-      pdu[1][7].map {|a| a.downcase}
+      pdu[1][7].map(&:downcase)
     else
       :all
     end
@@ -133,21 +133,21 @@ module LdapServer
     # TODO, what if this returns nil?
     filter = Net::LDAP::Filter.parse_ldap_filter( filters )
 
-    $ldif.each {|dn, entry|
+    $ldif.each do |dn, entry|
       if filter.match( entry )
         attrs = []
-        entry.each {|k, v|
+        entry.each do |k, v|
           if requested_attrs == :all or requested_attrs.include?(k.downcase)
-            attrvals = v.map {|v1| v1.to_ber}.to_ber_set
+            attrvals = v.map(&:to_ber).to_ber_set
             attrs << [k.to_ber, attrvals].to_ber_sequence
           end
-        }
+        end
 
         appseq = [dn.to_ber, attrs.to_ber_sequence].to_ber_appsequence(4)
         pkt = [msgid.to_ber, appseq].to_ber_sequence
         send_data pkt
       end
-    }
+    end
 
 
     send_ldap_response 5, pdu[0].to_i, 0, "", "Was that what you wanted?"
@@ -156,7 +156,7 @@ module LdapServer
 
 
   def send_ldap_response pkt_tag, msgid, code, dn, text
-    send_data( [msgid.to_ber, [code.to_ber, dn.to_ber, text.to_ber].to_ber_appsequence(pkt_tag) ].to_ber )
+    send_data( [msgid.to_ber, [code.to_ber, dn.to_ber, text.to_ber].to_ber_appsequence(pkt_tag)].to_ber )
   end
 
 end
@@ -201,10 +201,9 @@ if __FILE__ == $0
 
   require 'net/ldap'
 
-  EventMachine.run {
+  EventMachine.run do
     $logger.info "starting LDAP server on 127.0.0.1 port 3890"
     EventMachine.start_server "127.0.0.1", 3890, LdapServer
     EventMachine.add_periodic_timer 60, proc {$logger.info "heartbeat"}
-  }
+  end
 end
-

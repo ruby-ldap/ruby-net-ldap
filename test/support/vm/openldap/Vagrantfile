@@ -10,6 +10,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "hashicorp/precise64"
 
   config.vm.network "private_network", type: :dhcp
+  config.vm.network "forwarded_port", guest: 389, host: 9389
 
   config.ssh.forward_agent = true
 

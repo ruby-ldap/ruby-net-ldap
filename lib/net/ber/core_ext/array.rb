@@ -89,7 +89,7 @@ module Net::BER::Extensions::Array
     #if our array does not contain at least one array then wrap it in an array before going forward
     ary = self[0].kind_of?(Array) ? self : [self]
     ary = ary.collect do |control_sequence|
-      control_sequence.collect{|element| element.to_ber}.to_ber_sequence.reject_empty_ber_arrays
+      control_sequence.collect(&:to_ber).to_ber_sequence.reject_empty_ber_arrays
     end
     ary.to_ber_sequence.reject_empty_ber_arrays
   end

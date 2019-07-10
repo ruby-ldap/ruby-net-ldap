@@ -13,11 +13,11 @@ class TestFilter < Test::Unit::TestCase
   end
 
   def test_invalid_filter
-    assert_raises(Net::LDAP::OperatorError) {
+    assert_raises(Net::LDAP::OperatorError) do
       # This test exists to prove that our constructor blocks unknown filter
       # types. All filters must be constructed using helpers.
       Filter.__send__(:new, :xx, nil, nil)
-    }
+    end
   end
 
   def test_to_s
@@ -144,7 +144,7 @@ class TestFilterRSpec < Test::Unit::TestCase
     '(:dn:2.4.8.10:=Dino)',
     '(cn:dn:1.2.3.4.5:=John Smith)',
     '(sn:dn:2.4.6.8.10:=Barbara Jones)',
-    '(&(sn:dn:2.4.6.8.10:=Barbara Jones))'
+    '(&(sn:dn:2.4.6.8.10:=Barbara Jones))',
   ].each_with_index do |filter_str, index|
     define_method "test_decode_filter_#{index}" do
       filter = Net::LDAP::Filter.from_rfc2254(filter_str)
@@ -195,7 +195,7 @@ class TestFilterRSpec < Test::Unit::TestCase
       "foo" "\\2A\\5C" "bar",
       "foo" "\\2a\\5c" "bar",
       "foo" "\\2A\\5c" "bar",
-      "foo" "\\2a\\5C" "bar"
+      "foo" "\\2a\\5C" "bar",
     ].each do |escaped|
       # unescapes escaped characters
       filter = Net::LDAP::Filter.eq("objectclass", "#{escaped}*#{escaped}*#{escaped}")

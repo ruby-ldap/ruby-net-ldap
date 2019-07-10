@@ -1,3 +1,67 @@
+=== Net::LDAP 0.16.1
+
+* Send DN and newPassword with password_modify request {#271}[https://github.com/ruby-ldap/ruby-net-ldap/pull/271]
+
+=== Net::LDAP 0.16.0
+
+* Sasl fix {#281}[https://github.com/ruby-ldap/ruby-net-ldap/pull/281]
+* enable TLS hostname validation {#279}[https://github.com/ruby-ldap/ruby-net-ldap/pull/279]
+* update rubocop to 0.42.0 {#278}[https://github.com/ruby-ldap/ruby-net-ldap/pull/278]
+
+=== Net::LDAP 0.15.0
+
+* Respect connect_timeout when establishing SSL connections {#273}[https://github.com/ruby-ldap/ruby-net-ldap/pull/273]
+
+=== Net::LDAP 0.14.0
+
+* Normalize the encryption parameter passed to the LDAP constructor {#264}[https://github.com/ruby-ldap/ruby-net-ldap/pull/264]
+* Update Docs: Net::LDAP now requires ruby >= 2 {#261}[https://github.com/ruby-ldap/ruby-net-ldap/pull/261]
+* fix symbol proc {#255}[https://github.com/ruby-ldap/ruby-net-ldap/pull/255]
+* fix trailing commas {#256}[https://github.com/ruby-ldap/ruby-net-ldap/pull/256]
+* fix deprecated hash methods {#254}[https://github.com/ruby-ldap/ruby-net-ldap/pull/254]
+* fix space after comma {#253}[https://github.com/ruby-ldap/ruby-net-ldap/pull/253]
+* fix space inside brackets {#252}[https://github.com/ruby-ldap/ruby-net-ldap/pull/252]
+* Rubocop style fixes {#249}[https://github.com/ruby-ldap/ruby-net-ldap/pull/249]
+* Lazy initialize Net::LDAP::Connection's internal socket {#235}[https://github.com/ruby-ldap/ruby-net-ldap/pull/235]
+* Support for rfc3062 Password Modify, closes #163 {#178}[https://github.com/ruby-ldap/ruby-net-ldap/pull/178]
+
+=== Net::LDAP 0.13.0
+
+Avoid this release for because of an backwards incompatibility in how encryption
+is initialized https://github.com/ruby-ldap/ruby-net-ldap/pull/264. We did not
+yank it because people have already worked around it.
+
+* Set a connect_timeout for the creation of a socket {#243}[https://github.com/ruby-ldap/ruby-net-ldap/pull/243]
+* Update bundler before installing gems with bundler {#245}[https://github.com/ruby-ldap/ruby-net-ldap/pull/245]
+* Net::LDAP#encryption accepts string {#239}[https://github.com/ruby-ldap/ruby-net-ldap/pull/239]
+* Adds correct UTF-8 encoding to Net::BER::BerIdentifiedString {#242}[https://github.com/ruby-ldap/ruby-net-ldap/pull/242]
+* Remove 2.3.0-preview since ruby-head already is included {#241}[https://github.com/ruby-ldap/ruby-net-ldap/pull/241]
+* Drop support for ruby 1.9.3 {#240}[https://github.com/ruby-ldap/ruby-net-ldap/pull/240]
+* Fixed capitalization of StartTLSError {#234}[https://github.com/ruby-ldap/ruby-net-ldap/pull/234]
+
+=== Net::LDAP 0.12.1
+
+* Whitespace formatting cleanup {#236}[https://github.com/ruby-ldap/ruby-net-ldap/pull/236]
+* Set operation result if LDAP server is not accessible {#232}[https://github.com/ruby-ldap/ruby-net-ldap/pull/232]
+
+=== Net::LDAP 0.12.0
+
+* DRY up connection handling logic {#224}[https://github.com/ruby-ldap/ruby-net-ldap/pull/224]
+* Define auth adapters {#226}[https://github.com/ruby-ldap/ruby-net-ldap/pull/226]
+* add slash to attribute value filter {#225}[https://github.com/ruby-ldap/ruby-net-ldap/pull/225]
+* Add the ability to provide a list of hosts for a connection {#223}[https://github.com/ruby-ldap/ruby-net-ldap/pull/223]
+* Specify the port of LDAP server by giving INTEGRATION_PORT {#221}[https://github.com/ruby-ldap/ruby-net-ldap/pull/221]
+* Correctly set BerIdentifiedString values to UTF-8  {#212}[https://github.com/ruby-ldap/ruby-net-ldap/pull/212]
+* Raise Net::LDAP::ConnectionRefusedError when new connection is refused. {#213}[https://github.com/ruby-ldap/ruby-net-ldap/pull/213]
+* obscure auth password upon #inspect, added test, closes #216 {#217}[https://github.com/ruby-ldap/ruby-net-ldap/pull/217]
+* Fixing incorrect error class name {#207}[https://github.com/ruby-ldap/ruby-net-ldap/pull/207]
+* Travis update {#205}[https://github.com/ruby-ldap/ruby-net-ldap/pull/205]
+* Remove obsolete rbx-19mode from Travis {#204}[https://github.com/ruby-ldap/ruby-net-ldap/pull/204]
+* mv "sudo" from script/install-openldap to .travis.yml {#199}[https://github.com/ruby-ldap/ruby-net-ldap/pull/199]
+* Remove meaningless shebang {#200}[https://github.com/ruby-ldap/ruby-net-ldap/pull/200]
+* Fix Travis CI build {#202}[https://github.com/ruby-ldap/ruby-net-ldap/pull/202]
+* README.rdoc: fix travis link {#195}[https://github.com/ruby-ldap/ruby-net-ldap/pull/195]
+
 === Net::LDAP 0.11
 * Major enhancements:
   * #183 Specific errors subclassing Net::LDAP::Error

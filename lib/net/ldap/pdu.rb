@@ -74,6 +74,7 @@ class Net::LDAP::PDU
   attr_reader :search_referrals
   attr_reader :search_parameters
   attr_reader :bind_parameters
+  attr_reader :extended_response
 
   ##
   # Returns RFC-2251 Controls if any.
@@ -120,7 +121,7 @@ class Net::LDAP::PDU
     when UnbindRequest
       parse_unbind_request(ber_object[1])
     when ExtendedResponse
-      parse_ldap_result(ber_object[1])
+      parse_extended_response(ber_object[1])
     else
       raise LdapPduError.new("unknown pdu-type: #{@app_tag}")
     end
@@ -174,11 +175,34 @@ class Net::LDAP::PDU
     @ldap_result = {
       :resultCode => sequence[0],
       :matchedDN => sequence[1],
-      :errorMessage => sequence[2]
+      :errorMessage => sequence[2],
     }
     parse_search_referral(sequence[3]) if @ldap_result[:resultCode] == Net::LDAP::ResultCodeReferral
   end
   private :parse_ldap_result
+
+  ##
+  # Parse an extended response
+  #
+  # http://www.ietf.org/rfc/rfc2251.txt
+  #
+  # Each Extended operation consists of an Extended request and an
+  # Extended response.
+  #
+  #      ExtendedRequest ::= [APPLICATION 23] SEQUENCE {
+  #           requestName      [0] LDAPOID,
+  #           requestValue     [1] OCTET STRING OPTIONAL }
+
+  def parse_extended_response(sequence)
+    sequence.length >= 3 or raise Net::LDAP::PDU::Error, "Invalid LDAP result length."
+    @ldap_result = {
+      :resultCode => sequence[0],
+      :matchedDN => sequence[1],
+      :errorMessage => sequence[2],
+    }
+    @extended_response = sequence[3]
+  end
+  private :parse_extended_response
 
   ##
   # A Bind Response may have an additional field, ID [7], serverSaslCreds,

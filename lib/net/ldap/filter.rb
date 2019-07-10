@@ -23,7 +23,7 @@
 class Net::LDAP::Filter
   ##
   # Known filter types.
-  FilterTypes = [ :ne, :eq, :ge, :le, :and, :or, :not, :ex, :bineq ]
+  FilterTypes = [:ne, :eq, :ge, :le, :and, :or, :not, :ex, :bineq]
 
   def initialize(op, left, right) #:nodoc:
     unless FilterTypes.include?(op)
@@ -287,7 +287,7 @@ class Net::LDAP::Filter
       when 0xa4 # context-specific constructed 4, "substring"
         str = ""
         final = false
-        ber.last.each { |b|
+        ber.last.each do |b|
           case b.ber_identifier
           when 0x80 # context-specific primitive 0, SubstringFilter "initial"
             raise Net::LDAP::SubstringFilterError, "Unrecognized substring filter; bad initial value." if str.length > 0
@@ -298,7 +298,7 @@ class Net::LDAP::Filter
             str += "*#{escape(b)}"
             final = true
           end
-        }
+        end
         str += "*" unless final
         eq(ber.first.to_s, str)
       when 0xa5 # context-specific constructed 5, "greaterOrEqual"
@@ -550,10 +550,10 @@ class Net::LDAP::Filter
       [self.class.eq(@left, @right).to_ber].to_ber_contextspecific(2)
     when :and
       ary = [@left.coalesce(:and), @right.coalesce(:and)].flatten
-      ary.map {|a| a.to_ber}.to_ber_contextspecific(0)
+      ary.map(&:to_ber).to_ber_contextspecific(0)
     when :or
       ary = [@left.coalesce(:or), @right.coalesce(:or)].flatten
-      ary.map {|a| a.to_ber}.to_ber_contextspecific(1)
+      ary.map(&:to_ber).to_ber_contextspecific(1)
     when :not
       [@left.to_ber].to_ber_contextspecific(2)
     end
@@ -645,8 +645,15 @@ class Net::LDAP::Filter
 
   ##
   # Converts escaped characters (e.g., "\\28") to unescaped characters
+  # @note slawson20170317: Don't attempt to unescape 16 byte binary data which we assume are objectGUIDs
+  # The binary form of 5936AE79-664F-44EA-BCCB-5C39399514C6 triggers a BINARY -> UTF-8 conversion error        
   def unescape(right)
-    right.to_s.gsub(/\\([a-fA-F\d]{2})/) { [$1.hex].pack("U") }
+    right = right.to_s
+    if right.length == 16 && right.encoding == Encoding::BINARY
+      right
+    else
+      right.to_s.gsub(/\\([a-fA-F\d]{2})/) { [$1.hex].pack("U") }
+    end
   end
   private :unescape
 
@@ -752,7 +759,7 @@ class Net::LDAP::Filter
         scanner.scan(/\s*/)
         if op = scanner.scan(/<=|>=|!=|:=|=/)
           scanner.scan(/\s*/)
-          if value = scanner.scan(/(?:[-\[\]{}\w*.+:@=,#\$%&!'^~\s\xC3\x80-\xCA\xAF]|[^\x00-\x7F]|\\[a-fA-F\d]{2})+/u)
+          if value = scanner.scan(/(?:[-\[\]{}\w*.+\/:@=,#\$%&!'^~\s\xC3\x80-\xCA\xAF]|[^\x00-\x7F]|\\[a-fA-F\d]{2})+/u)
             # 20100313 AZ: Assumes that "(uid=george*)" is the same as
             # "(uid=george* )". The standard doesn't specify, but I can find
             # no examples that suggest otherwise.
