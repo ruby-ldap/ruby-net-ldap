@@ -646,7 +646,7 @@ class Net::LDAP::Filter
   ##
   # Converts escaped characters (e.g., "\\28") to unescaped characters
   # @note slawson20170317: Don't attempt to unescape 16 byte binary data which we assume are objectGUIDs
-  # The binary form of 5936AE79-664F-44EA-BCCB-5C39399514C6 triggers a BINARY -> UTF-8 conversion error        
+  # The binary form of 5936AE79-664F-44EA-BCCB-5C39399514C6 triggers a BINARY -> UTF-8 conversion error
   def unescape(right)
     right = right.to_s
     if right.length == 16 && right.encoding == Encoding::BINARY
@@ -759,10 +759,15 @@ class Net::LDAP::Filter
         scanner.scan(/\s*/)
         if op = scanner.scan(/<=|>=|!=|:=|=/)
           scanner.scan(/\s*/)
-          if value = scanner.scan(/(?:[-\[\]{}\w*.+\/:@=,#\$%&!'^~\s\xC3\x80-\xCA\xAF]|[^\x00-\x7F]|\\[a-fA-F\d]{2})+/u)
+          if value = scanner.scan(/(?:[-\[\]{}\w*.+\/:@=,#\$%&!'^~\s\xC3\x80-\xCA\xAF]|[^\x00-\x7F]|\x5C(?:[\x20-\x23]|[\x2B\x2C]|[\x3B-\x3E]|\x5C)|\\[a-fA-F\d]{2})+/u)
             # 20100313 AZ: Assumes that "(uid=george*)" is the same as
             # "(uid=george* )". The standard doesn't specify, but I can find
             # no examples that suggest otherwise.
+            #
+            # 20190710 CmdrClueless
+            # RFC-4514, Section 2.4 adds to the scanner regex above
+            #     \x5C(?:[\x20-\x23]|[\x2B\x2C]|[\x3B-\x3E]|\x5C)
+            #   This is commonly done by ActiveDirectory, with a DN such as CN=#Supers,CN=Users,DC=test,DC=com
             value.strip!
             case op
             when "="
