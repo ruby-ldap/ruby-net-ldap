@@ -300,7 +300,7 @@ class Net::LDAP::Connection #:nodoc:
       control[2] = (control[2] == true).to_ber
       control.to_ber_sequence
     end
-    sort_control = [
+    [
       Net::LDAP::LDAPControls::SORT_REQUEST.to_ber,
       false.to_ber,
       sort_control_values.to_ber_sequence.to_s.to_ber,
