@@ -4,6 +4,14 @@ require_relative '../test_helper'
 # See: section 12.12 http://www.openldap.org/doc/admin24/overlays.html
 
 class TestReturnCodeIntegration < LDAPIntegrationTestCase
+  def test_open_error
+    @ldap.authenticate "fake", "creds"
+    @ldap.open do
+      result = @ldap.get_operation_result
+      assert_equal Net::LDAP::ResultCodeInvalidCredentials, result.code
+    end
+  end
+
   def test_operations_error
     refute @ldap.search(filter: "cn=operationsError", base: "ou=Retcodes,dc=rubyldap,dc=com")
     assert result = @ldap.get_operation_result
