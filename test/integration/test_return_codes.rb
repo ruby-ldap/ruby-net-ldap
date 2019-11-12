@@ -5,7 +5,7 @@ require_relative '../test_helper'
 
 class TestReturnCodeIntegration < LDAPIntegrationTestCase
   def test_open_error
-    @ldap.authenticate "fake", "creds"
+    @ldap.authenticate "cn=fake", "creds"
     @ldap.open do
       result = @ldap.get_operation_result
       assert_equal Net::LDAP::ResultCodeInvalidCredentials, result.code
