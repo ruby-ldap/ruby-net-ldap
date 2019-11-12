@@ -15,7 +15,7 @@ TMPDIR=$(mktemp -d)
 cd $TMPDIR
 
 # Delete data and reconfigure.
-cp -v /var/lib/ldap/DB_CONFIG ./DB_CONFIG
+cp -v /usr/share/slapd/DB_CONFIG ./DB_CONFIG
 rm -rf /etc/ldap/slapd.d/*
 rm -rf /var/lib/ldap/*
 cp -v ./DB_CONFIG /var/lib/ldap/DB_CONFIG
