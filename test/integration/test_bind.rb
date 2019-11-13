@@ -151,13 +151,9 @@ class TestBindIntegration < LDAPIntegrationTestCase
     )
   end
 
-  # The following depend on /etc/hosts hacking.
-  # We can do that on CI, but it's less than cool on people's dev boxes
   def test_bind_tls_with_multiple_hosts
-    omit_unless ENV['TRAVIS'] == 'true'
-
     @ldap.host = nil
-    @ldap.hosts = [['ldap01.example.com', 389], ['ldap02.example.com', 389]]
+    @ldap.hosts = [[INTEGRATION_HOSTNAME, 389], [INTEGRATION_HOSTNAME, 389]]
     @ldap.encryption(
       method:      :start_tls,
       tls_options: TLS_OPTS.merge(verify_mode: OpenSSL::SSL::VERIFY_PEER,
@@ -168,8 +164,6 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_multiple_bogus_hosts
-    omit_unless ENV['TRAVIS'] == 'true'
-
     @ldap.host = nil
     @ldap.hosts = [['127.0.0.1', 389], ['bogus.example.com', 389]]
     @ldap.encryption(
@@ -186,8 +180,6 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_multiple_bogus_hosts_no_verification
-    omit_unless ENV['TRAVIS'] == 'true'
-
     @ldap.host = nil
     @ldap.hosts = [['127.0.0.1', 389], ['bogus.example.com', 389]]
     @ldap.encryption(
