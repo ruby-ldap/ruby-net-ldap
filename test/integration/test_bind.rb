@@ -210,6 +210,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   def test_bind_tls_valid_hostname_system_ca_on_travis_passes
     omit_unless ENV['TRAVIS'] == 'true'
 
+    @ldap.host = INTEGRATION_HOSTNAME
     @ldap.encryption(
       method: :start_tls,
       tls_options: { verify_mode: OpenSSL::SSL::VERIFY_PEER },
