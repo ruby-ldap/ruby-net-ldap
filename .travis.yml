@@ -23,7 +23,7 @@ before_install:
   - gem update bundler
 
 install:
-  - docker run --hostname ldap.example.org --env LDAP_TLS_VERIFY_CLIENT=try -p 389:389 -p 636:636 -v $(pwd)/test/fixtures/seed.ldif:/container/service/slapd/assets/config/bootstrap/ldif/50-bootstrap.ldif --name openldap --detach osixia/openldap:1.3.0 --copy-service --loglevel debug
+  - docker run --hostname ldap.example.org --env LDAP_TLS_VERIFY_CLIENT=try -p 389:389 -p 636:636 -v $(pwd)/test/fixtures/seed.ldif:/container/service/slapd/assets/config/bootstrap/ldif/50-bootstrap.ldif -v $(pwd)/test/fixtures/openldap/retcode.ldif:/container/service/slapd/assets/config/bootstrap/ldif/06-retcodes.ldif --name openldap --detach osixia/openldap:1.3.0 --copy-service --loglevel debug
   - docker cp openldap:/container/run/service/:ssl-tools/assets/default-ca/default-ca.pem /tmp/openldap-ca.pem
   - bundle install
 
