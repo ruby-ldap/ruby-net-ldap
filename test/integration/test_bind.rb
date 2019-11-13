@@ -219,23 +219,4 @@ class TestBindIntegration < LDAPIntegrationTestCase
     assert @ldap.bind(BIND_CREDS),
            @ldap.get_operation_result.inspect
   end
-
-  # Inverse of the above! Don't run this on Travis, only on Vagrant.
-  # Since Vagrant's hypervisor *won't* have the CA in the system
-  # x509 store, we can assume validation will fail
-  def test_bind_tls_valid_hostname_system_on_vagrant_fails
-    omit_if ENV['TRAVIS'] == 'true'
-
-    @ldap.encryption(
-      method: :start_tls,
-      tls_options: { verify_mode: OpenSSL::SSL::VERIFY_PEER },
-    )
-    error = assert_raise Net::LDAP::Error do
-      @ldap.bind BIND_CREDS
-    end
-    assert_equal(
-      "SSL_connect returned=1 errno=0 state=error: certificate verify failed",
-      error.message,
-    )
-  end
 end
