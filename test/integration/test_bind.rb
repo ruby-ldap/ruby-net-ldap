@@ -191,8 +191,6 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_multiple_bogus_hosts_ca_check_only_fails
-    omit_unless ENV['TRAVIS'] == 'true'
-
     @ldap.host = nil
     @ldap.hosts = [['127.0.0.1', 389], ['bogus.example.com', 389]]
     @ldap.encryption(
