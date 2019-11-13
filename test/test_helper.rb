@@ -14,7 +14,7 @@ CA_FILE =
     if File.exist?("/etc/ssl/certs/cacert.pem")
       "/etc/ssl/certs/cacert.pem"
     else
-      File.expand_path("fixtures/ca/cacert.pem", File.dirname(__FILE__))
+      File.expand_path("fixtures/ca/docker-ca.pem", File.dirname(__FILE__))
     end
   end
 
