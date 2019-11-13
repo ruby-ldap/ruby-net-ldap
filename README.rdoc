@@ -59,6 +59,9 @@ Simply run:
   script/ldap-docker
   INTEGRATION=openldap rake test
 
+CAVEAT: you need to add the following line to /etc/hosts
+127.0.0.1 ldap.example.org
+
 == Release
 
 This section is for gem maintainers to cut a new version of the gem.
