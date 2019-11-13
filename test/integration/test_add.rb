@@ -3,9 +3,7 @@ require_relative '../test_helper'
 class TestAddIntegration < LDAPIntegrationTestCase
   def setup
     super
-    @ldap.authenticate "cn=admin,dc=rubyldap,dc=com", "passworD1"
-
-    @dn = "uid=added-user1,ou=People,dc=rubyldap,dc=com"
+    @dn = "uid=added-user1,ou=People,dc=example,dc=org"
   end
 
   def test_add

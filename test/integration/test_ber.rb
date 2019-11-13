@@ -8,7 +8,7 @@ class TestBERIntegration < LDAPIntegrationTestCase
     attrs = [:dn, :uid, :cn, :mail]
 
     assert types_entry = @ldap.search(
-      base: "dc=rubyldap,dc=com",
+      base: "dc=example,dc=org",
       filter: "(uid=user1)",
       size: 1,
       attributes: attrs,
