@@ -1,6 +1,9 @@
 require_relative '../test_helper'
 
 class TestBindIntegration < LDAPIntegrationTestCase
+
+  INTEGRATION_HOSTNAME = 'ldap.example.org'.freeze
+
   def test_bind_success
     assert @ldap.bind(BIND_CREDS),
            @ldap.get_operation_result.inspect
@@ -34,6 +37,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_cafile
+    @ldap.host = INTEGRATION_HOSTNAME
     @ldap.encryption(
       method:      :start_tls,
       tls_options: TLS_OPTS.merge(ca_file: CA_FILE),
@@ -43,7 +47,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_bad_hostname_verify_none_no_ca_passes
-    @ldap.host = '127.0.0.1'
+    @ldap.host = INTEGRATION_HOSTNAME
     @ldap.encryption(
       method:      :start_tls,
       tls_options: { verify_mode: OpenSSL::SSL::VERIFY_NONE },
@@ -112,7 +116,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_valid_hostname_default_opts_passes
-    @ldap.host = 'localhost'
+    @ldap.host = INTEGRATION_HOSTNAME
     @ldap.encryption(
       method:      :start_tls,
       tls_options: TLS_OPTS.merge(verify_mode: OpenSSL::SSL::VERIFY_PEER,
@@ -123,7 +127,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_valid_hostname_just_verify_peer_ca_passes
-    @ldap.host = 'localhost'
+    @ldap.host = INTEGRATION_HOSTNAME
     @ldap.encryption(
       method:      :start_tls,
       tls_options: { verify_mode: OpenSSL::SSL::VERIFY_PEER,
