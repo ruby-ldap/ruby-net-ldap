@@ -27,7 +27,7 @@ before_install:
   - gem update bundler
 
 install:
-  ->
+  - >
     docker run
       --hostname ldap.example.org
       --env LDAP_TLS_VERIFY_CLIENT=try
