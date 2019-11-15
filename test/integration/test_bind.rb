@@ -10,8 +10,8 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_timeout
-    omit "this is no longer working in our test environment - skipping"
-    @ldap.port = 8389
+    @ldap.host = "10.255.255.1" # non-routable IP
+
     error = assert_raise Net::LDAP::Error do
       @ldap.bind BIND_CREDS
     end
