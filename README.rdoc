@@ -60,7 +60,7 @@ Simply run:
   INTEGRATION=openldap rake test
 
 CAVEAT: you need to add the following line to /etc/hosts
-127.0.0.1 ldap.example.org
+    127.0.0.1 ldap.example.org
 
 == Release
 
