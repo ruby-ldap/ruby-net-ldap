@@ -4,8 +4,8 @@ class TestBindIntegration < LDAPIntegrationTestCase
   def test_binds_without_open
     events = @service.subscribe "bind.net_ldap_connection"
 
-    @ldap.search(filter: "uid=user1", base: "ou=People,dc=rubyldap,dc=com", ignore_server_caps: true)
-    @ldap.search(filter: "uid=user1", base: "ou=People,dc=rubyldap,dc=com", ignore_server_caps: true)
+    @ldap.search(filter: "uid=user1", base: "ou=People,dc=example,dc=org", ignore_server_caps: true)
+    @ldap.search(filter: "uid=user1", base: "ou=People,dc=example,dc=org", ignore_server_caps: true)
 
     assert_equal 2, events.size
   end
@@ -14,8 +14,8 @@ class TestBindIntegration < LDAPIntegrationTestCase
     events = @service.subscribe "bind.net_ldap_connection"
 
     @ldap.open do
-      @ldap.search(filter: "uid=user1", base: "ou=People,dc=rubyldap,dc=com", ignore_server_caps: true)
-      @ldap.search(filter: "uid=user1", base: "ou=People,dc=rubyldap,dc=com", ignore_server_caps: true)
+      @ldap.search(filter: "uid=user1", base: "ou=People,dc=example,dc=org", ignore_server_caps: true)
+      @ldap.search(filter: "uid=user1", base: "ou=People,dc=example,dc=org", ignore_server_caps: true)
     end
 
     assert_equal 1, events.size
@@ -29,9 +29,9 @@ class TestBindIntegration < LDAPIntegrationTestCase
     entries = []
     nested_entry = nil
 
-    @ldap.search(filter: "(|(uid=user1)(uid=user2))", base: "ou=People,dc=rubyldap,dc=com") do |entry|
+    @ldap.search(filter: "(|(uid=user1)(uid=user2))", base: "ou=People,dc=example,dc=org") do |entry|
       entries << entry.uid.first
-      nested_entry ||= @ldap.search(filter: "uid=user3", base: "ou=People,dc=rubyldap,dc=com").first
+      nested_entry ||= @ldap.search(filter: "uid=user3", base: "ou=People,dc=example,dc=org").first
     end
 
     assert_equal "user3", nested_entry.uid.first
@@ -43,9 +43,9 @@ class TestBindIntegration < LDAPIntegrationTestCase
     nested_entry = nil
 
     @ldap.open do
-      @ldap.search(filter: "(|(uid=user1)(uid=user2))", base: "ou=People,dc=rubyldap,dc=com") do |entry|
+      @ldap.search(filter: "(|(uid=user1)(uid=user2))", base: "ou=People,dc=example,dc=org") do |entry|
         entries << entry.uid.first
-        nested_entry ||= @ldap.search(filter: "uid=user3", base: "ou=People,dc=rubyldap,dc=com").first
+        nested_entry ||= @ldap.search(filter: "uid=user3", base: "ou=People,dc=example,dc=org").first
       end
     end
 
@@ -57,7 +57,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
     entries = []
     nested_entry = nil
 
-    dn = "uid=nested-open-added-user1,ou=People,dc=rubyldap,dc=com"
+    dn = "uid=nested-open-added-user1,ou=People,dc=example,dc=org"
     attrs = {
       objectclass: %w(top inetOrgPerson organizationalPerson person),
       uid:  "nested-open-added-user1",
@@ -66,11 +66,10 @@ class TestBindIntegration < LDAPIntegrationTestCase
       mail: "nested-open-added-user1@rubyldap.com",
     }
 
-    @ldap.authenticate "cn=admin,dc=rubyldap,dc=com", "passworD1"
     @ldap.delete dn: dn
 
     @ldap.open do
-      @ldap.search(filter: "(|(uid=user1)(uid=user2))", base: "ou=People,dc=rubyldap,dc=com") do |entry|
+      @ldap.search(filter: "(|(uid=user1)(uid=user2))", base: "ou=People,dc=example,dc=org") do |entry|
         entries << entry.uid.first
 
         nested_entry ||= begin
