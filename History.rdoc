@@ -1,3 +1,10 @@
+=== Net::LDAP 0.16.2
+
+* Net::LDAP#open does not cache bind result {#334}[https://github.com/ruby-ldap/ruby-net-ldap/pull/334]
+* Fix CI build {#333}[https://github.com/ruby-ldap/ruby-net-ldap/pull/333]
+* Fix to "undefined method 'result_code'" {#308}[https://github.com/ruby-ldap/ruby-net-ldap/pull/308]
+* Fixed Exception: incompatible character encodings: ASCII-8BIT and UTF-8 in filter.rb {#285}[https://github.com/ruby-ldap/ruby-net-ldap/pull/285]
+
 === Net::LDAP 0.16.1
 
 * Send DN and newPassword with password_modify request {#271}[https://github.com/ruby-ldap/ruby-net-ldap/pull/271]
