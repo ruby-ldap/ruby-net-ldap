@@ -1,5 +1,6 @@
 # -*- ruby encoding: utf-8 -*-
 require 'ostruct'
+require 'uri'
 
 module Net # :nodoc:
   class LDAP
@@ -335,6 +336,7 @@ class Net::LDAP
 
   DefaultHost = "127.0.0.1"
   DefaultPort = 389
+  DefaultTlsPort = 636
   DefaultAuth = { :method => :anonymous }
   DefaultTreebase = "dc=com"
   DefaultForceNoPage = false
@@ -506,13 +508,13 @@ class Net::LDAP
   #   talking over the public internet), you need to set :tls_options
   #   something like this...
   #
-  #   Net::LDAP.new(
-  #     # ... set host, bind dn, etc ...
-  #     encryption: {
-  #       method: :simple_tls,
-  #       tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS,
-  #     }
-  #   )
+  #     Net::LDAP.new(
+  #       # ... set host, bind dn, etc ...
+  #       encryption: {
+  #         method: :simple_tls,
+  #         tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS,
+  #       }
+  #     )
   #
   #   The above will use the operating system-provided store of CA
   #   certificates to validate your LDAP server's cert.
@@ -527,29 +529,40 @@ class Net::LDAP
   #   `update-ca-certificates`), then the cert should pass validation.
   #   To ignore the OS's CA store, put your CA in a PEM-encoded file and...
   #
-  #   encryption: {
-  #     method:      :simple_tls,
-  #     tls_options: { ca_file:     '/path/to/my-little-ca.pem',
-  #                    ssl_version: 'TLSv1_1' },
-  #   }
+  #     encryption: {
+  #       method:      :simple_tls,
+  #       tls_options: { ca_file:     '/path/to/my-little-ca.pem',
+  #                      ssl_version: 'TLSv1_1' },
+  #     }
   #
   #   As you might guess, the above example also fails the connection
   #   if the client can't negotiate TLS v1.1.
-  #   tls_options is ultimately passed to OpenSSL::SSL::SSLContext#set_params
-  #   For more details, see
-  #    http://ruby-doc.org/stdlib-2.0.0/libdoc/openssl/rdoc/OpenSSL/SSL/SSLContext.html
+  #   tls_options is ultimately passed to
+  #   +OpenSSL::SSL::SSLContext#set_params+, For more details, see http://ruby-doc.org/stdlib-2.0.0/libdoc/openssl/rdoc/OpenSSL/SSL/SSLContext.html
   #
   # Instantiating a Net::LDAP object does <i>not</i> result in network
   # traffic to the LDAP server. It simply stores the connection and binding
   # parameters in the object. That's why Net::LDAP.new doesn't throw
   # cert validation errors itself; #bind does instead.
   def initialize(args = {})
-    @host = args[:host] || DefaultHost
-    @port = args[:port] || DefaultPort
+    # URI.parse('') returns a valid URI object, but with all its
+    # attributes set to nil. This is convenient for chained '||'
+    @url = URI.parse(args[:uri] || '')
+
+    unless [nil, 'ldaps', 'ldap'].include? @url.scheme
+      raise ProtocolNotSupported,
+            "scheme '#{@url.scheme}' unsupported, use 'ldap' or 'ldaps'"
+    end
+    @host = args[:host] || @url.host || DefaultHost
+    @port = args[:port] || @url.port || DefaultPort
     @hosts = args[:hosts]
     @verbose = false # Make this configurable with a switch on the class.
     @auth = args[:auth] || DefaultAuth
-    @base = args[:base] || DefaultTreebase
+    @base = args[:base] || if @url.path && @url.path.length > 1
+                             URI.decode(@url.path[1..-1])
+                           else
+                             DefaultTreebase
+                           end
     @force_no_page = args[:force_no_page] || DefaultForceNoPage
     @encryption = normalize_encryption(args[:encryption]) # may be nil
     @connect_timeout = args[:connect_timeout]
@@ -1331,12 +1344,35 @@ class Net::LDAP
   # Normalize encryption parameter the constructor accepts, expands a few
   # convenience symbols into recognizable hashes
   def normalize_encryption(args)
-    return if args.nil?
-    return args if args.is_a? Hash
+    valid_args =
+      "encryption may be hash, nil, or one of [:simple_tls, :start_tls, true]"
 
-    case method = args.to_sym
-    when :simple_tls, :start_tls
-      { :method => method, :tls_options => {} }
+    if args.nil?
+      return nil unless @url.scheme == 'ldaps'
+      { method:      :simple_tls,
+        tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS }
+    elsif args.is_a? Hash
+      if !args[:tls_options].nil? && args[:tls_options].to_s.to_sym == :default
+        args.merge(tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS)
+      else
+        args
+      end
+    else
+      case method = args.to_s.to_sym
+      when :simple_tls, :start_tls
+        { method:      method,
+          tls_options: {} }
+      when :true
+        scheme = if @url.scheme == 'ldaps' || @port == DefaultTlsPort
+                   :simple_tls
+                 else
+                   :start_tls
+                 end
+        { method:      scheme,
+          tls_options: OpenSSL::SSL::SSLContext::DEFAULT_PARAMS }
+      else
+        raise ArgumentError, valid_args
+      end
     end
   end
 
