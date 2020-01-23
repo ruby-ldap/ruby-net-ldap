@@ -1,19 +1,18 @@
-dn: cn=module,cn=config
-cn: module
-objectClass: olcModuleList
-objectClass: top
-olcModulePath: /usr/lib/ldap
-olcModuleLoad: retcode.la
+dn: cn=module{0},cn=config
+changetype: modify
+add: olcModuleLoad
+olcModuleLoad: retcode
 
 # source: http://www.opensource.apple.com/source/OpenLDAP/OpenLDAP-186/OpenLDAP/tests/data/retcode.conf?txt
 
-dn: olcOverlay={2}retcode,olcDatabase={1}hdb,cn=config
+dn: olcOverlay={2}retcode,olcDatabase={1}{{ LDAP_BACKEND }},cn=config
+changetype: add
 objectClass: olcConfig
 objectClass: olcRetcodeConfig
 objectClass: olcOverlayConfig
 objectClass: top
 olcOverlay: retcode
-olcRetcodeParent: ou=Retcodes,dc=rubyldap,dc=com
+olcRetcodeParent: ou=Retcodes,dc=example,dc=org
 olcRetcodeInDir: TRUE
 olcRetcodeSleep: 0
 olcRetcodeItem: "cn=success" 0x00
