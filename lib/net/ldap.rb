@@ -712,7 +712,7 @@ class Net::LDAP
       begin
         @open_connection = new_connection
         payload[:connection] = @open_connection
-        payload[:bind]       = @open_connection.bind(@auth)
+        payload[:bind]       = @result = @open_connection.bind(@auth)
         yield self
       ensure
         @open_connection.close if @open_connection
