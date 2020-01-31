@@ -1,7 +1,6 @@
 require_relative '../test_helper'
 
 class TestBindIntegration < LDAPIntegrationTestCase
-
   INTEGRATION_HOSTNAME = 'ldap.example.org'.freeze
 
   def test_bind_success
@@ -28,7 +27,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
     assert_equal Net::LDAP::ResultCodeUnwillingToPerform, result.code
     assert_equal Net::LDAP::ResultStrings[Net::LDAP::ResultCodeUnwillingToPerform], result.message
     assert_equal "unauthenticated bind (DN with no password) disallowed",
-      result.error_message
+                 result.error_message
     assert_equal "", result.matched_dn
   end
 

@@ -47,7 +47,8 @@ class TestEntryLDIF < Test::Unit::TestCase
       %Q{dn: something
 foo: foo
 barAttribute: bar
-      })
+      },
+    )
   end
 
   def test_attribute
@@ -59,7 +60,7 @@ barAttribute: bar
     @entry.foo = 'bar'
     assert_equal ['bar'], @entry.foo
 
-    @entry.fOo= 'baz'
+    @entry.fOo = 'baz'
     assert_equal ['baz'], @entry.foo
   end
 end

@@ -5,7 +5,7 @@ class TestSSLBER < Test::Unit::TestCase
   # Transmits str to @to and reads it back from @from.
   #
   def transmit(str)
-    Timeout::timeout(1) do
+    Timeout.timeout(1) do
       @to.write(str)
       @to.close
 
@@ -22,8 +22,8 @@ class TestSSLBER < Test::Unit::TestCase
     #
     # TODO: Replace test with real socket
     # https://github.com/ruby-ldap/ruby-net-ldap/pull/121#discussion_r18746386
-    flexmock(OpenSSL::SSL::SSLSocket).
-      new_instances.should_receive(:connect => nil)
+    flexmock(OpenSSL::SSL::SSLSocket)
+      .new_instances.should_receive(:connect => nil)
 
     @to   = Net::LDAP::Connection.wrap_with_ssl(@to)
     @from = Net::LDAP::Connection.wrap_with_ssl(@from)
