@@ -207,12 +207,6 @@ Layout/SpaceInsideParens:
     - 'testserver/ldapserver.rb'
 
 # Offense count: 1
-# Cop supports --auto-correct.
-Layout/TrailingWhitespace:
-  Exclude:
-    - 'lib/net/ldap/filter.rb'
-
-# Offense count: 1
 Lint/AmbiguousBlockAssociation:
   Exclude:
     - 'testserver/ldapserver.rb'
