@@ -21,7 +21,7 @@ class Net::LDAP::Connection #:nodoc:
     @instrumentation_service = server[:instrumentation_service]
 
     # Allows tests to parameterize what socket class to use
-    @socket_class = server.fetch(:socket_class, DefaultSocket)
+    @socket_class = server.fetch(:socket_class) { DefaultSocket }
 
     yield self if block_given?
   end
@@ -346,7 +346,7 @@ class Net::LDAP::Connection #:nodoc:
     size   = args[:size].to_i
     time   = args[:time].to_i
     paged  = args[:paged_searches_supported]
-    sort   = args.fetch(:sort_controls, false)
+    sort   = args.fetch(:sort_controls) { false }
 
     # arg validation
     raise ArgumentError, "search base is required" unless base
