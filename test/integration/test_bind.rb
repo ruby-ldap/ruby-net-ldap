@@ -48,6 +48,8 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_bad_hostname_no_verify_hostname_no_ca_passes
+    omit_unless TLS_OPTS.key?(:verify_hostname)
+
     @ldap.host = '127.0.0.1'
     @ldap.encryption(
       method:      :start_tls,
@@ -60,6 +62,8 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_bad_hostname_no_verify_hostname_no_ca_opt_merge_passes
+    omit_unless TLS_OPTS.key?(:verify_hostname)
+
     @ldap.host = '127.0.0.1'
     @ldap.encryption(
       method:      :start_tls,
