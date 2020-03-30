@@ -84,7 +84,8 @@ class Net::LDAP::PDU
 
   def initialize(ber_object)
     begin
-      @message_id = ber_object[0].to_i
+      id =  ber_object[0].is_a? Array ? ber_object[0][1] : ber_object[0]
+      @message_id = id.to_i
       # Grab the bottom five bits of the identifier so we know which type of
       # PDU this is.
       #
