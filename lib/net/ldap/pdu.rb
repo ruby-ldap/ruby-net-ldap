@@ -123,7 +123,7 @@ class Net::LDAP::PDU
     when ExtendedResponse
       parse_extended_response(ber_object[1])
     else
-      raise LdapError.new("unknown pdu-type: #{@app_tag}")
+      raise Net::LDAP::PDU::Error, "unknown pdu-type: #{@app_tag}"
     end
 
     parse_controls(ber_object[2]) if ber_object[2]
