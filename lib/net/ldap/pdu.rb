@@ -84,7 +84,7 @@ class Net::LDAP::PDU
 
   def initialize(ber_object)
     begin
-      @message_id = ber_object[0].to_i
+      @message_id = ber_object[0]
       # Grab the bottom five bits of the identifier so we know which type of
       # PDU this is.
       #
@@ -94,7 +94,7 @@ class Net::LDAP::PDU
       @app_tag = ber_object[1].ber_identifier & 0x1f
       @ldap_controls = []
     rescue Exception => ex
-      raise Net::LDAP::PDU::Error, "LDAP PDU Format Error: #{ex.message}"
+      raise Net::LDAP::PDU::Error, "LDAP PDU Format Error: #{ex.message} Ber Object is #{ber_object}"
     end
 
     case @app_tag
@@ -123,7 +123,7 @@ class Net::LDAP::PDU
     when ExtendedResponse
       parse_extended_response(ber_object[1])
     else
-      raise LdapPduError.new("unknown pdu-type: #{@app_tag}")
+      raise Net::LDAP::PDU::Error, "unknown pdu-type: #{@app_tag}"
     end
 
     parse_controls(ber_object[2]) if ber_object[2]
