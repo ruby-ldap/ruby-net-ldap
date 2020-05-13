@@ -47,6 +47,10 @@ useful. If there is another library which handles it, we list it here.
 
 == Develop
 
+To install all the dependencies for local development:
+
+* gem build net-ldap.gemspec
+
 This task will run the test suite and the
 {RuboCop}[https://github.com/bbatsov/rubocop] static code analyzer.
 
