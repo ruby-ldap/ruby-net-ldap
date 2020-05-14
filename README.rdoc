@@ -47,14 +47,23 @@ useful. If there is another library which handles it, we list it here.
 
 == Develop
 
-To install all the dependencies for local development:
+* Clone the repository using
+  git clone https://github.com/ruby-ldap/ruby-net-ldap
+  cd ruby-net-ldap
 
-* gem build net-ldap.gemspec
+* To install all the dependencies for local development:
+  gem install bundler # if you don't have it
+  bundle install
 
 This task will run the test suite and the
 {RuboCop}[https://github.com/bbatsov/rubocop] static code analyzer.
 
-  rake rubotest
+  rake rubotest # without bundler
+  bundle exec rake rubotest # if you are using bundler
+
+* To build the gem from the existing gemset
+  gem build net-ldap.gemspec
+  gem install net-ldap-{version}.gem
 
 CI takes too long? If your local box supports
 {Docker}[https://www.docker.com/], you can also run integration tests locally.
