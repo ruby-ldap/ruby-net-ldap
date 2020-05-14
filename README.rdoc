@@ -48,10 +48,12 @@ useful. If there is another library which handles it, we list it here.
 == Develop
 
 * Clone the repository using
+
   git clone https://github.com/ruby-ldap/ruby-net-ldap
   cd ruby-net-ldap
 
 * To install all the dependencies for local development:
+
   gem install bundler # if you don't have it
   bundle install
 
@@ -62,6 +64,7 @@ This task will run the test suite and the
   bundle exec rake rubotest # if you are using bundler
 
 * To build the gem from the existing gemset
+
   gem build net-ldap.gemspec
   gem install net-ldap-{version}.gem
 
