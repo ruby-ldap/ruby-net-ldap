@@ -165,4 +165,4 @@ class Net::LDAP::Dataset < Hash
   end
 end
 
-require 'net/ldap/entry' unless defined? Net::LDAP::Entry
+require_relative 'entry' unless defined? Net::LDAP::Entry

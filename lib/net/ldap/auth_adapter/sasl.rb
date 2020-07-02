@@ -1,4 +1,4 @@
-require 'net/ldap/auth_adapter'
+require_relative '../auth_adapter'
 
 module Net
   class LDAP

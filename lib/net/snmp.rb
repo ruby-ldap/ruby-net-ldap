@@ -1,5 +1,5 @@
 # -*- ruby encoding: utf-8 -*-
-require 'net/ldap/version'
+require_relative 'ldap/version'
 
 # :stopdoc:
 module Net

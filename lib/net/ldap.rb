@@ -17,19 +17,19 @@ module Net # :nodoc:
 end
 require 'socket'
 
-require 'net/ber'
-require 'net/ldap/pdu'
-require 'net/ldap/filter'
-require 'net/ldap/dataset'
-require 'net/ldap/password'
-require 'net/ldap/entry'
-require 'net/ldap/instrumentation'
-require 'net/ldap/connection'
-require 'net/ldap/version'
-require 'net/ldap/error'
-require 'net/ldap/auth_adapter'
-require 'net/ldap/auth_adapter/simple'
-require 'net/ldap/auth_adapter/sasl'
+require_relative 'ber'
+require_relative 'ldap/pdu'
+require_relative 'ldap/filter'
+require_relative 'ldap/dataset'
+require_relative 'ldap/password'
+require_relative 'ldap/entry'
+require_relative 'ldap/instrumentation'
+require_relative 'ldap/connection'
+require_relative 'ldap/version'
+require_relative 'ldap/error'
+require_relative 'ldap/auth_adapter'
+require_relative 'ldap/auth_adapter/simple'
+require_relative 'ldap/auth_adapter/sasl'
 
 Net::LDAP::AuthAdapter.register([:simple, :anon, :anonymous], Net::LDAP::AuthAdapter::Simple)
 Net::LDAP::AuthAdapter.register(:sasl, Net::LDAP::AuthAdapter::Sasl)
