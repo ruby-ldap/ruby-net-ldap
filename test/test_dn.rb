@@ -1,5 +1,5 @@
 require_relative 'test_helper'
-require 'net/ldap/dn'
+require_relative '../lib/net/ldap/dn'
 
 class TestDN < Test::Unit::TestCase
   def test_escape

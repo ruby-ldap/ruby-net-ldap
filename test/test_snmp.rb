@@ -1,7 +1,7 @@
 # $Id: testsnmp.rb 231 2006-12-21 15:09:29Z blackhedd $
 
 require_relative 'test_helper'
-require 'net/snmp'
+require_relative '../lib/net/snmp'
 
 class TestSnmp < Test::Unit::TestCase
   def self.raw_string(s)
