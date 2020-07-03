@@ -21,4 +21,8 @@ class TestFilterParser < Test::Unit::TestCase
   def test_colons
     assert_kind_of Net::LDAP::Filter, Net::LDAP::Filter::FilterParser.parse("(ismemberof=cn=edu:berkeley:app:calmessages:deans,ou=campus groups,dc=berkeley,dc=edu)")
   end
+
+  def test_attr_tag
+    assert_kind_of Net::LDAP::Filter, Net::LDAP::Filter::FilterParser.parse("(mail;primary=jane@example.org)")
+  end
 end
