@@ -6,6 +6,7 @@ require 'securerandom'
 
 class Net::LDAP::Password
   class << self
+    KNOWN = [:md5, :sha, :sha1, :sha256, :sha384, :sha512]
     # Generate a password-hash suitable for inclusion in an LDAP attribute.
     # Pass a hash type as a symbol (:md5, :sha, :ssha) and a plaintext
     # password. This function will return a hashed representation.
@@ -13,26 +14,21 @@ class Net::LDAP::Password
     #--
     # STUB: This is here to fulfill the requirements of an RFC, which
     # one?
-    #
-    # TODO:
-    # * maybe salted-md5
-    # * Should we provide sha1 as a synonym for sha1? I vote no because then
-    #   should you also provide ssha1 for symmetry?
-    #
-    attribute_value = ""
     def generate(type, str)
-      case type
-      when :md5
-         attribute_value = '{MD5}' + Base64.encode64(Digest::MD5.digest(str)).chomp!
-      when :sha
-         attribute_value = '{SHA}' + Base64.encode64(Digest::SHA1.digest(str)).chomp!
-      when :ssha
-         salt = SecureRandom.random_bytes(16)
-         attribute_value = '{SSHA}' + Base64.encode64(Digest::SHA1.digest(str + salt) + salt).chomp!
+      if KNOWN.include?(type)
+        digest = type.to_s
+        salt = ''
+      elsif type[0] == 's' && KNOWN.include?(type[1..-1].to_sym)
+        digest = type[1..-1]
+        salt = SecureRandom.random_bytes(16)
       else
-         raise Net::LDAP::HashTypeUnsupportedError, "Unsupported password-hash type (#{type})"
+        fail Net::LDAP::HashTypeUnsupportedError,
+             "Unsupported password-hash type (#{type})"
       end
-      return attribute_value
+      digest = 'sha1' if digest == 'sha'
+      type = (type == :sha1 ? :sha : :ssha) if type[-4, 4] == 'sha1'
+      algo = Digest.module_eval(digest.upcase)
+      "{#{type.upcase}}#{Base64.encode64(algo.digest(str + salt) + salt).chomp}"
     end
   end
 end
