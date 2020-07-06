@@ -30,10 +30,16 @@ class TestSSLBER < Test::Unit::TestCase
   end
 
   def test_transmit_strings
+    omit "JRuby throws an error without a real socket"
+    omit_if RUBY_PLATFORM == "java"
+
     assert_equal "foo", transmit("foo")
   end
 
   def test_transmit_ber_encoded_numbers
+    omit "JRuby throws an error without a real socket"
+    omit_if RUBY_PLATFORM == "java"
+
     @to.write 1234.to_ber
     assert_equal 1234, @from.read_ber
   end
