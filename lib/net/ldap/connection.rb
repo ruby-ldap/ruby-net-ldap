@@ -610,7 +610,7 @@ class Net::LDAP::Connection #:nodoc:
     pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::ExtendedResponse
-      raise Net::LDAP::ResponseMissingError, "response missing or invalid"
+      raise Net::LDAP::ResponseMissingOrInvalidError, "response missing or invalid"
     end
 
     pdu
