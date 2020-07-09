@@ -646,7 +646,7 @@ class Net::LDAP::Filter
   ##
   # Converts escaped characters (e.g., "\\28") to unescaped characters
   # @note slawson20170317: Don't attempt to unescape 16 byte binary data which we assume are objectGUIDs
-  # The binary form of 5936AE79-664F-44EA-BCCB-5C39399514C6 triggers a BINARY -> UTF-8 conversion error        
+  # The binary form of 5936AE79-664F-44EA-BCCB-5C39399514C6 triggers a BINARY -> UTF-8 conversion error
   def unescape(right)
     right = right.to_s
     if right.length == 16 && right.encoding == Encoding::BINARY
