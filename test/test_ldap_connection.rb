@@ -340,6 +340,18 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
     assert result.success?
     assert_equal 2, result.message_id
   end
+
+  def test_invalid_pdu_type
+    options = {
+      code: Net::LDAP::ResultCodeSuccess,
+      matched_dn: "",
+      error_message: "",
+    }
+    ber = Net::BER::BerIdentifiedArray.new([options[:code], options[:matched_dn], options[:error_message]])
+    assert_raise Net::LDAP::PDU::Error do
+      Net::LDAP::PDU.new([0, ber])
+    end
+  end
 end
 
 class TestLDAPConnectionErrors < Test::Unit::TestCase
