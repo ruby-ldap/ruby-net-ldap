@@ -1,13 +1,17 @@
 require_relative '../test_helper'
 
 class TestBindIntegration < LDAPIntegrationTestCase
+
+  INTEGRATION_HOSTNAME = 'ldap.example.org'.freeze
+
   def test_bind_success
     assert @ldap.bind(BIND_CREDS),
            @ldap.get_operation_result.inspect
   end
 
   def test_bind_timeout
-    @ldap.port = 8389
+    @ldap.host = "10.255.255.1" # non-routable IP
+
     error = assert_raise Net::LDAP::Error do
       @ldap.bind BIND_CREDS
     end
@@ -34,6 +38,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_cafile
+    @ldap.host = INTEGRATION_HOSTNAME
     @ldap.encryption(
       method:      :start_tls,
       tls_options: TLS_OPTS.merge(ca_file: CA_FILE),
@@ -43,7 +48,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_bad_hostname_verify_none_no_ca_passes
-    @ldap.host = '127.0.0.1'
+    @ldap.host = INTEGRATION_HOSTNAME
     @ldap.encryption(
       method:      :start_tls,
       tls_options: { verify_mode: OpenSSL::SSL::VERIFY_NONE },
@@ -112,7 +117,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_valid_hostname_default_opts_passes
-    @ldap.host = 'localhost'
+    @ldap.host = INTEGRATION_HOSTNAME
     @ldap.encryption(
       method:      :start_tls,
       tls_options: TLS_OPTS.merge(verify_mode: OpenSSL::SSL::VERIFY_PEER,
@@ -123,7 +128,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_valid_hostname_just_verify_peer_ca_passes
-    @ldap.host = 'localhost'
+    @ldap.host = INTEGRATION_HOSTNAME
     @ldap.encryption(
       method:      :start_tls,
       tls_options: { verify_mode: OpenSSL::SSL::VERIFY_PEER,
@@ -146,13 +151,9 @@ class TestBindIntegration < LDAPIntegrationTestCase
     )
   end
 
-  # The following depend on /etc/hosts hacking.
-  # We can do that on CI, but it's less than cool on people's dev boxes
   def test_bind_tls_with_multiple_hosts
-    omit_unless ENV['TRAVIS'] == 'true'
-
     @ldap.host = nil
-    @ldap.hosts = [['ldap01.example.com', 389], ['ldap02.example.com', 389]]
+    @ldap.hosts = [[INTEGRATION_HOSTNAME, 389], [INTEGRATION_HOSTNAME, 389]]
     @ldap.encryption(
       method:      :start_tls,
       tls_options: TLS_OPTS.merge(verify_mode: OpenSSL::SSL::VERIFY_PEER,
@@ -163,8 +164,6 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_multiple_bogus_hosts
-    omit_unless ENV['TRAVIS'] == 'true'
-
     @ldap.host = nil
     @ldap.hosts = [['127.0.0.1', 389], ['bogus.example.com', 389]]
     @ldap.encryption(
@@ -181,8 +180,6 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_multiple_bogus_hosts_no_verification
-    omit_unless ENV['TRAVIS'] == 'true'
-
     @ldap.host = nil
     @ldap.hosts = [['127.0.0.1', 389], ['bogus.example.com', 389]]
     @ldap.encryption(
@@ -194,8 +191,6 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_multiple_bogus_hosts_ca_check_only_fails
-    omit_unless ENV['TRAVIS'] == 'true'
-
     @ldap.host = nil
     @ldap.hosts = [['127.0.0.1', 389], ['bogus.example.com', 389]]
     @ldap.encryption(
@@ -213,32 +208,15 @@ class TestBindIntegration < LDAPIntegrationTestCase
   # This test is CI-only because we can't add the fixture CA
   # to the system CA store on people's dev boxes.
   def test_bind_tls_valid_hostname_system_ca_on_travis_passes
+    omit "not sure how to install custom CA cert in travis"
     omit_unless ENV['TRAVIS'] == 'true'
 
+    @ldap.host = INTEGRATION_HOSTNAME
     @ldap.encryption(
       method: :start_tls,
       tls_options: { verify_mode: OpenSSL::SSL::VERIFY_PEER },
     )
     assert @ldap.bind(BIND_CREDS),
            @ldap.get_operation_result.inspect
-  end
-
-  # Inverse of the above! Don't run this on Travis, only on Vagrant.
-  # Since Vagrant's hypervisor *won't* have the CA in the system
-  # x509 store, we can assume validation will fail
-  def test_bind_tls_valid_hostname_system_on_vagrant_fails
-    omit_if ENV['TRAVIS'] == 'true'
-
-    @ldap.encryption(
-      method: :start_tls,
-      tls_options: { verify_mode: OpenSSL::SSL::VERIFY_PEER },
-    )
-    error = assert_raise Net::LDAP::Error do
-      @ldap.bind BIND_CREDS
-    end
-    assert_equal(
-      "SSL_connect returned=1 errno=0 state=error: certificate verify failed",
-      error.message,
-    )
   end
 end

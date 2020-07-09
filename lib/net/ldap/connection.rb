@@ -300,7 +300,7 @@ class Net::LDAP::Connection #:nodoc:
       control[2] = (control[2] == true).to_ber
       control.to_ber_sequence
     end
-    sort_control = [
+    [
       Net::LDAP::LDAPControls::SORT_REQUEST.to_ber,
       false.to_ber,
       sort_control_values.to_ber_sequence.to_s.to_ber,
@@ -467,6 +467,10 @@ class Net::LDAP::Connection #:nodoc:
           end
         end
 
+        if result_pdu.nil?
+          raise Net::LDAP::ResponseMissingOrInvalidError, "response missing"
+        end
+
         # count number of pages of results
         payload[:page_count] ||= 0
         payload[:page_count]  += 1
@@ -606,7 +610,7 @@ class Net::LDAP::Connection #:nodoc:
     pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::ExtendedResponse
-      raise Net::LDAP::ResponseMissingError, "response missing or invalid"
+      raise Net::LDAP::ResponseMissingOrInvalidError, "response missing or invalid"
     end
 
     pdu
@@ -706,7 +710,7 @@ class Net::LDAP::Connection #:nodoc:
   # Wrap around Socket.tcp to normalize with other Socket initializers
   class DefaultSocket
     def self.new(host, port, socket_opts = {})
-      Socket.tcp(host, port, socket_opts)
+      Socket.tcp(host, port, **socket_opts)
     end
   end
 end # class Connection

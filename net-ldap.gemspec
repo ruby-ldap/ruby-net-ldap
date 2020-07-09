@@ -31,7 +31,7 @@ the most recent LDAP RFCs (4510-4519, plutions of 4520-4532).}
 
   s.add_development_dependency("flexmock", "~> 1.3")
   s.add_development_dependency("rake", "~> 10.0")
-  s.add_development_dependency("rubocop", "~> 0.42.0")
+  s.add_development_dependency("rubocop", "~> 0.49.0")
   s.add_development_dependency("test-unit")
-  s.add_development_dependency("byebug")
+  s.add_development_dependency("byebug") unless RUBY_PLATFORM == "java"
 end

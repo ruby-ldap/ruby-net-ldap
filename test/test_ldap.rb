@@ -1,4 +1,4 @@
-require 'test_helper'
+require_relative 'test_helper'
 
 class TestLDAPInstrumentation < Test::Unit::TestCase
   # Fake Net::LDAP::Connection for testing

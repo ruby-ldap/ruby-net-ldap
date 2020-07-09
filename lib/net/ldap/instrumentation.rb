@@ -12,8 +12,8 @@ module Net::LDAP::Instrumentation
   def instrument(event, payload = {})
     payload = (payload || {}).dup
     if instrumentation_service
-      instrumentation_service.instrument(event, payload) do |payload|
-        payload[:result] = yield(payload) if block_given?
+      instrumentation_service.instrument(event, payload) do |instr_payload|
+        instr_payload[:result] = yield(instr_payload) if block_given?
       end
     else
       yield(payload) if block_given?

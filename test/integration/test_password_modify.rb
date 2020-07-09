@@ -3,10 +3,10 @@ require_relative '../test_helper'
 class TestPasswordModifyIntegration < LDAPIntegrationTestCase
   def setup
     super
-    @admin_account = { dn: 'cn=admin,dc=rubyldap,dc=com', password: 'passworD1', method: :simple }
+    @admin_account = { dn: 'cn=admin,dc=example,dc=org', password: 'admin', method: :simple }
     @ldap.authenticate @admin_account[:dn], @admin_account[:password]
 
-    @dn = 'uid=modify-password-user1,ou=People,dc=rubyldap,dc=com'
+    @dn = 'uid=modify-password-user1,ou=People,dc=example,dc=org'
 
     attrs = {
       objectclass: %w(top inetOrgPerson organizationalPerson person),
@@ -14,7 +14,7 @@ class TestPasswordModifyIntegration < LDAPIntegrationTestCase
       cn: 'modify-password-user1',
       sn: 'modify-password-user1',
       mail: 'modify-password-user1@rubyldap.com',
-      userPassword: 'passworD1',
+      userPassword: 'admin',
     }
     unless @ldap.search(base: @dn, scope: Net::LDAP::SearchScope_BaseObject)
       assert @ldap.add(dn: @dn, attributes: attrs), @ldap.get_operation_result.inspect
@@ -24,20 +24,20 @@ class TestPasswordModifyIntegration < LDAPIntegrationTestCase
     @auth = {
       method: :simple,
       username: @dn,
-      password: 'passworD1',
+      password: 'admin',
     }
   end
 
   def test_password_modify
     assert @ldap.password_modify(dn: @dn,
                                  auth: @auth,
-                                 old_password: 'passworD1',
+                                 old_password: 'admin',
                                  new_password: 'passworD2')
 
     assert @ldap.get_operation_result.extended_response.nil?,
       'Should not have generated a new password'
 
-    refute @ldap.bind(username: @dn, password: 'passworD1', method: :simple),
+    refute @ldap.bind(username: @dn, password: 'admin', method: :simple),
       'Old password should no longer be valid'
 
     assert @ldap.bind(username: @dn, password: 'passworD2', method: :simple),
@@ -47,13 +47,13 @@ class TestPasswordModifyIntegration < LDAPIntegrationTestCase
   def test_password_modify_generate
     assert @ldap.password_modify(dn: @dn,
                                  auth: @auth,
-                                 old_password: 'passworD1')
+                                 old_password: 'admin')
 
     generated_password = @ldap.get_operation_result.extended_response[0][0]
 
     assert generated_password, 'Should have generated a password'
 
-    refute @ldap.bind(username: @dn, password: 'passworD1', method: :simple),
+    refute @ldap.bind(username: @dn, password: 'admin', method: :simple),
       'Old password should no longer be valid'
 
     assert @ldap.bind(username: @dn, password: generated_password, method: :simple),
@@ -68,7 +68,7 @@ class TestPasswordModifyIntegration < LDAPIntegrationTestCase
 
     assert generated_password, 'Should have generated a password'
 
-    refute @ldap.bind(username: @dn, password: 'passworD1', method: :simple),
+    refute @ldap.bind(username: @dn, password: 'admin', method: :simple),
       'Old password should no longer be valid'
 
     assert @ldap.bind(username: @dn, password: generated_password, method: :simple),
@@ -80,7 +80,7 @@ class TestPasswordModifyIntegration < LDAPIntegrationTestCase
                                  auth: @admin_account,
                                  new_password: 'passworD3')
 
-    refute @ldap.bind(username: @dn, password: 'passworD1', method: :simple),
+    refute @ldap.bind(username: @dn, password: 'admin', method: :simple),
       'Old password should no longer be valid'
 
     assert @ldap.bind(username: @dn, password: 'passworD3', method: :simple),

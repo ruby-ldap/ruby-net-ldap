@@ -19,20 +19,18 @@ class Net::LDAP::Password
     # * Should we provide sha1 as a synonym for sha1? I vote no because then
     #   should you also provide ssha1 for symmetry?
     #
-    attribute_value = ""
     def generate(type, str)
       case type
       when :md5
-         attribute_value = '{MD5}' + Base64.encode64(Digest::MD5.digest(str)).chomp!
+         '{MD5}' + Base64.strict_encode64(Digest::MD5.digest(str))
       when :sha
-         attribute_value = '{SHA}' + Base64.encode64(Digest::SHA1.digest(str)).chomp!
+         '{SHA}' + Base64.strict_encode64(Digest::SHA1.digest(str))
       when :ssha
          salt = SecureRandom.random_bytes(16)
-         attribute_value = '{SSHA}' + Base64.encode64(Digest::SHA1.digest(str + salt) + salt).chomp!
+         '{SSHA}' + Base64.strict_encode64(Digest::SHA1.digest(str + salt) + salt)
       else
          raise Net::LDAP::HashTypeUnsupportedError, "Unsupported password-hash type (#{type})"
       end
-      return attribute_value
     end
   end
 end
