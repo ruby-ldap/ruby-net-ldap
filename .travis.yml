@@ -13,7 +13,6 @@ rvm:
   - ruby-head
   - jruby-19mode
   - jruby-head
-  - rbx-2
 
 addons:
   hosts:
@@ -50,7 +49,6 @@ matrix:
     - rvm: ruby-head
     - rvm: jruby-19mode
     - rvm: jruby-head
-    - rvm: rbx-2
   fast_finish: true
 
 notifications:
