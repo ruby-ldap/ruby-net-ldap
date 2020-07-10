@@ -1,7 +1,6 @@
 require_relative '../test_helper'
 
 class TestBindIntegration < LDAPIntegrationTestCase
-
   INTEGRATION_HOSTNAME = 'ldap.example.org'.freeze
 
   def test_bind_success
@@ -28,7 +27,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
     assert_equal Net::LDAP::ResultCodeUnwillingToPerform, result.code
     assert_equal Net::LDAP::ResultStrings[Net::LDAP::ResultCodeUnwillingToPerform], result.message
     assert_equal "unauthenticated bind (DN with no password) disallowed",
-      result.error_message
+                 result.error_message
     assert_equal "", result.matched_dn
   end
 
@@ -75,7 +74,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
                      ca_file:     CA_FILE },
     )
     error = assert_raise Net::LDAP::Error,
-                         Net::LDAP::ConnectionRefusedError do
+                         Errno::ECONNREFUSED do
       @ldap.bind BIND_CREDS
     end
     assert_equal(
@@ -91,7 +90,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
       tls_options: TLS_OPTS.merge(ca_file: CA_FILE),
     )
     error = assert_raise Net::LDAP::Error,
-                         Net::LDAP::ConnectionRefusedError do
+                         Errno::ECONNREFUSED do
       @ldap.bind BIND_CREDS
     end
     assert_equal(
@@ -107,7 +106,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
       tls_options: { ca_file: CA_FILE },
     )
     error = assert_raise Net::LDAP::Error,
-                         Net::LDAP::ConnectionRefusedError do
+                         Errno::ECONNREFUSED do
       @ldap.bind BIND_CREDS
     end
     assert_equal(
@@ -142,7 +141,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
     @ldap.host = '127.0.0.1'
     @ldap.encryption(method: :start_tls, tls_options: {})
     error = assert_raise Net::LDAP::Error,
-                         Net::LDAP::ConnectionRefusedError do
+                         Errno::ECONNREFUSED do
       @ldap.bind BIND_CREDS
     end
     assert_equal(
