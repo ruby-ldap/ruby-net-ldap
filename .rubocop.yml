@@ -4,7 +4,7 @@ AllCops:
   Exclude:
     - 'pkg/**/*'
 
-Style/ExtraSpacing:
+Layout/ExtraSpacing:
   Enabled: false
 
 Lint/AssignmentInCondition:
