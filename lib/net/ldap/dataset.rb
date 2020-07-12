@@ -103,7 +103,7 @@ class Net::LDAP::Dataset < Hash
     # with the conversion of
     def from_entry(entry)
       dataset = Net::LDAP::Dataset.new
-      hash = { }
+      hash = {}
       entry.each_attribute do |attribute, value|
         next if attribute == :dn
         hash[attribute] = value
