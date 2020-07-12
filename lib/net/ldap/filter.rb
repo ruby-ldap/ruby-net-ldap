@@ -490,7 +490,7 @@ class Net::LDAP::Filter
     when :eq
       if @right == "*" # presence test
         @left.to_s.to_ber_contextspecific(7)
-      elsif @right =~ /[*]/ # substring
+      elsif @right.to_s =~ /[*]/ # substring
         # Parsing substrings is a little tricky. We use String#split to
         # break a string into substrings delimited by the * (star)
         # character. But we also need to know whether there is a star at the

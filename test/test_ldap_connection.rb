@@ -95,7 +95,7 @@ class TestLDAPConnection < Test::Unit::TestCase
 
   def test_connection_timeout
     connection = Net::LDAP::Connection.new(:host => "fail.Errno::ETIMEDOUT", :port => 636, :socket_class => FakeTCPSocket)
-    stderr = capture_stderr do
+    capture_stderr do
       assert_raise Net::LDAP::Error do
         connection.socket
       end
