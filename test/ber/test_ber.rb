@@ -95,7 +95,7 @@ class TestBEREncoding < Test::Unit::TestCase
     def test_encode_binary_data
       # This is used for searching for GUIDs in Active Directory
       assert_equal "\x04\x10" + "j1\xB4\xA1*\xA2zA\xAC\xA9`?'\xDDQ\x16".b,
-        ["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").to_ber_bin
+                   ["6a31b4a12aa27a41aca9603f27dd5116"].pack("H*").to_ber_bin
     end
 
     def test_non_utf8_encodable_strings

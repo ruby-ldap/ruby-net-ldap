@@ -25,6 +25,6 @@ class TestBERIntegration < LDAPIntegrationTestCase
     end
 
     assert_includes Net::LDAP::ResultCodesSearchSuccess,
-      @ldap.get_operation_result.code, "should be a successful search operation"
+                    @ldap.get_operation_result.code, "should be a successful search operation"
   end
 end
