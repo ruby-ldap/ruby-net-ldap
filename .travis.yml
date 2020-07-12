@@ -12,6 +12,7 @@ rvm:
   # optional
   - ruby-head
   - jruby-19mode
+  - jruby-9.2
   - jruby-head
 
 addons:
@@ -48,6 +49,7 @@ matrix:
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-19mode
+    - rvm: jruby-9.2
     - rvm: jruby-head
   fast_finish: true
 

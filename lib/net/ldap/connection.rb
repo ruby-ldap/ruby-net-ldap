@@ -181,7 +181,7 @@ class Net::LDAP::Connection #:nodoc:
   # have to call it, but perhaps it will come in handy someday.
   #++
   def close
-    return if @conn.nil?
+    return if !defined?(@conn) || @conn.nil?
     @conn.close
     @conn = nil
   end
