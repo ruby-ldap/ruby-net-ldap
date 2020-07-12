@@ -189,4 +189,4 @@ class Net::LDAP::Entry
   private :setter?
 end # class Entry
 
-require 'net/ldap/dataset' unless defined? Net::LDAP::Dataset
+require_relative 'dataset' unless defined? Net::LDAP::Dataset

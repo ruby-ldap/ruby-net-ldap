@@ -1,5 +1,5 @@
 # -*- ruby encoding: utf-8 -*-
-require 'net/ldap/version'
+require_relative 'ldap/version'
 
 module Net # :nodoc:
   ##
@@ -349,4 +349,4 @@ module Net::BER
   Null = Net::BER::BerIdentifiedNull.new
 end
 
-require 'net/ber/core_ext'
+require_relative 'ber/core_ext'

@@ -1,2 +1,2 @@
 # -*- ruby encoding: utf-8 -*-
-require 'net/ldap'
+require_relative 'net/ldap'
