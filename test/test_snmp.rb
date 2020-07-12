@@ -17,7 +17,7 @@ class TestSnmp < Test::Unit::TestCase
   def test_invalid_packet
     data = "xxxx"
     assert_raise(Net::BER::BerError) do
-      ary = data.read_ber(Net::SNMP::AsnSyntax)
+      data.read_ber(Net::SNMP::AsnSyntax)
     end
   end
 
