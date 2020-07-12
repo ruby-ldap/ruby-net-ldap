@@ -75,6 +75,6 @@ module Net::BER::Extensions::String
   end
 
   def reject_empty_ber_arrays
-    self.gsub(/0\000/n,'')
+    self.gsub(/0\000/n, '')
   end
 end

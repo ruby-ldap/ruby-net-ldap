@@ -140,11 +140,10 @@ class Net::LDAP::Entry
   # arguments to the block: a Symbol giving the name of the attribute, and a
   # (possibly empty) \Array of data values.
   def each # :yields: attribute-name, data-values-array
-    if block_given?
-      attribute_names.each do|a|
-        attr_name,values = a,self[a]
-        yield attr_name, values
-      end
+    return unless block_given?
+    attribute_names.each do|a|
+      attr_name, values = a, self[a]
+      yield attr_name, values
     end
   end
   alias_method :each_attribute, :each

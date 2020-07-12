@@ -169,11 +169,10 @@ class Net::LDAP::DN
     end
 
     # Last pair
-    if [:value, :value_normal, :value_hexstring, :value_end].include? state
-      yield key.string.strip, value.string.rstrip
-    else
-      raise "DN badly formed"
-    end
+    raise "DN badly formed" unless
+      [:value, :value_normal, :value_hexstring, :value_end].include? state
+
+    yield key.string.strip, value.string.rstrip
   end
 
   ##

@@ -1,4 +1,4 @@
-= Net::LDAP for Ruby {<img src="https://travis-ci.org/ruby-ldap/ruby-net-ldap.png" />}[https://travis-ci.org/ruby-ldap/ruby-net-ldap]
+= Net::LDAP for Ruby {<img src="https://travis-ci.org/ruby-ldap/ruby-net-ldap.svg" />}[https://travis-ci.org/ruby-ldap/ruby-net-ldap]
 
 == Description
 
@@ -21,11 +21,11 @@ the most recent LDAP RFCs (4510–4519, plus portions of 4520–4532).
 
 == Synopsis
 
-See Net::LDAP for documentation and usage samples.
+See {Net::LDAP on rubydoc.info}[https://www.rubydoc.info/gems/net-ldap/Net/LDAP] for documentation and usage samples.
 
 == Requirements
 
-Net::LDAP requires a Ruby 1.9.3 compatible interpreter or better.
+Net::LDAP requires a Ruby 2.0.0 compatible interpreter or better.
 
 == Install
 
@@ -52,12 +52,15 @@ This task will run the test suite and the
 
   rake rubotest
 
-To run the integration tests against an LDAP server:
+CI takes too long? If your local box supports
+{Docker}[https://www.docker.com/], you can also run integration tests locally.
+Simply run:
 
-  cd test/support/vm/openldap
-  vagrant up
-  cd ../../../..
-  INTEGRATION=openldap bundle exec rake rubotest
+  script/ldap-docker
+  INTEGRATION=openldap rake test
+
+CAVEAT: you need to add the following line to /etc/hosts
+    127.0.0.1 ldap.example.org
 
 == Release
 

@@ -20,7 +20,7 @@ module Net::BER::Extensions::Integer
     if self <= 127
       [self].pack('C')
     else
-      i = [self].pack('N').sub(/^[\0]+/,"")
+      i = [self].pack('N').sub(/^[\0]+/, "")
       [0x80 + i.length].pack('C') + i
     end
   end

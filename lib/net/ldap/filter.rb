@@ -23,7 +23,7 @@
 class Net::LDAP::Filter
   ##
   # Known filter types.
-  FilterTypes = [ :ne, :eq, :ge, :le, :and, :or, :not, :ex, :bineq ]
+  FilterTypes = [:ne, :eq, :ge, :le, :and, :or, :not, :ex, :bineq]
 
   def initialize(op, left, right) #:nodoc:
     unless FilterTypes.include?(op)
@@ -550,10 +550,10 @@ class Net::LDAP::Filter
       [self.class.eq(@left, @right).to_ber].to_ber_contextspecific(2)
     when :and
       ary = [@left.coalesce(:and), @right.coalesce(:and)].flatten
-      ary.map {|a| a.to_ber}.to_ber_contextspecific(0)
+      ary.map(&:to_ber).to_ber_contextspecific(0)
     when :or
       ary = [@left.coalesce(:or), @right.coalesce(:or)].flatten
-      ary.map {|a| a.to_ber}.to_ber_contextspecific(1)
+      ary.map(&:to_ber).to_ber_contextspecific(1)
     when :not
       [@left.to_ber].to_ber_contextspecific(2)
     end
@@ -645,8 +645,15 @@ class Net::LDAP::Filter
 
   ##
   # Converts escaped characters (e.g., "\\28") to unescaped characters
+  # @note slawson20170317: Don't attempt to unescape 16 byte binary data which we assume are objectGUIDs
+  # The binary form of 5936AE79-664F-44EA-BCCB-5C39399514C6 triggers a BINARY -> UTF-8 conversion error
   def unescape(right)
-    right.to_s.gsub(/\\([a-fA-F\d]{2})/) { [$1.hex].pack("U") }
+    right = right.to_s
+    if right.length == 16 && right.encoding == Encoding::BINARY
+      right
+    else
+      right.to_s.gsub(/\\([a-fA-F\d]{2})/) { [$1.hex].pack("U") }
+    end
   end
   private :unescape
 
@@ -748,7 +755,7 @@ class Net::LDAP::Filter
     # This parses a given expression inside of parentheses.
     def parse_filter_branch(scanner)
       scanner.scan(/\s*/)
-      if token = scanner.scan(/[-\w:.]*[\w]/)
+      if token = scanner.scan(/[-\w:.;]*[\w]/)
         scanner.scan(/\s*/)
         if op = scanner.scan(/<=|>=|!=|:=|=/)
           scanner.scan(/\s*/)

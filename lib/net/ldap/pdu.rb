@@ -123,7 +123,7 @@ class Net::LDAP::PDU
     when ExtendedResponse
       parse_extended_response(ber_object[1])
     else
-      raise LdapPduError.new("unknown pdu-type: #{@app_tag}")
+      raise Error.new("unknown pdu-type: #{@app_tag}")
     end
 
     parse_controls(ber_object[2]) if ber_object[2]
@@ -175,7 +175,7 @@ class Net::LDAP::PDU
     @ldap_result = {
       :resultCode => sequence[0],
       :matchedDN => sequence[1],
-      :errorMessage => sequence[2]
+      :errorMessage => sequence[2],
     }
     parse_search_referral(sequence[3]) if @ldap_result[:resultCode] == Net::LDAP::ResultCodeReferral
   end
@@ -198,7 +198,7 @@ class Net::LDAP::PDU
     @ldap_result = {
       :resultCode => sequence[0],
       :matchedDN => sequence[1],
-      :errorMessage => sequence[2]
+      :errorMessage => sequence[2],
     }
     @extended_response = sequence[3]
   end

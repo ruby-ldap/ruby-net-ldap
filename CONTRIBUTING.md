@@ -49,6 +49,6 @@ MyClass.new \
   baz: 'garply'
 ```
 
-[issues]: https://github.com/ruby-net-ldap/ruby-net-ldap/issues
+[issues]: https://github.com/ruby-ldap/ruby-net-ldap/issues
 [pr]: https://help.github.com/articles/using-pull-requests
 [travis]: https://travis-ci.org/ruby-ldap/ruby-net-ldap

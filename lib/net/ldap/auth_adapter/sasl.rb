@@ -4,6 +4,8 @@ module Net
   class LDAP
     class AuthAdapter
       class Sasl < Net::LDAP::AuthAdapter
+        MAX_SASL_CHALLENGES = 10
+
         #--
         # Required parameters: :mechanism, :initial_credential and
         # :challenge_response
@@ -47,7 +49,7 @@ module Net
             end
 
             return pdu unless pdu.result_code == Net::LDAP::ResultCodeSaslBindInProgress
-            raise Net::LDAP::SASLChallengeOverflowError, "sasl-challenge overflow" if ((n += 1) > MaxSaslChallenges)
+            raise Net::LDAP::SASLChallengeOverflowError, "sasl-challenge overflow" if ((n += 1) > MAX_SASL_CHALLENGES)
 
             cred = chall.call(pdu.result_server_sasl_creds)
           end

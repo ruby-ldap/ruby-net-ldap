@@ -235,7 +235,7 @@ module Net # :nodoc:
       # TODO 20100327 AZ: Should we be allocating an array of 256 values
       # that will either be +nil+ or an object type symbol, or should we
       # allocate an empty Hash since unknown values return +nil+ anyway?
-      out = [ nil ] * 256
+      out = [nil] * 256
       syntax.each do |tag_class_id, encodings|
         tag_class = TAG_CLASS[tag_class_id]
         encodings.each do |encoding_id, classes|
@@ -270,7 +270,7 @@ class Net::BER::BerIdentifiedOid
 
   def initialize(oid)
     if oid.is_a?(String)
-      oid = oid.split(/\./).map {|s| s.to_i }
+      oid = oid.split(/\./).map(&:to_i)
     end
     @value = oid
   end
@@ -327,11 +327,10 @@ class Net::BER::BerIdentifiedString < String
     # Check the encoding of the newly created String and set the encoding
     # to 'UTF-8' (NOTE: we do NOT change the bytes, but only set the
     # encoding to 'UTF-8').
+    return unless encoding == Encoding::BINARY
     current_encoding = encoding
-    if current_encoding == Encoding::BINARY
-      force_encoding('UTF-8')
-      force_encoding(current_encoding) unless valid_encoding?
-    end
+    force_encoding('UTF-8')
+    force_encoding(current_encoding) unless valid_encoding?
   end
 end
 

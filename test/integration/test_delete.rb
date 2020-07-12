@@ -3,16 +3,14 @@ require_relative '../test_helper'
 class TestDeleteIntegration < LDAPIntegrationTestCase
   def setup
     super
-    @ldap.authenticate "cn=admin,dc=rubyldap,dc=com", "passworD1"
-
-    @dn = "uid=delete-user1,ou=People,dc=rubyldap,dc=com"
+    @dn = "uid=delete-user1,ou=People,dc=example,dc=org"
 
     attrs = {
       objectclass: %w(top inetOrgPerson organizationalPerson person),
       uid:  "delete-user1",
       cn:   "delete-user1",
       sn:   "delete-user1",
-      mail: "delete-user1@rubyldap.com"
+      mail: "delete-user1@rubyldap.com",
     }
     unless @ldap.search(base: @dn, scope: Net::LDAP::SearchScope_BaseObject)
       assert @ldap.add(dn: @dn, attributes: attrs), @ldap.get_operation_result.inspect

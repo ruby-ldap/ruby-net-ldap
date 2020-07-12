@@ -1,4 +1,42 @@
+=== Net::LDAP 0.16.2
+
+* Net::LDAP#open does not cache bind result {#334}[https://github.com/ruby-ldap/ruby-net-ldap/pull/334]
+* Fix CI build {#333}[https://github.com/ruby-ldap/ruby-net-ldap/pull/333]
+* Fix to "undefined method 'result_code'" {#308}[https://github.com/ruby-ldap/ruby-net-ldap/pull/308]
+* Fixed Exception: incompatible character encodings: ASCII-8BIT and UTF-8 in filter.rb {#285}[https://github.com/ruby-ldap/ruby-net-ldap/pull/285]
+
+=== Net::LDAP 0.16.1
+
+* Send DN and newPassword with password_modify request {#271}[https://github.com/ruby-ldap/ruby-net-ldap/pull/271]
+
+=== Net::LDAP 0.16.0
+
+* Sasl fix {#281}[https://github.com/ruby-ldap/ruby-net-ldap/pull/281]
+* enable TLS hostname validation {#279}[https://github.com/ruby-ldap/ruby-net-ldap/pull/279]
+* update rubocop to 0.42.0 {#278}[https://github.com/ruby-ldap/ruby-net-ldap/pull/278]
+
+=== Net::LDAP 0.15.0
+
+* Respect connect_timeout when establishing SSL connections {#273}[https://github.com/ruby-ldap/ruby-net-ldap/pull/273]
+
+=== Net::LDAP 0.14.0
+
+* Normalize the encryption parameter passed to the LDAP constructor {#264}[https://github.com/ruby-ldap/ruby-net-ldap/pull/264]
+* Update Docs: Net::LDAP now requires ruby >= 2 {#261}[https://github.com/ruby-ldap/ruby-net-ldap/pull/261]
+* fix symbol proc {#255}[https://github.com/ruby-ldap/ruby-net-ldap/pull/255]
+* fix trailing commas {#256}[https://github.com/ruby-ldap/ruby-net-ldap/pull/256]
+* fix deprecated hash methods {#254}[https://github.com/ruby-ldap/ruby-net-ldap/pull/254]
+* fix space after comma {#253}[https://github.com/ruby-ldap/ruby-net-ldap/pull/253]
+* fix space inside brackets {#252}[https://github.com/ruby-ldap/ruby-net-ldap/pull/252]
+* Rubocop style fixes {#249}[https://github.com/ruby-ldap/ruby-net-ldap/pull/249]
+* Lazy initialize Net::LDAP::Connection's internal socket {#235}[https://github.com/ruby-ldap/ruby-net-ldap/pull/235]
+* Support for rfc3062 Password Modify, closes #163 {#178}[https://github.com/ruby-ldap/ruby-net-ldap/pull/178]
+
 === Net::LDAP 0.13.0
+
+Avoid this release for because of an backwards incompatibility in how encryption
+is initialized https://github.com/ruby-ldap/ruby-net-ldap/pull/264. We did not
+yank it because people have already worked around it.
 
 * Set a connect_timeout for the creation of a socket {#243}[https://github.com/ruby-ldap/ruby-net-ldap/pull/243]
 * Update bundler before installing gems with bundler {#245}[https://github.com/ruby-ldap/ruby-net-ldap/pull/245]

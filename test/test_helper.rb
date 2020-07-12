@@ -14,9 +14,17 @@ CA_FILE =
     if File.exist?("/etc/ssl/certs/cacert.pem")
       "/etc/ssl/certs/cacert.pem"
     else
-      File.expand_path("fixtures/cacert.pem", File.dirname(__FILE__))
+      File.expand_path("fixtures/ca/docker-ca.pem", File.dirname(__FILE__))
     end
   end
+
+BIND_CREDS = {
+  method:   :simple,
+  username: "cn=admin,dc=example,dc=org",
+  password: "admin",
+}.freeze
+
+TLS_OPTS = OpenSSL::SSL::SSLContext::DEFAULT_PARAMS.merge({}).freeze
 
 if RUBY_VERSION < "2.0"
   class String
@@ -57,10 +65,9 @@ class LDAPIntegrationTestCase < Test::Unit::TestCase
     @ldap = Net::LDAP.new \
       host:           ENV.fetch('INTEGRATION_HOST', 'localhost'),
       port:           ENV.fetch('INTEGRATION_PORT', 389),
-      admin_user:     'uid=admin,dc=rubyldap,dc=com',
-      admin_password: 'passworD1',
-      search_domains: %w(dc=rubyldap,dc=com),
+      search_domains: %w(dc=example,dc=org),
       uid:            'uid',
       instrumentation_service: @service
+    @ldap.authenticate "cn=admin,dc=example,dc=org", "admin"
   end
 end

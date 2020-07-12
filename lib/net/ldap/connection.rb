@@ -7,7 +7,6 @@ class Net::LDAP::Connection #:nodoc:
   DefaultConnectTimeout = 5
 
   LdapVersion = 3
-  MaxSaslChallenges = 10
 
   # Initialize a connection to an LDAP server
   #
@@ -31,26 +30,36 @@ class Net::LDAP::Connection #:nodoc:
     @socket_class = socket_class
   end
 
-  def prepare_socket(server)
+  def prepare_socket(server, timeout=nil)
     socket = server[:socket]
     encryption = server[:encryption]
 
     @conn = socket
-    setup_encryption encryption if encryption
+    setup_encryption(encryption, timeout) if encryption
   end
 
   def open_connection(server)
     hosts = server[:hosts]
     encryption = server[:encryption]
 
+    timeout = server[:connect_timeout] || DefaultConnectTimeout
     socket_opts = {
-      connect_timeout: server[:connect_timeout] || DefaultConnectTimeout
+      connect_timeout: timeout,
     }
 
     errors = []
     hosts.each do |host, port|
       begin
-        prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts)))
+        prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts)), timeout)
+        if encryption
+          if encryption[:tls_options] &&
+             encryption[:tls_options][:verify_mode] &&
+             encryption[:tls_options][:verify_mode] == OpenSSL::SSL::VERIFY_NONE
+            warn "not verifying SSL hostname of LDAPS server '#{host}:#{port}'"
+          else
+            @conn.post_connection_check(host)
+          end
+        end
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
              OpenSSL::SSL::SSLError => e
@@ -76,7 +85,7 @@ class Net::LDAP::Connection #:nodoc:
     end
   end
 
-  def self.wrap_with_ssl(io, tls_options = {})
+  def self.wrap_with_ssl(io, tls_options = {}, timeout=nil)
     raise Net::LDAP::NoOpenSSLError, "OpenSSL is unavailable" unless Net::LDAP::HasOpenSSL
 
     ctx = OpenSSL::SSL::SSLContext.new
@@ -86,7 +95,22 @@ class Net::LDAP::Connection #:nodoc:
     ctx.set_params(tls_options) unless tls_options.empty?
 
     conn = OpenSSL::SSL::SSLSocket.new(io, ctx)
-    conn.connect
+
+    begin
+      if timeout
+        conn.connect_nonblock
+      else
+        conn.connect
+      end
+    rescue IO::WaitReadable
+      raise Errno::ETIMEDOUT, "OpenSSL connection read timeout" unless
+        IO.select([conn], nil, nil, timeout)
+      retry
+    rescue IO::WaitWritable
+      raise Errno::ETIMEDOUT, "OpenSSL connection write timeout" unless
+        IO.select(nil, [conn], nil, timeout)
+      retry
+    end
 
     # Doesn't work:
     # conn.sync_close = true
@@ -123,17 +147,17 @@ class Net::LDAP::Connection #:nodoc:
   # communications, as with simple_tls. Thanks for Kouhei Sutou for
   # generously contributing the :start_tls path.
   #++
-  def setup_encryption(args)
+  def setup_encryption(args, timeout=nil)
     args[:tls_options] ||= {}
     case args[:method]
     when :simple_tls
-      @conn = self.class.wrap_with_ssl(@conn, args[:tls_options])
+      @conn = self.class.wrap_with_ssl(@conn, args[:tls_options], timeout)
       # additional branches requiring server validation and peer certs, etc.
       # go here.
     when :start_tls
       message_id = next_msgid
       request    = [
-        Net::LDAP::StartTlsOid.to_ber_contextspecific(0)
+        Net::LDAP::StartTlsOid.to_ber_contextspecific(0),
       ].to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
 
       write(request, nil, message_id)
@@ -143,11 +167,9 @@ class Net::LDAP::Connection #:nodoc:
         raise Net::LDAP::NoStartTLSResultError, "no start_tls result"
       end
 
-      if pdu.result_code.zero?
-        @conn = self.class.wrap_with_ssl(@conn, args[:tls_options])
-      else
-        raise Net::LDAP::StartTLSError, "start_tls failed: #{pdu.result_code}"
-      end
+      raise Net::LDAP::StartTLSError,
+            "start_tls failed: #{pdu.result_code}" unless pdu.result_code.zero?
+      @conn = self.class.wrap_with_ssl(@conn, args[:tls_options], timeout)
     else
       raise Net::LDAP::EncMethodUnsupportedError, "unsupported encryption method #{args[:method]}"
     end
@@ -177,12 +199,10 @@ class Net::LDAP::Connection #:nodoc:
 
     # read messages until we have a match for the given message_id
     while pdu = read
-      if pdu.message_id == message_id
-        return pdu
-      else
-        message_queue[pdu.message_id].push pdu
-        next
-      end
+      return pdu if pdu.message_id == message_id
+
+      message_queue[pdu.message_id].push pdu
+      next
     end
 
     pdu
@@ -280,10 +300,10 @@ class Net::LDAP::Connection #:nodoc:
       control[2] = (control[2] == true).to_ber
       control.to_ber_sequence
     end
-    sort_control = [
+    [
       Net::LDAP::LDAPControls::SORT_REQUEST.to_ber,
       false.to_ber,
-      sort_control_values.to_ber_sequence.to_s.to_ber
+      sort_control_values.to_ber_sequence.to_s.to_ber,
     ].to_ber_sequence
   end
 
@@ -380,12 +400,11 @@ class Net::LDAP::Connection #:nodoc:
         # should collect this into a private helper to clarify the structure
         query_limit = 0
         if size > 0
-          if paged
-            query_limit = (((size - n_results) < 126) ? (size -
-                                                              n_results) : 0)
-          else
-            query_limit = size
-          end
+          query_limit = if paged
+                          (((size - n_results) < 126) ? (size - n_results) : 0)
+                        else
+                          size
+                        end
         end
 
         request = [
@@ -396,7 +415,7 @@ class Net::LDAP::Connection #:nodoc:
           time.to_ber,
           attrs_only.to_ber,
           filter.to_ber,
-          ber_attrs.to_ber_sequence
+          ber_attrs.to_ber_sequence,
         ].to_ber_appsequence(Net::LDAP::PDU::SearchRequest)
 
         # rfc2696_cookie sometimes contains binary data from Microsoft Active Directory
@@ -409,7 +428,7 @@ class Net::LDAP::Connection #:nodoc:
             Net::LDAP::LDAPControls::PAGED_RESULTS.to_ber,
             # Criticality MUST be false to interoperate with normal LDAPs.
             false.to_ber,
-            rfc2696_cookie.map{ |v| v.to_ber}.to_ber_sequence.to_s.to_ber
+            rfc2696_cookie.map(&:to_ber).to_ber_sequence.to_s.to_ber,
           ].to_ber_sequence if paged
         controls << ber_sort if ber_sort
         controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
@@ -446,6 +465,10 @@ class Net::LDAP::Connection #:nodoc:
           else
             raise Net::LDAP::ResponseTypeInvalidError, "invalid response-type in search: #{pdu.app_tag}"
           end
+        end
+
+        if result_pdu.nil?
+          raise Net::LDAP::ResponseMissingOrInvalidError, "response missing"
         end
 
         # count number of pages of results
@@ -503,7 +526,7 @@ class Net::LDAP::Connection #:nodoc:
   MODIFY_OPERATIONS = { #:nodoc:
     :add => 0,
     :delete => 1,
-    :replace => 2
+    :replace => 2,
   }
 
   def self.modify_ops(operations)
@@ -513,9 +536,9 @@ class Net::LDAP::Connection #:nodoc:
         # TODO, fix the following line, which gives a bogus error if the
         # opcode is invalid.
         op_ber = MODIFY_OPERATIONS[op.to_sym].to_ber_enumerated
-        values = [ values ].flatten.map { |v| v.to_ber if v }.to_ber_set
-        values = [ attrib.to_s.to_ber, values ].to_ber_sequence
-        ops << [ op_ber, values ].to_ber
+        values = [values].flatten.map { |v| v.to_ber if v }.to_ber_set
+        values = [attrib.to_s.to_ber, values].to_ber_sequence
+        ops << [op_ber, values].to_ber
       end
     end
     ops
@@ -535,7 +558,7 @@ class Net::LDAP::Connection #:nodoc:
     message_id = next_msgid
     request    = [
       modify_dn.to_ber,
-      ops.to_ber_sequence
+      ops.to_ber_sequence,
     ].to_ber_appsequence(Net::LDAP::PDU::ModifyRequest)
 
     write(request, nil, message_id)
@@ -573,11 +596,11 @@ class Net::LDAP::Connection #:nodoc:
 
     ext_seq = [Net::LDAP::PasswdModifyOid.to_ber_contextspecific(0)]
 
-    unless args[:old_password].nil?
-      pwd_seq = [args[:old_password].to_ber(0x81)]
-      pwd_seq << args[:new_password].to_ber(0x82) unless args[:new_password].nil?
-      ext_seq << pwd_seq.to_ber_sequence.to_ber(0x81)
-    end
+    pwd_seq = []
+    pwd_seq << dn.to_ber(0x80)
+    pwd_seq << args[:old_password].to_ber(0x81) unless args[:old_password].nil?
+    pwd_seq << args[:new_password].to_ber(0x82) unless args[:new_password].nil?
+    ext_seq << pwd_seq.to_ber_sequence.to_ber(0x81)
 
     request = ext_seq.to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
 
@@ -587,7 +610,7 @@ class Net::LDAP::Connection #:nodoc:
     pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::ExtendedResponse
-      raise Net::LDAP::ResponseMissingError, "response missing or invalid"
+      raise Net::LDAP::ResponseMissingOrInvalidError, "response missing or invalid"
     end
 
     pdu
@@ -604,7 +627,7 @@ class Net::LDAP::Connection #:nodoc:
     add_dn = args[:dn] or raise Net::LDAP::EmptyDNError, "Unable to add empty DN"
     add_attrs = []
     a = args[:attributes] and a.each do |k, v|
-      add_attrs << [ k.to_s.to_ber, Array(v).map { |m| m.to_ber}.to_ber_set ].to_ber_sequence
+      add_attrs << [k.to_s.to_ber, Array(v).map(&:to_ber).to_ber_set].to_ber_sequence
     end
 
     message_id = next_msgid
@@ -687,7 +710,7 @@ class Net::LDAP::Connection #:nodoc:
   # Wrap around Socket.tcp to normalize with other Socket initializers
   class DefaultSocket
     def self.new(host, port, socket_opts = {})
-      Socket.tcp(host, port, socket_opts)
+      Socket.tcp(host, port, **socket_opts)
     end
   end
 end # class Connection
