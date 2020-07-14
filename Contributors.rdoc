@@ -23,3 +23,4 @@ Contributions since:
 * Cody Cutrer (ccutrer)
 * WoodsBagotAndreMarquesLee
 * Rufus Post (mynameisrufus)
+* Akamai Technologies, Inc. (jwedoff)
