@@ -61,7 +61,7 @@ class TestLDAPConnection < Test::Unit::TestCase
 
     ldap_client = Net::LDAP.new(host: '127.0.0.1', port: 12345)
 
-    assert_raise Net::LDAP::ConnectionRefusedError do
+    assert_raise_kind_of Errno::ECONNREFUSED do
       ldap_client.bind(method: :simple, username: 'asdf', password: 'asdf')
     end
 
@@ -86,11 +86,42 @@ class TestLDAPConnection < Test::Unit::TestCase
   def test_connection_refused
     connection = Net::LDAP::Connection.new(:host => "fail.Errno::ECONNREFUSED", :port => 636, :socket_class => FakeTCPSocket)
     stderr = capture_stderr do
-      assert_raise Net::LDAP::ConnectionRefusedError do
+      assert_raise_kind_of Errno::ECONNREFUSED do
         connection.socket
       end
     end
+  end
+
+  # explicity test deprication warning; it shows when Net::LDAP::ConnectionRefusedError is used a rescue match
+  # assert_raise/assert_raise_kind_of doesn't trigger it
+  def test_deprication_warning_on_exception
+    connection = Net::LDAP::Connection.new(:host => "fail.Errno::ECONNREFUSED", :port => 636, :socket_class => FakeTCPSocket)
+    got_exception = false
+    stderr = capture_stderr do
+      begin
+        connection.socket
+      rescue Net::LDAP::ConnectionRefusedError
+        got_exception = true
+      end
+    end
     assert_equal("Deprecation warning: Net::LDAP::ConnectionRefused will be deprecated. Use Errno::ECONNREFUSED instead.\n",  stderr)
+    assert got_exception, "Didn't raise exception"
+  end
+
+  def test_deprication_warning_on_other_exception
+    connection = Net::LDAP::Connection.new(:host => "fail.StandardError", :port => 636, :socket_class => FakeTCPSocket)
+    got_exception = false
+    stderr = capture_stderr do
+      assert_raise StandardError do
+        begin
+          connection.socket
+        rescue Net::LDAP::ConnectionRefusedError
+          got_exception = true
+        end
+      end
+    end
+    assert_equal("Deprecation warning: Net::LDAP::ConnectionRefused will be deprecated. Use Errno::ECONNREFUSED instead.\n",  stderr)
+    assert !got_exception, "Net::LDAP::ConnectionRefusedError should not have matched"
   end
 
   def test_connection_timeout
