@@ -206,7 +206,7 @@ Lint/UselessAssignment:
 
 # Offense count: 48
 Metrics/AbcSize:
-  Max: 116
+  Max: 118
 
 # Offense count: 4
 # Configuration parameters: CountComments, ExcludedMethods.
@@ -221,7 +221,7 @@ Metrics/BlockNesting:
 # Offense count: 11
 # Configuration parameters: CountComments.
 Metrics/ClassLength:
-  Max: 429
+  Max: 436
 
 # Offense count: 23
 Metrics/CyclomaticComplexity:
