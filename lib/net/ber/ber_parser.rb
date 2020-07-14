@@ -1,8 +1,10 @@
 # -*- ruby encoding: utf-8 -*-
 require 'stringio'
+require_relative 'ber_parser_nonblock'
 
 # Implements Basic Encoding Rules parsing to be mixed into types as needed.
 module Net::BER::BERParser
+  include Net::BER::BERParserNonblock
   primitive = {
     1 => :boolean,
     2 => :integer,
@@ -133,7 +135,7 @@ module Net::BER::BERParser
   # invalid BER length case. Because the "lengthlength" value was not used
   # inside of #read_ber, we no longer return it.
   def read_ber_length
-    n = getbyte
+    n = ber_timeout_getbyte
 
     if n <= 0x7f
       n
@@ -143,7 +145,7 @@ module Net::BER::BERParser
       raise Net::BER::BerError, "Invalid BER length 0xFF detected."
     else
       v = 0
-      read(n & 0x7f).each_byte do |b|
+      ber_timeout_read(n & 0x7f).each_byte do |b|
         v = (v << 8) + b
       end
 
@@ -166,7 +168,7 @@ module Net::BER::BERParser
     # from streams that don't block when we ask for more data (like
     # StringIOs). At it is, this can throw TypeErrors and other nasties.
 
-    id = getbyte or return nil  # don't trash this value, we'll use it later
+    id = read_ber_id or return nil  # don't trash this value, we'll use it later
     content_length = read_ber_length
 
     yield id, content_length if block_given?
@@ -175,7 +177,7 @@ module Net::BER::BERParser
       raise Net::BER::BerError,
             "Indeterminite BER content length not implemented."
     end
-    data = read(content_length)
+    data = ber_timeout_read(content_length)
 
     parse_ber_object(syntax, id, data)
   end

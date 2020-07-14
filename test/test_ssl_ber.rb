@@ -22,6 +22,8 @@ class TestSSLBER < Test::Unit::TestCase
     #
     # TODO: Replace test with real socket
     # https://github.com/ruby-ldap/ruby-net-ldap/pull/121#discussion_r18746386
+    #
+    # without this fix, a number of "warning: SSL session is not started yet" are emitted on the nonblocking reads.
     flexmock(OpenSSL::SSL::SSLSocket)
       .new_instances.should_receive(:connect => nil)
 

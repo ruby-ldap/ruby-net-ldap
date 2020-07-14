@@ -6,6 +6,10 @@ class TestSearch < Test::Unit::TestCase
     def search(args)
       OpenStruct.new(:result_code => Net::LDAP::ResultCodeOperationsError, :message => "error", :success? => false)
     end
+
+    def with_timeout(timeout = nil, &block)
+      yield
+    end
   end
 
   def setup
