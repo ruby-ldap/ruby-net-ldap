@@ -23,7 +23,7 @@ class Net::LDAP::Connection #:nodoc:
     # Allows tests to parameterize what socket class to use
     @socket_class = server.fetch(:socket_class, DefaultSocket)
 
-		ObjectSpace.define_finalizer self, finalize
+    ObjectSpace.define_finalizer self, finalize
 
     yield self if block_given?
   end
