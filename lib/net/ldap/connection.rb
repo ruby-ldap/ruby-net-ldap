@@ -23,6 +23,8 @@ class Net::LDAP::Connection #:nodoc:
     # Allows tests to parameterize what socket class to use
     @socket_class = server.fetch(:socket_class, DefaultSocket)
 
+		ObjectSpace.define_finalizer self, finalize
+
     yield self if block_given?
   end
 
@@ -184,6 +186,13 @@ class Net::LDAP::Connection #:nodoc:
     return if !defined?(@conn) || @conn.nil?
     @conn.close
     @conn = nil
+  end
+
+  # Ensure the connection closes when this instance is destroyed.
+  def finalize
+    proc do |_obj_id|
+      close
+    end
   end
 
   # Internal: Reads messages by ID from a queue, falling back to reading from

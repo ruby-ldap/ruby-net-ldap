@@ -31,6 +31,8 @@ require_relative 'ldap/auth_adapter'
 require_relative 'ldap/auth_adapter/simple'
 require_relative 'ldap/auth_adapter/sasl'
 
+require 'connection_pool'
+
 Net::LDAP::AuthAdapter.register([:simple, :anon, :anonymous], Net::LDAP::AuthAdapter::Simple)
 Net::LDAP::AuthAdapter.register(:sasl, Net::LDAP::AuthAdapter::Sasl)
 
@@ -553,6 +555,10 @@ class Net::LDAP
     @force_no_page = args[:force_no_page] || DefaultForceNoPage
     @encryption = normalize_encryption(args[:encryption]) # may be nil
     @connect_timeout = args[:connect_timeout]
+    if args[:connection_pool].is_a? Hash
+      options = { size: 5, timeout: (@connection_timeout || 5) }.merge args[:connection_pool]
+      @connection_pool = ConnectionPool.new(options) { new_connection }
+    end
 
     if pr = @auth[:password] and pr.respond_to?(:call)
       @auth[:password] = pr.call
@@ -1293,7 +1299,11 @@ class Net::LDAP
   # result from that, and :use_connection: will not yield at all. If not
   # the return value is whatever is returned from the block.
   def use_connection(args)
-    if @open_connection
+    if @connection_pool
+      @connection_pool.with do |conn|
+        yield conn
+      end
+    elsif @open_connection
       yield @open_connection
     else
       begin
