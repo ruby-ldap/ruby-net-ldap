@@ -1182,14 +1182,22 @@ class Net::LDAP
   # entries. This method sends an extra control code to tell the LDAP server
   # to do a tree delete. ('1.2.840.113556.1.4.805')
   #
+  # If the LDAP server does not support the DELETE_TREE control code, subordinate
+  # entries are deleted recursively instead.
+  #
   # Returns True or False to indicate whether the delete succeeded. Extended
   # status information is available by calling #get_operation_result.
   #
   #  dn = "mail=deleteme@example.com, ou=people, dc=example, dc=com"
   #  ldap.delete_tree :dn => dn
   def delete_tree(args)
-    delete(args.merge(:control_codes => [[Net::LDAP::LDAPControls::DELETE_TREE, true]]))
+    if search_root_dse[:supportedcontrol].include? Net::LDAP::LDAPControls::DELETE_TREE
+      delete(args.merge(:control_codes => [[Net::LDAP::LDAPControls::DELETE_TREE, true]]))
+    else
+      recursive_delete(args)
+    end
   end
+
   # This method is experimental and subject to change. Return the rootDSE
   # record from the LDAP server as a Net::LDAP::Entry, or an empty Entry if
   # the server doesn't return the record.
@@ -1338,6 +1346,21 @@ class Net::LDAP
     when :simple_tls, :start_tls
       { :method => method, :tls_options => {} }
     end
+  end
+
+  # Recursively delete a dn and it's subordinate children.
+  # This is useful when a server does not support the DELETE_TREE control code.
+  def recursive_delete(args)
+    raise EmptyDNError unless args.is_a?(Hash) && args.has_key?(:dn)
+    # Delete Children
+    search(base: args[:dn], scope: Net::LDAP::SearchScope_SingleLevel) do |entry|
+      recursive_delete(dn: entry.dn)
+    end
+    # Delete Self
+    unless delete(dn: args[:dn])
+      raise Net::LDAP::Error, self.get_operation_result[:error_message].to_s
+    end
+    true
   end
 
 end # class LDAP
