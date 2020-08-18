@@ -26,7 +26,6 @@ class TestDN < Test::Unit::TestCase
     assert_equal ['1.23.4', '#A3B4D5', 'ou', 'Company'], dn.to_a
   end
 
-  # TODO: raise a more specific exception than RuntimeError
   def test_bad_input_raises_error
     [
       'cn=James,',
@@ -38,7 +37,7 @@ class TestDN < Test::Unit::TestCase
       'd1.2=Value',
     ].each do |input|
       dn = Net::LDAP::DN.new(input)
-      assert_raises(RuntimeError) { dn.to_a }
+      assert_raises(Net::LDAP::InvalidDNError) { dn.to_a }
     end
   end
 end

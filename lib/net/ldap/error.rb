@@ -60,6 +60,7 @@ class Net::LDAP
   class ResponseTypeInvalidError < Error; end
   class ResponseMissingOrInvalidError < Error; end
   class EmptyDNError < Error; end
+  class InvalidDNError < Error; end
   class HashTypeUnsupportedError < Error; end
   class OperatorError < Error; end
   class SubstringFilterError < Error; end
