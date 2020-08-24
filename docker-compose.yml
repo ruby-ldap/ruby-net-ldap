@@ -1,0 +1,81 @@
+version: "3.8"
+
+networks:
+  integration_test_network:
+
+services:
+  openldap:
+    image: osixia/openldap:1.4.0
+    networks:
+      integration_test_network:
+        aliases:
+          - ldap.example.org
+          - cert.mismatch.example.org
+    environment:
+      LDAP_TLS_VERIFY_CLIENT: "try"
+      LDAP_SEED_INTERNAL_LDIF_PATH: "/ldif"
+    healthcheck:
+      test: ["CMD", "ldapsearch", "-x", "-s", "base"]
+      interval: 60s
+      start_period: 30s
+      timeout: 5s
+      retries: 1
+    hostname: "ldap.example.org"
+    volumes:
+      - ./test/fixtures/ldif:/ldif:ro
+
+  ci-2.5:
+    image: ruby:2.5
+    entrypoint: /code/ci-run.sh
+    environment:
+      INTEGRATION: openldap
+      INTEGRATION_HOST: ldap.example.org
+    depends_on:
+      - openldap
+    networks:
+      integration_test_network:
+    volumes:
+      - .:/code
+    working_dir: /code
+
+  ci-2.6:
+    image: ruby:2.7
+    entrypoint: /code/ci-run.sh
+    environment:
+      INTEGRATION: openldap
+      INTEGRATION_HOST: ldap.example.org
+    depends_on:
+      - openldap
+    networks:
+      integration_test_network:
+    volumes:
+      - .:/code
+    working_dir: /code
+
+  ci-2.7:
+    image: ruby:2.7
+    entrypoint: /code/ci-run.sh
+    environment:
+      INTEGRATION: openldap
+      INTEGRATION_HOST: ldap.example.org
+    depends_on:
+      - openldap
+    networks:
+      integration_test_network:
+    volumes:
+      - .:/code
+    working_dir: /code
+
+  ci-jruby-9.2:
+    image: jruby:9.2
+    entrypoint: /code/ci-run.sh
+    environment:
+      INTEGRATION: openldap
+      INTEGRATION_HOST: ldap.example.org
+    depends_on:
+      - openldap
+    networks:
+      integration_test_network:
+    volumes:
+      - .:/code
+    working_dir: /code
