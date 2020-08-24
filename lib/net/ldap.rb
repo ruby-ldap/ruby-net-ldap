@@ -1351,14 +1351,14 @@ class Net::LDAP
   # Recursively delete a dn and it's subordinate children.
   # This is useful when a server does not support the DELETE_TREE control code.
   def recursive_delete(args)
-    raise EmptyDNError unless args.is_a?(Hash) && args.has_key?(:dn)
+    raise EmptyDNError unless args.is_a?(Hash) && args.key?(:dn)
     # Delete Children
     search(base: args[:dn], scope: Net::LDAP::SearchScope_SingleLevel) do |entry|
       recursive_delete(dn: entry.dn)
     end
     # Delete Self
     unless delete(dn: args[:dn])
-      raise Net::LDAP::Error, self.get_operation_result[:error_message].to_s
+      raise Net::LDAP::Error, get_operation_result[:error_message].to_s
     end
     true
   end
