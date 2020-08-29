@@ -1,5 +1,6 @@
 # -*- ruby encoding: utf-8 -*-
 require 'digest/sha1'
+require 'digest/sha2'
 require 'digest/md5'
 require 'base64'
 require 'securerandom'
@@ -28,6 +29,9 @@ class Net::LDAP::Password
       when :ssha
          salt = SecureRandom.random_bytes(16)
          '{SSHA}' + Base64.strict_encode64(Digest::SHA1.digest(str + salt) + salt)
+      when :ssha256
+        salt = SecureRandom.random_bytes(16)
+        '{SSHA256}' + Base64.strict_encode64(Digest::SHA256.digest(str + salt) + salt)
       else
          raise Net::LDAP::HashTypeUnsupportedError, "Unsupported password-hash type (#{type})"
       end
