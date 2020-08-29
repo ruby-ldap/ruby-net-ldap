@@ -60,9 +60,14 @@ Simply run:
 
   script/ldap-docker
   INTEGRATION=openldap rake test
+  
+Or, use {Docker Compose}[https://docs.docker.com/compose/]. See docker-compose.yml for available Ruby versions.
+
+    docker-compose run ci-2.7
 
 CAVEAT: you need to add the following line to /etc/hosts
     127.0.0.1 ldap.example.org
+    127.0.0.1 cert.mismatch.example.org
 
 == Release
 
