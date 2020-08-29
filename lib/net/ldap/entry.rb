@@ -134,6 +134,13 @@ class Net::LDAP::Entry
   end
 
   ##
+  # Creates a duplicate of the internal Hash containing the attributes
+  # of the entry.
+  def to_h
+    @myhash.dup
+  end
+
+  ##
   # Accesses each of the attributes present in the Entry.
   #
   # Calls a user-supplied block with each attribute in turn, passing two
