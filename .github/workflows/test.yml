@@ -1,0 +1,29 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will download a prebuilt Ruby version, install dependencies and run tests with Rake
+# For more information see: https://github.com/marketplace/actions/setup-ruby-jruby-and-truffleruby
+
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby:
+          - "2.5"
+          - "2.6"
+          - "2.7"
+          - "jruby-9.2"
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run tests with Ruby ${{ matrix.ruby }}
+      run: docker-compose run ci-${{ matrix.ruby }}

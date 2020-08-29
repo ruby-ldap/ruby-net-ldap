@@ -18,6 +18,7 @@ rvm:
 addons:
   hosts:
     - ldap.example.org # needed for TLS verification
+    - cert.mismatch.example.org
 
 services:
   - docker
