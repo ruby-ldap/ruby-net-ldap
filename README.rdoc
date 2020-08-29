@@ -1,4 +1,6 @@
-= Net::LDAP for Ruby {<img src="https://travis-ci.org/ruby-ldap/ruby-net-ldap.svg" />}[https://travis-ci.org/ruby-ldap/ruby-net-ldap]
+= Net::LDAP for Ruby 
+{<img src="https://badge.fury.io/rb/net-ldap.svg" alt="Gem Version" />}[https://badge.fury.io/rb/net-ldap]
+{<img src="https://travis-ci.org/ruby-ldap/ruby-net-ldap.svg" />}[https://travis-ci.org/ruby-ldap/ruby-net-ldap]
 
 == Description
 
@@ -67,7 +69,7 @@ CAVEAT: you need to add the following line to /etc/hosts
 This section is for gem maintainers to cut a new version of the gem.
 
 * Check out a new branch `release-VERSION`
-* Update lib/net/ldap/version.rb to next version number X.X.X following {semver}(http://semver.org/).
+* Update lib/net/ldap/version.rb to next version number X.X.X following {semver}[http://semver.org/].
 * Update `History.rdoc`. Get latest changes with `script/changelog`
 * Open a pull request with these changes for review
 * After merging, on the master branch, run `script/release`
