@@ -1328,7 +1328,7 @@ class Net::LDAP
     # Force connect to see if there's a connection error
     connection.socket
     connection
-  rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT, Net::LDAP::ConnectionRefusedError => e
+  rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT => e
     @result = {
       :resultCode   => 52,
       :errorMessage => ResultStrings[ResultCodeUnavailable],
