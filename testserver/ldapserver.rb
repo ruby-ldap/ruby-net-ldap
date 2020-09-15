@@ -14,27 +14,7 @@
 
 #------------------------------------------------
 
-module LdapServer
-  LdapServerAsnSyntax = {
-    :application => {
-      :constructed => {
-        0 => :array,               # LDAP BindRequest
-        3 => :array                # LDAP SearchRequest
-      },
-      :primitive => {
-        2 => :string,              # ldapsearch sends this to unbind
-      },
-    },
-    :context_specific => {
-      :primitive => {
-        0 => :string,              # simple auth (password)
-        7 => :string               # present filter
-      },
-      :constructed => {
-        3 => :array                # equality filter
-      },
-    },
-  }
+module LdapServer  
 
   def post_init
     $logger.info "Accepted LDAP connection"
@@ -191,6 +171,27 @@ if __FILE__ == $0
   $ldif = load_test_data
 
   require 'net/ldap'
+
+  LdapServerAsnSyntax = Net::BER.compile_syntax({
+    :application => {
+      :constructed => {
+        0 => :array,               # LDAP BindRequest
+        3 => :array                # LDAP SearchRequest
+      },
+      :primitive => {
+        2 => :string,              # ldapsearch sends this to unbind
+      },
+    },
+    :context_specific => {
+      :primitive => {
+        0 => :string,              # simple auth (password)
+        7 => :string               # present filter
+      },
+      :constructed => {
+        3 => :array                # equality filter
+      },
+    },
+  })
 
   EventMachine.run do
     $logger.info "starting LDAP server on 127.0.0.1 port 3890"
