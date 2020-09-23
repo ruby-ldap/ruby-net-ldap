@@ -1,3 +1,5 @@
+require_relative 'entry'
+
 # -*- ruby encoding: utf-8 -*-
 ##
 # An LDAP Dataset. Used primarily as an intermediate format for converting
@@ -164,5 +166,3 @@ class Net::LDAP::Dataset < Hash
     end
   end
 end
-
-require_relative 'entry' unless defined? Net::LDAP::Entry
