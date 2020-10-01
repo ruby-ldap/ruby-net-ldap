@@ -1,3 +1,5 @@
+require_relative 'dataset'
+
 # -*- ruby encoding: utf-8 -*-
 ##
 # Objects of this class represent individual entries in an LDAP directory.
@@ -195,5 +197,3 @@ class Net::LDAP::Entry
   end
   private :setter?
 end # class Entry
-
-require_relative 'dataset' unless defined? Net::LDAP::Dataset
