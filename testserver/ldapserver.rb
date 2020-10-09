@@ -15,7 +15,7 @@
 #------------------------------------------------
 
 module LdapServer
-  LdapServerAsnSyntax = {
+  LdapServerAsnSyntaxTemplate = {
     :application => {
       :constructed => {
         0 => :array,               # LDAP BindRequest
@@ -191,7 +191,7 @@ if __FILE__ == $0
   $ldif = load_test_data
 
   require 'net/ldap'
-
+  LdapServerAsnSyntax = Net::BER.compile_syntax(LdapServerAsnSyntaxTemplate)
   EventMachine.run do
     $logger.info "starting LDAP server on 127.0.0.1 port 3890"
     EventMachine.start_server "127.0.0.1", 3890, LdapServer
