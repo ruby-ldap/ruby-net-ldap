@@ -196,4 +196,8 @@ class Net::LDAP::Entry
     sym.to_s[-1] == ?=
   end
   private :setter?
+
+  def ==(other)
+    return other.instance_of?(self.class) && @myhash == other.to_h
+  end
 end # class Entry
