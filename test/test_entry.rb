@@ -54,6 +54,17 @@ class TestEntry < Test::Unit::TestCase
     duplicate.delete(:sn)
     assert_not_equal duplicate, @entry.to_h
   end
+
+  def test_equal_operator
+    entry_two = Net::LDAP::Entry.new 'cn=Barbara,o=corp'
+    assert_equal @entry, entry_two
+
+    @entry['sn'] = 'Jensen'
+    assert_not_equal @entry, entry_two
+
+    entry_two['sn'] = 'Jensen'
+    assert_equal @entry, entry_two
+  end
 end
 
 class TestEntryLDIF < Test::Unit::TestCase
