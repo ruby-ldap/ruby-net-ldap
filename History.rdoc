@@ -1,3 +1,28 @@
+=== Net::LDAP 0.16.3
+
+* Add Net::LDAP::InvalidDNError #371
+* Use require_relative instead of require #360
+* Address some warnings and fix JRuby test omissions #365
+* Bump rake dev dependency to 12.3 #359
+* Enable rubocop in ci #251
+* Enhance rubocop configuration and test syntax #344
+* CI: Drop rbx-2, uninstallable #364
+* Fix RuboCop warnings #312
+* Fix wrong error class #305
+* CONTRIBUTING.md: Repair link to Issues #309
+* Make the generate() method more idiomatic... #326
+* Make encode_sort_controls() more idiomatic... #327
+* Make the instrument() method more idiomatic... #328
+* Fix uninitialised Net::LDAP::LdapPduError #338
+* README.rdoc: Use SVG build badge #310
+* Update TravisCI config to inclue Ruby 2.7 #346
+* add explicit ** to silence Ruby 2.7 warning #342
+* Support parsing filters with attribute tags #345
+* Bump rubocop development dependency version #336
+* Add link to generated and hosted documentation on rubydoc #319
+* Fix 'uninitialized constant Net::LDAP::PDU::LdapPduError' error #317
+* simplify encoding logic: no more chomping required #362
+
 === Net::LDAP 0.16.2
 
 * Net::LDAP#open does not cache bind result {#334}[https://github.com/ruby-ldap/ruby-net-ldap/pull/334]
