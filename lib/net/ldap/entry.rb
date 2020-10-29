@@ -198,6 +198,6 @@ class Net::LDAP::Entry
   private :setter?
 
   def ==(other)
-    return other.instance_of?(self.class) && @myhash == other.to_h
+    other.instance_of?(self.class) && @myhash == other.to_h
   end
 end # class Entry
