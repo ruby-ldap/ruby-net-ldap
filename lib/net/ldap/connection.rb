@@ -690,7 +690,7 @@ class Net::LDAP::Connection #:nodoc:
   #
   # Typically a TCPSocket, but can be a OpenSSL::SSL::SSLSocket
   def socket
-    return @conn if defined? @conn
+    return @conn if defined?(@conn) && !@conn.nil?
 
     # First refactoring uses the existing methods open_connection and
     # prepare_socket to set @conn. Next cleanup would centralize connection
