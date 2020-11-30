@@ -1,3 +1,14 @@
+=== Net::LDAP 0.17.0
+* Added private recursive_delete as alternative to DELETE_TREE #268
+* Test suite updates #373 #376 #377
+* Use Base64.strict_encode64 and SSHA256 #303
+* Remove deprecated ConnectionRefusedError #366
+* Added method to get a duplicate of the internal Hash #286
+* remove a circular require #380
+* fix LdapServerAsnSyntax compile #379
+* Implement '==' operator for entries #381
+* fix for undefined method for write exception #383
+
 === Net::LDAP 0.16.3
 
 * Add Net::LDAP::InvalidDNError #371
