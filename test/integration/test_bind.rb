@@ -37,6 +37,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_cafile
+    omit "We need to update our CA cert"
     @ldap.host = INTEGRATION_HOSTNAME
     @ldap.encryption(
       method:      :start_tls,
@@ -67,6 +68,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_bad_hostname_verify_peer_ca_fails
+    omit "We need to update our CA cert"
     @ldap.host = 'cert.mismatch.example.org'
     @ldap.encryption(
       method:      :start_tls,
@@ -84,6 +86,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_bad_hostname_ca_default_opt_merge_fails
+    omit "We need to update our CA cert"
     @ldap.host = 'cert.mismatch.example.org'
     @ldap.encryption(
       method:      :start_tls,
@@ -100,6 +103,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_bad_hostname_ca_no_opt_merge_fails
+    omit "We need to update our CA cert"
     @ldap.host = 'cert.mismatch.example.org'
     @ldap.encryption(
       method:      :start_tls,
@@ -116,6 +120,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_valid_hostname_default_opts_passes
+    omit "We need to update our CA cert"
     @ldap.host = INTEGRATION_HOSTNAME
     @ldap.encryption(
       method:      :start_tls,
@@ -127,6 +132,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_valid_hostname_just_verify_peer_ca_passes
+    omit "We need to update our CA cert"
     @ldap.host = INTEGRATION_HOSTNAME
     @ldap.encryption(
       method:      :start_tls,
@@ -151,6 +157,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_multiple_hosts
+    omit "We need to update our CA cert"
     @ldap.host = nil
     @ldap.hosts = [[INTEGRATION_HOSTNAME, 389], [INTEGRATION_HOSTNAME, 389]]
     @ldap.encryption(
@@ -163,6 +170,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_multiple_bogus_hosts
+    # omit "We need to update our CA cert"
     @ldap.host = nil
     @ldap.hosts = [['cert.mismatch.example.org', 389], ['bogus.example.com', 389]]
     @ldap.encryption(
@@ -179,6 +187,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   end
 
   def test_bind_tls_with_multiple_bogus_hosts_no_verification
+    omit "We need to update our CA cert"
     @ldap.host = nil
     @ldap.hosts = [['cert.mismatch.example.org', 389], ['bogus.example.com', 389]]
     @ldap.encryption(
