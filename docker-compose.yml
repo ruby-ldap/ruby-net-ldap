@@ -79,8 +79,9 @@ services:
     volumes:
       - .:/code
     working_dir: /code
-  ci-truffleruby-head:
-    image: flavorjones/truffleruby:nightly
+  
+  ci-truffleruby-21.0.0:
+    image: flavorjones/truffleruby:21.0.0
     entrypoint: /code/ci-run.sh
     environment:
       INTEGRATION: openldap
