@@ -79,6 +79,20 @@ services:
     volumes:
       - .:/code
     working_dir: /code
+  
+  ci-truffleruby-21.0.0:
+    image: flavorjones/truffleruby:21.0.0
+    entrypoint: /code/ci-run.sh
+    environment:
+      INTEGRATION: openldap
+      INTEGRATION_HOST: ldap.example.org
+    depends_on:
+      - openldap
+    networks:
+      integration_test_network:
+    volumes:
+      - .:/code
+    working_dir: /code
 
   ci-jruby-9.2:
     image: jruby:9.2
