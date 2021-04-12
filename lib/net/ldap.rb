@@ -412,7 +412,7 @@ class Net::LDAP
     ResultCodeStrongerAuthRequired         => "Stronger Auth Needed",
     ResultCodeReferral                     => "Referral",
     ResultCodeAdminLimitExceeded           => "Admin Limit Exceeded",
-    ResultCodeUnavailableCriticalExtension => "Unavailable crtical extension",
+    ResultCodeUnavailableCriticalExtension => "Unavailable critical extension",
     ResultCodeConfidentialityRequired      => "Confidentiality Required",
     ResultCodeSaslBindInProgress           => "saslBindInProgress",
     ResultCodeNoSuchAttribute              => "No Such Attribute",
