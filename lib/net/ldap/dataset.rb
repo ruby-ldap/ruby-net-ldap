@@ -1,5 +1,3 @@
-require_relative 'entry'
-
 # -*- ruby encoding: utf-8 -*-
 ##
 # An LDAP Dataset. Used primarily as an intermediate format for converting
