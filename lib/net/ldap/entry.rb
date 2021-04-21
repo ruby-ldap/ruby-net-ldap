@@ -1,5 +1,3 @@
-require_relative 'dataset'
-
 # -*- ruby encoding: utf-8 -*-
 ##
 # Objects of this class represent individual entries in an LDAP directory.
