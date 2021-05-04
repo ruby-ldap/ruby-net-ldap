@@ -814,6 +814,12 @@ class Net::LDAP
   # unrecognized usernames and incorrect passwords. Use
   # #get_operation_result to find out what happened in case of failure.
   #
+  # Note: When using the simple authentication method, some A/D configurations
+  # will return success for a bind when no password is supplied! (this is the
+  # "Unauthenticated Authentication Mechanism of Simple Bind" covered under
+  # RFC4513 section 5.1.2). It's recommended to validate the presence of the
+  # password supplied when assuming a bind is authenticated.
+  #
   # Here's a typical example using #bind to authenticate a credential which
   # was (perhaps) solicited from the user of a web site:
   #
@@ -823,7 +829,11 @@ class Net::LDAP
   #  ldap.port = 389
   #  ldap.auth your_user_name, your_user_password
   #  if ldap.bind
-  #    # authentication succeeded
+  #    if your_user_password.size > 0
+  #      # authentication succeeded
+  #    else
+  #      # unauthenticated bind succeeded
+  #    end
   #  else
   #    # authentication failed
   #    p ldap.get_operation_result
