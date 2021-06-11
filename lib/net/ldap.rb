@@ -306,6 +306,7 @@ class Net::LDAP
     3 => :string, # SearchFilter-extensible
     4 => :string, # SearchFilter-extensible
     7 => :string, # serverSaslCreds
+    11 => :string, # responseValue
   }
   constructed = {
     0 => :array, # RFC-2251 Control and Filter-AND
@@ -341,6 +342,7 @@ class Net::LDAP
 
   StartTlsOid = '1.3.6.1.4.1.1466.20037'
   PasswdModifyOid = '1.3.6.1.4.1.4203.1.11.1'
+  WhoamiOid = '1.3.6.1.4.1.4203.1.11.3'
 
   # https://tools.ietf.org/html/rfc4511#section-4.1.9
   # https://tools.ietf.org/html/rfc4511#appendix-A
@@ -1199,6 +1201,23 @@ class Net::LDAP
       recursive_delete(args)
     end
   end
+
+  # Return the authorization identity of the client that issues the
+  # ldapwhoami request.  The method does not support any arguments.
+  #
+  # Returns True or False to indicate whether the request was successfull.
+  # The result is available in the extended status information when calling
+  # #get_operation_result.
+  #
+  #  ldap.ldapwhoami
+  #  puts ldap.get_operation_result.extended_response
+  def ldapwhoami(args = {})
+    instrument "ldapwhoami.net_ldap", args do |payload|
+      @result = use_connection(args, &:ldapwhoami)
+      @result.success?
+    end
+  end
+  alias_method :whoami, :ldapwhoami
 
   # This method is experimental and subject to change. Return the rootDSE
   # record from the LDAP server as a Net::LDAP::Entry, or an empty Entry if
