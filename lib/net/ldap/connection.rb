@@ -686,6 +686,7 @@ class Net::LDAP::Connection #:nodoc:
   end
 
   def ldapwhoami
+    Net::LDAP::AsnSyntax[139] = :string
     ext_seq = [Net::LDAP::WhoamiOid.to_ber_contextspecific(0)]
     request = ext_seq.to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
 
@@ -698,6 +699,7 @@ class Net::LDAP::Connection #:nodoc:
       raise Net::LDAP::ResponseMissingOrInvalidError, "response missing or invalid"
     end
 
+    Net::LDAP::AsnSyntax[139] = nil
     pdu
   end
 

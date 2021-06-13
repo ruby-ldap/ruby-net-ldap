@@ -306,7 +306,6 @@ class Net::LDAP
     3 => :string, # SearchFilter-extensible
     4 => :string, # SearchFilter-extensible
     7 => :string, # serverSaslCreds
-    11 => :string, # responseValue
   }
   constructed = {
     0 => :array, # RFC-2251 Control and Filter-AND
