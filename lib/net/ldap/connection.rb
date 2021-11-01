@@ -74,7 +74,8 @@ class Net::LDAP::Connection #:nodoc:
 
   module GetbyteForSSLSocket
     def getbyte
-      getc.ord
+      c = getc
+      c && c.ord
     end
   end
 
