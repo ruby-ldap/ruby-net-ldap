@@ -1,3 +1,13 @@
+=== Net::LDAP 0.17.1
+* Fixed shebang of bash #385
+* Omit some tests for now until we update our CA cert #386
+* Add Ruby 3.0 support #388
+* Add TruffleRuby 21.0.0 to CI #389
+* Correct a typo in an error message #391
+* Enable bundler caching for travis #390
+* Fix circular require while loading lib/net/ldap/entry.rb and lib/net/ldap/dataset.rb #392
+* Handle nil value in GetbyteForSSLSocket::getbyte #306
+
 === Net::LDAP 0.17.0
 * Added private recursive_delete as alternative to DELETE_TREE #268
 * Test suite updates #373 #376 #377
