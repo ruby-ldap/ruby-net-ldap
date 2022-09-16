@@ -192,27 +192,19 @@ class Net::LDAP::DN
   # http://tools.ietf.org/html/rfc2253 section 2.4 lists these exceptions
   # for dn values. All of the following must be escaped in any normal string
   # using a single backslash ('\') as escape.
-  ESCAPES = {
-    ','  => ',',
-    '+'  => '+',
-    '"'  => '"',
-    '\\' => '\\',
-    '<' => '<',
-    '>' => '>',
-    ';' => ';',
-  }
+  ESCAPES = %w[, + " \\ < > ;]
 
-  # Compiled character class regexp using the keys from the above hash, and
+  # Compiled character class regexp using the values from the above list, and
   # checking for a space or # at the start, or space at the end, of the
   # string.
   ESCAPE_RE = Regexp.new("(^ |^#| $|[" +
-                         ESCAPES.keys.map { |e| Regexp.escape(e) }.join +
+                         ESCAPES.map { |e| Regexp.escape(e) }.join +
                          "])")
 
   ##
   # Escape a string for use in a DN value
   def self.escape(string)
-    string.gsub(ESCAPE_RE) { |char| "\\" + ESCAPES[char] }
+    string.gsub(ESCAPE_RE) { |char| "\\" + char }
   end
 
   ##
