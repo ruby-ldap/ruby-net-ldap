@@ -425,6 +425,7 @@ class Net::LDAP::Connection #:nodoc:
         # this breaks when calling to_ber. (Can't force binary data to UTF-8)
         # we have to disable paging (even though server supports it) to get around this...
 
+        controls_temp = args.fetch(:controls, [])
         controls = []
         controls <<
           [
@@ -434,7 +435,12 @@ class Net::LDAP::Connection #:nodoc:
             rfc2696_cookie.map(&:to_ber).to_ber_sequence.to_s.to_ber,
           ].to_ber_sequence if paged
         controls << ber_sort if ber_sort
-        controls = controls.empty? ? nil : controls.to_ber_contextspecific(0)
+        if controls.empty?
+          controls = nil
+        else
+          controls += controls_temp unless controls_temp.blank?
+          controls = controls.to_ber_contextspecific(0)
+        end
 
         write(request, controls, message_id)
 
