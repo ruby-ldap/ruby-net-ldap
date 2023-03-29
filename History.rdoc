@@ -1,6 +1,7 @@
 === Net::LDAP 0.18.0
 * Fix escaping of # and space in attrs #408
 * Add support to use SNI #406
+* Drop Ruby 2.5 and JRuby 9.2 from CI tests
 
 === Net::LDAP 0.17.1
 * Fixed shebang of bash #385
