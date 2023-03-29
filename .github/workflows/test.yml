@@ -26,7 +26,7 @@ jobs:
           - "3.2"
           - "jruby-9.3"
           - "jruby-9.4"
-          - "truffleruby-21.0.0"
+          - "truffleruby-22"
     steps:
     - uses: actions/checkout@v2
     - name: Run tests with Ruby ${{ matrix.ruby }}
