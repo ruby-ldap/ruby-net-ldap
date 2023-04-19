@@ -6,6 +6,14 @@ class TestDN < Test::Unit::TestCase
     assert_equal '\\,\\+\\"\\\\\\<\\>\\;', Net::LDAP::DN.escape(',+"\\<>;')
   end
 
+  def test_escape_pound_sign
+    assert_equal '\\#test', Net::LDAP::DN.escape('#test')
+  end
+
+  def test_escape_space
+    assert_equal '\\ before_after\\ ', Net::LDAP::DN.escape(' before_after ')
+  end
+
   def test_escape_on_initialize
     dn = Net::LDAP::DN.new('cn', ',+"\\<>;', 'ou=company')
     assert_equal 'cn=\\,\\+\\"\\\\\\<\\>\\;,ou=company', dn.to_s
