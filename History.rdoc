@@ -1,3 +1,10 @@
+=== Net::LDAP 0.18.0
+* Fix escaping of # and space in attrs #408
+* Add support to use SNI #406
+* Drop Ruby 2.5 and JRuby 9.2 from CI tests
+* Bump rubocop to 1.48.1
+* Update CI for TruffleRuby 22
+
 === Net::LDAP 0.17.1
 * Fixed shebang of bash #385
 * Omit some tests for now until we update our CA cert #386
