@@ -81,7 +81,7 @@ class Net::LDAP::DN
           value << char
         when ',' then
           state = :key
-          yield key.string.strip, value.string.rstrip
+          yield key.string.strip, value.string
           key = StringIO.new
           value = StringIO.new;
         else
@@ -93,7 +93,7 @@ class Net::LDAP::DN
         when '\\' then state = :value_normal_escape
         when ',' then
           state = :key
-          yield key.string.strip, value.string.rstrip
+          yield key.string.strip, value.string
           key = StringIO.new
           value = StringIO.new;
         else value << char
@@ -142,7 +142,7 @@ class Net::LDAP::DN
         when ' ' then state = :value_end
         when ',' then
           state = :key
-          yield key.string.strip, value.string.rstrip
+          yield key.string.strip, value.string
           key = StringIO.new
           value = StringIO.new;
         else raise Net::LDAP::InvalidDNError, "DN badly formed"
@@ -159,7 +159,7 @@ class Net::LDAP::DN
         when ' ' then state = :value_end
         when ',' then
           state = :key
-          yield key.string.strip, value.string.rstrip
+          yield key.string.strip, value.string
           key = StringIO.new
           value = StringIO.new;
         else raise Net::LDAP::InvalidDNError, "DN badly formed"
@@ -172,7 +172,7 @@ class Net::LDAP::DN
     raise Net::LDAP::InvalidDNError, "DN badly formed" unless
       [:value, :value_normal, :value_hexstring, :value_end].include? state
 
-    yield key.string.strip, value.string.rstrip
+    yield key.string.strip, value.string
   end
 
   ##
