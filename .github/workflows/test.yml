@@ -19,12 +19,14 @@ jobs:
     strategy:
       matrix:
         ruby:
-          - "2.5"
           - "2.6"
           - "2.7"
           - "3.0"
-          - "jruby-9.2"
-          - "truffleruby-21.0.0"
+          - "3.1"
+          - "3.2"
+          - "jruby-9.3"
+          - "jruby-9.4"
+          - "truffleruby-22"
     steps:
     - uses: actions/checkout@v2
     - name: Run tests with Ruby ${{ matrix.ruby }}
