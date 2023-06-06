@@ -501,4 +501,43 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     # ensure no unread
     assert unread.empty?, "should not have any leftover unread messages"
   end
+
+  def test_search_with_controls
+    # search data
+    search_data_ber = Net::BER::BerIdentifiedArray.new([1, [
+      "uid=user1,ou=People,dc=rubyldap,dc=com",
+      [["uid", ["user1"]]],
+    ]])
+    search_data_ber.ber_identifier = Net::LDAP::PDU::SearchReturnedData
+    search_data = [1, search_data_ber]
+    # search result (end of results)
+    search_result_ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
+    search_result_ber.ber_identifier = Net::LDAP::PDU::SearchResult
+    search_result = [1, search_result_ber]
+    @tcp_socket.should_receive(:read_ber).and_return(search_data)
+               .and_return(search_result)
+
+    events = @service.subscribe "search.net_ldap_connection"
+    unread = @service.subscribe "search_messages_unread.net_ldap_connection"
+
+    all_but_sacl_flag = 0x1 | 0x2 | 0x4 # OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION
+    control_values = [all_but_sacl_flag].map(&:to_ber).to_ber_sequence.to_s.to_ber
+    controls = []
+    # LDAP_SERVER_SD_FLAGS constant definition, taken from https://ldapwiki.com/wiki/LDAP_SERVER_SD_FLAGS_OID
+    ldap_server_sd_flags = '1.2.840.113556.1.4.801'.freeze
+    controls << [ldap_server_sd_flags.to_ber, true.to_ber, control_values].to_ber_sequence
+
+    result = @connection.search(filter: "(uid=user1)", base: "ou=People,dc=rubyldap,dc=com", controls: controls)
+    assert result.success?, "should be success"
+
+    # a search event
+    payload, result = events.pop
+    assert payload.key?(:result)
+    assert payload.key?(:filter)
+    assert_equal "(uid=user1)", payload[:filter].to_s
+    assert result
+
+    # ensure no unread
+    assert unread.empty?, "should not have any leftover unread messages"
+  end
 end
