@@ -14,6 +14,12 @@ class TestDN < Test::Unit::TestCase
     assert_equal '\\ before_after\\ ', Net::LDAP::DN.escape(' before_after ')
   end
 
+  def test_retain_spaces
+    dn = Net::LDAP::DN.new('CN=Foo.bar.baz, OU=Foo   \ ,OU=\  Bar, O=Baz')
+    assert_equal "CN=Foo.bar.baz, OU=Foo   \\ ,OU=\\  Bar, O=Baz", dn.to_s
+    assert_equal ["CN", "Foo.bar.baz", "OU", "Foo    ", "OU", "  Bar", "O", "Baz"], dn.to_a
+  end
+
   def test_escape_on_initialize
     dn = Net::LDAP::DN.new('cn', ',+"\\<>;', 'ou=company')
     assert_equal 'cn=\\,\\+\\"\\\\\\<\\>\\;,ou=company', dn.to_s
@@ -26,7 +32,7 @@ class TestDN < Test::Unit::TestCase
 
   def test_to_a_parenthesis
     dn = Net::LDAP::DN.new('cn =  \ James , ou  =  "Comp\28ny"  ')
-    assert_equal ['cn', ' James', 'ou', 'Comp(ny'], dn.to_a
+    assert_equal ['cn', ' James ', 'ou', 'Comp(ny'], dn.to_a
   end
 
   def test_to_a_hash_symbol
