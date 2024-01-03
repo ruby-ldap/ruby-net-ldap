@@ -1257,10 +1257,10 @@ class Net::LDAP
     rs = search(:ignore_server_caps => true, :base => "",
                 :scope => SearchScope_BaseObject,
                 :attributes => [:subschemaSubentry])
-    return Net::LDAP::Entry.new unless (rs and rs.first)
+    return Net::LDAP::Entry.new unless rs and rs.first
 
     subschema_name = rs.first.subschemasubentry
-    return Net::LDAP::Entry.new unless (subschema_name and subschema_name.first)
+    return Net::LDAP::Entry.new unless subschema_name and subschema_name.first
 
     rs = search(:ignore_server_caps => true, :base => subschema_name.first,
                 :scope => SearchScope_BaseObject,

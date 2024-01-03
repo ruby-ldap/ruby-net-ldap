@@ -30,7 +30,7 @@ module Net
         def bind(auth)
           mech, cred, chall = auth[:mechanism], auth[:initial_credential],
             auth[:challenge_response]
-          raise Net::LDAP::BindingInformationInvalidError, "Invalid binding information" unless (mech && cred && chall)
+          raise Net::LDAP::BindingInformationInvalidError, "Invalid binding information" unless mech && cred && chall
 
           message_id = @connection.next_msgid
 
