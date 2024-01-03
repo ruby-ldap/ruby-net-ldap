@@ -25,7 +25,7 @@ services:
       - ./test/fixtures/ldif:/ldif:ro
 
   ci-2.6:
-    image: ruby:2.7
+    image: ruby:2.6
     entrypoint: /code/ci-run.sh
     environment:
       INTEGRATION: openldap
