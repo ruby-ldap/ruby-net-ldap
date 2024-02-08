@@ -11,7 +11,7 @@ module Net
                         ["", ""]
                       end
 
-          raise Net::LDAP::BindingInformationInvalidError, "Invalid binding information" unless (user && psw)
+          raise Net::LDAP::BindingInformationInvalidError, "Invalid binding information" unless user && psw
 
           message_id = @connection.next_msgid
           request    = [

@@ -30,10 +30,9 @@ class Net::LDAP::Connection #:nodoc:
     @socket_class = socket_class
   end
 
-  def prepare_socket(server, timeout=nil)
+  def prepare_socket(server, timeout=nil, hostname='127.0.0.1')
     socket = server[:socket]
     encryption = server[:encryption]
-    hostname = server[:host]
 
     @conn = socket
     setup_encryption(encryption, timeout, hostname) if encryption
@@ -51,7 +50,7 @@ class Net::LDAP::Connection #:nodoc:
     errors = []
     hosts.each do |host, port|
       begin
-        prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts)), timeout)
+        prepare_socket(server.merge(socket: @socket_class.new(host, port, socket_opts)), timeout, host)
         if encryption
           if encryption[:tls_options] &&
              encryption[:tls_options][:verify_mode] &&

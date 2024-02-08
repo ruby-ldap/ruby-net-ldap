@@ -1,3 +1,9 @@
+=== Net::LDAP 0.19.0
+* Net::LDAP::DN - Retain trailing spaces in RDN values in DNs #412
+* Add in ability for users to specify LDAP controls when conducting searches #411
+* Document connect_timeout in Constructor Details #415
+* Fix openssl error when using multiple hosts #417
+
 === Net::LDAP 0.18.0
 * Fix escaping of # and space in attrs #408
 * Add support to use SNI #406

@@ -20,7 +20,7 @@ module Net
           require 'ntlm'
 
           user, psw = [auth[:username] || auth[:dn], auth[:password]]
-          raise Net::LDAP::BindingInformationInvalidError, "Invalid binding information" unless (user && psw)
+          raise Net::LDAP::BindingInformationInvalidError, "Invalid binding information" unless user && psw
 
           nego = proc do |challenge|
             t2_msg = NTLM::Message.parse(challenge)
