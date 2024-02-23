@@ -501,4 +501,18 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     # ensure no unread
     assert unread.empty?, "should not have any leftover unread messages"
   end
+
+  def test_password_modify
+    ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, '', ''])
+    ber.ber_identifier = Net::LDAP::PDU::ExtendedResponse
+    response = [1, ber]
+
+    @tcp_socket.should_receive(:read_ber).and_return(response)
+
+    result = @connection.password_modify(
+      dn: 'uid=zerosteiner,ou=users,dc=example,dc=org',
+      new_password: 'Password1!'
+    )
+    assert result
+  end
 end
