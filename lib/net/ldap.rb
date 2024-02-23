@@ -325,7 +325,7 @@ class Net::LDAP
 
   universal = {
     constructed: {
-      107 => :array, #ExtendedResponse (PasswdModifyResponseValue)
+      107 => :string, # ExtendedResponse
     },
   }
 
@@ -1211,7 +1211,7 @@ class Net::LDAP
   def ldapwhoami(args = {})
     instrument "ldapwhoami.net_ldap", args do |payload|
       @result = use_connection(args, &:ldapwhoami)
-      @result.success?
+      @result.success? ? @result.extended_response : nil
     end
   end
   alias_method :whoami, :ldapwhoami
