@@ -569,7 +569,12 @@ class Net::LDAP::Connection #:nodoc:
       ops.to_ber_sequence,
     ].to_ber_appsequence(Net::LDAP::PDU::ModifyRequest)
 
-    write(request, nil, message_id)
+    controls = args.fetch(:controls, nil)
+    unless controls.nil?
+      controls = controls.to_ber_contextspecific(0)
+    end
+
+    write(request, controls, message_id)
     pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::ModifyResponse
@@ -641,7 +646,12 @@ class Net::LDAP::Connection #:nodoc:
     message_id = next_msgid
     request    = [add_dn.to_ber, add_attrs.to_ber_sequence].to_ber_appsequence(Net::LDAP::PDU::AddRequest)
 
-    write(request, nil, message_id)
+    controls = args.fetch(:controls, nil)
+    unless controls.nil?
+      controls = controls.to_ber_contextspecific(0)
+    end
+
+    write(request, controls, message_id)
     pdu = queued_read(message_id)
 
     if !pdu || pdu.app_tag != Net::LDAP::PDU::AddResponse

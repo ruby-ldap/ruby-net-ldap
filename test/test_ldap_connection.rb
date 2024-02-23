@@ -502,6 +502,40 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     assert unread.empty?, "should not have any leftover unread messages"
   end
 
+  def test_add_with_controls
+    dacl_flag = 0x4 # DACL_SECURITY_INFORMATION
+    control_values = [dacl_flag].map(&:to_ber).to_ber_sequence.to_s.to_ber
+    controls = []
+    # LDAP_SERVER_SD_FLAGS constant definition, taken from https://ldapwiki.com/wiki/LDAP_SERVER_SD_FLAGS_OID
+    ldap_server_sd_flags = '1.2.840.113556.1.4.801'.freeze
+    controls << [ldap_server_sd_flags.to_ber, true.to_ber, control_values].to_ber_sequence
+
+    ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
+    ber.ber_identifier = Net::LDAP::PDU::AddResponse
+    @tcp_socket.should_receive(:read_ber).and_return([1, ber])
+
+    result = @connection.add(:dn => "uid=added-user1,ou=People,dc=rubyldap,dc=com", :controls => controls)
+    assert result.success?, "should be success"
+    assert_equal "", result.error_message
+  end
+
+  def test_modify_with_controls
+    dacl_flag = 0x4 # DACL_SECURITY_INFORMATION
+    control_values = [dacl_flag].map(&:to_ber).to_ber_sequence.to_s.to_ber
+    controls = []
+    # LDAP_SERVER_SD_FLAGS constant definition, taken from https://ldapwiki.com/wiki/LDAP_SERVER_SD_FLAGS_OID
+    ldap_server_sd_flags = '1.2.840.113556.1.4.801'.freeze
+    controls << [ldap_server_sd_flags.to_ber, true.to_ber, control_values].to_ber_sequence
+
+    ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
+    ber.ber_identifier = Net::LDAP::PDU::ModifyResponse
+    @tcp_socket.should_receive(:read_ber).and_return([1, ber])
+
+    result = @connection.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]], :controls => controls)
+    assert result.success?, "should be success"
+    assert_equal "", result.error_message
+  end
+
   def test_search_with_controls
     # search data
     search_data_ber = Net::BER::BerIdentifiedArray.new([1, [
