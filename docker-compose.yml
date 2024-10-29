@@ -93,8 +93,8 @@ services:
     working_dir: /code
 
   # https://github.com/flavorjones/truffleruby/pkgs/container/truffleruby
-  ci-truffleruby-22:
-    image: ghcr.io/flavorjones/truffleruby:22.3.1
+  ci-truffleruby:
+    image: ghcr.io/flavorjones/truffleruby:stable
     entrypoint: /code/ci-run.sh
     environment:
       INTEGRATION: openldap
