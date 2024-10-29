@@ -30,4 +30,4 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Run tests with Ruby ${{ matrix.ruby }}
-      run: docker-compose run ci-${{ matrix.ruby }}
+      run: docker compose run ci-${{ matrix.ruby }}
