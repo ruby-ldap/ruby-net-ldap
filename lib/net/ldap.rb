@@ -311,7 +311,7 @@ class Net::LDAP
     0 => :array, # RFC-2251 Control and Filter-AND
     1 => :array, # SearchFilter-OR
     2 => :array, # SearchFilter-NOT
-    3 => :array, # Seach referral
+    3 => :array, # Search referral
     4 => :array, # unknown use in Microsoft Outlook
     5 => :array, # SearchFilter-GE
     6 => :array, # SearchFilter-LE

@@ -200,7 +200,7 @@ class Net::LDAP::PDU
       :matchedDN => sequence[1],
       :errorMessage => sequence[2],
     }
-    @extended_response = sequence.last
+    @extended_response = sequence.length == 3 ? nil : sequence.last
   end
   private :parse_extended_response
 
