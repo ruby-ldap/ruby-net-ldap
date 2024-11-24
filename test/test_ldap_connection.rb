@@ -574,4 +574,15 @@ class TestLDAPConnectionInstrumentation < Test::Unit::TestCase
     # ensure no unread
     assert unread.empty?, "should not have any leftover unread messages"
   end
+
+  def test_ldapwhoami
+    ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, '', '', 0, 'dn:uid=zerosteiner,ou=users,dc=example,dc=org'])
+    ber.ber_identifier = Net::LDAP::PDU::ExtendedResponse
+    response = [1, ber]
+
+    @tcp_socket.should_receive(:read_ber).and_return(response)
+
+    result = @connection.ldapwhoami
+    assert result.extended_response == 'dn:uid=zerosteiner,ou=users,dc=example,dc=org'
+  end
 end

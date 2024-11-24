@@ -703,6 +703,22 @@ class Net::LDAP::Connection #:nodoc:
     pdu
   end
 
+  def ldapwhoami
+    ext_seq = [Net::LDAP::WhoamiOid.to_ber_contextspecific(0)]
+    request = ext_seq.to_ber_appsequence(Net::LDAP::PDU::ExtendedRequest)
+
+    message_id = next_msgid
+
+    write(request, nil, message_id)
+    pdu = queued_read(message_id)
+
+    if !pdu || pdu.app_tag != Net::LDAP::PDU::ExtendedResponse
+      raise Net::LDAP::ResponseMissingOrInvalidError, "response missing or invalid"
+    end
+
+    pdu
+  end
+
   # Internal: Returns a Socket like object used internally to communicate with
   # LDAP server.
   #
