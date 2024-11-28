@@ -550,7 +550,7 @@ class Net::LDAP
     @host = args[:host] || DefaultHost
     @port = args[:port] || DefaultPort
     @hosts = args[:hosts]
-    @verbose = false # Make this configurable with a switch on the class.
+    @verbose = args[:verbose] || false # Make this configurable with a switch on the class.
     @auth = args[:auth] || DefaultAuth
     @base = args[:base] || DefaultTreebase
     @force_no_page = args[:force_no_page] || DefaultForceNoPage
