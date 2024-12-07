@@ -1,3 +1,4 @@
+require 'resolv'
 require_relative '../test_helper'
 
 class TestBindIntegration < LDAPIntegrationTestCase
@@ -50,7 +51,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   def test_bind_tls_with_bad_hostname_no_verify_hostname_no_ca_passes
     omit_unless TLS_OPTS.key?(:verify_hostname)
 
-    @ldap.host = '127.0.0.1'
+    @ldap.host = Resolv.getaddress(INTEGRATION_HOSTNAME)
     @ldap.encryption(
       method:      :start_tls,
       tls_options: { verify_mode: OpenSSL::SSL::VERIFY_PEER,
@@ -64,7 +65,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
   def test_bind_tls_with_bad_hostname_no_verify_hostname_no_ca_opt_merge_passes
     omit_unless TLS_OPTS.key?(:verify_hostname)
 
-    @ldap.host = '127.0.0.1'
+    @ldap.host = Resolv.getaddress(INTEGRATION_HOSTNAME)
     @ldap.encryption(
       method:      :start_tls,
       tls_options: TLS_OPTS.merge(verify_mode: OpenSSL::SSL::VERIFY_PEER,
