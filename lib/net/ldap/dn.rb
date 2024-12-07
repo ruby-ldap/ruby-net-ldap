@@ -57,19 +57,19 @@ class Net::LDAP::DN
           state = :key_oid
           key << char
         when ' ' then state = :key
-        else raise "DN badly formed"
+        else raise Net::LDAP::InvalidDNError, "DN badly formed"
         end
       when :key_normal then
         case char
         when '=' then state = :value
         when 'a'..'z', 'A'..'Z', '0'..'9', '-', ' ' then key << char
-        else raise "DN badly formed"
+        else raise Net::LDAP::InvalidDNError, "DN badly formed"
         end
       when :key_oid then
         case char
         when '=' then state = :value
         when '0'..'9', '.', ' ' then key << char
-        else raise "DN badly formed"
+        else raise Net::LDAP::InvalidDNError, "DN badly formed"
         end
       when :value then
         case char
@@ -81,7 +81,7 @@ class Net::LDAP::DN
           value << char
         when ',' then
           state = :key
-          yield key.string.strip, value.string.rstrip
+          yield key.string.strip, value.string
           key = StringIO.new
           value = StringIO.new;
         else
@@ -93,7 +93,7 @@ class Net::LDAP::DN
         when '\\' then state = :value_normal_escape
         when ',' then
           state = :key
-          yield key.string.strip, value.string.rstrip
+          yield key.string.strip, value.string
           key = StringIO.new
           value = StringIO.new;
         else value << char
@@ -110,7 +110,7 @@ class Net::LDAP::DN
         when '0'..'9', 'a'..'f', 'A'..'F' then
           state = :value_normal
           value << "#{hex_buffer}#{char}".to_i(16).chr
-        else raise "DN badly formed"
+        else raise Net::LDAP::InvalidDNError, "DN badly formed"
         end
       when :value_quoted then
         case char
@@ -132,7 +132,7 @@ class Net::LDAP::DN
         when '0'..'9', 'a'..'f', 'A'..'F' then
           state = :value_quoted
           value << "#{hex_buffer}#{char}".to_i(16).chr
-        else raise "DN badly formed"
+        else raise Net::LDAP::InvalidDNError, "DN badly formed"
         end
       when :value_hexstring then
         case char
@@ -142,37 +142,37 @@ class Net::LDAP::DN
         when ' ' then state = :value_end
         when ',' then
           state = :key
-          yield key.string.strip, value.string.rstrip
+          yield key.string.strip, value.string
           key = StringIO.new
           value = StringIO.new;
-        else raise "DN badly formed"
+        else raise Net::LDAP::InvalidDNError, "DN badly formed"
         end
       when :value_hexstring_hex then
         case char
         when '0'..'9', 'a'..'f', 'A'..'F' then
           state = :value_hexstring
           value << char
-        else raise "DN badly formed"
+        else raise Net::LDAP::InvalidDNError, "DN badly formed"
         end
       when :value_end then
         case char
         when ' ' then state = :value_end
         when ',' then
           state = :key
-          yield key.string.strip, value.string.rstrip
+          yield key.string.strip, value.string
           key = StringIO.new
           value = StringIO.new;
-        else raise "DN badly formed"
+        else raise Net::LDAP::InvalidDNError, "DN badly formed"
         end
-      else raise "Fell out of state machine"
+      else raise Net::LDAP::InvalidDNError, "Fell out of state machine"
       end
     end
 
     # Last pair
-    raise "DN badly formed" unless
+    raise Net::LDAP::InvalidDNError, "DN badly formed" unless
       [:value, :value_normal, :value_hexstring, :value_end].include? state
 
-    yield key.string.strip, value.string.rstrip
+    yield key.string.strip, value.string
   end
 
   ##
@@ -192,27 +192,19 @@ class Net::LDAP::DN
   # http://tools.ietf.org/html/rfc2253 section 2.4 lists these exceptions
   # for dn values. All of the following must be escaped in any normal string
   # using a single backslash ('\') as escape.
-  ESCAPES = {
-    ','  => ',',
-    '+'  => '+',
-    '"'  => '"',
-    '\\' => '\\',
-    '<' => '<',
-    '>' => '>',
-    ';' => ';',
-  }
+  ESCAPES = %w[, + " \\ < > ;]
 
-  # Compiled character class regexp using the keys from the above hash, and
+  # Compiled character class regexp using the values from the above list, and
   # checking for a space or # at the start, or space at the end, of the
   # string.
   ESCAPE_RE = Regexp.new("(^ |^#| $|[" +
-                         ESCAPES.keys.map { |e| Regexp.escape(e) }.join +
+                         ESCAPES.map { |e| Regexp.escape(e) }.join +
                          "])")
 
   ##
   # Escape a string for use in a DN value
   def self.escape(string)
-    string.gsub(ESCAPE_RE) { |char| "\\" + ESCAPES[char] }
+    string.gsub(ESCAPE_RE) { |char| "\\" + char }
   end
 
   ##

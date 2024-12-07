@@ -8,3 +8,4 @@ Gemfile.lock
 .bundle
 bin/
 .idea
+*.gem

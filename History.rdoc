@@ -1,3 +1,62 @@
+=== Net::LDAP 0.19.0
+* Net::LDAP::DN - Retain trailing spaces in RDN values in DNs #412
+* Add in ability for users to specify LDAP controls when conducting searches #411
+* Document connect_timeout in Constructor Details #415
+* Fix openssl error when using multiple hosts #417
+
+=== Net::LDAP 0.18.0
+* Fix escaping of # and space in attrs #408
+* Add support to use SNI #406
+* Drop Ruby 2.5 and JRuby 9.2 from CI tests
+* Bump rubocop to 1.48.1
+* Update CI for TruffleRuby 22
+
+=== Net::LDAP 0.17.1
+* Fixed shebang of bash #385
+* Omit some tests for now until we update our CA cert #386
+* Add Ruby 3.0 support #388
+* Add TruffleRuby 21.0.0 to CI #389
+* Correct a typo in an error message #391
+* Enable bundler caching for travis #390
+* Fix circular require while loading lib/net/ldap/entry.rb and lib/net/ldap/dataset.rb #392
+* Handle nil value in GetbyteForSSLSocket::getbyte #306
+
+=== Net::LDAP 0.17.0
+* Added private recursive_delete as alternative to DELETE_TREE #268
+* Test suite updates #373 #376 #377
+* Use Base64.strict_encode64 and SSHA256 #303
+* Remove deprecated ConnectionRefusedError #366
+* Added method to get a duplicate of the internal Hash #286
+* remove a circular require #380
+* fix LdapServerAsnSyntax compile #379
+* Implement '==' operator for entries #381
+* fix for undefined method for write exception #383
+
+=== Net::LDAP 0.16.3
+
+* Add Net::LDAP::InvalidDNError #371
+* Use require_relative instead of require #360
+* Address some warnings and fix JRuby test omissions #365
+* Bump rake dev dependency to 12.3 #359
+* Enable rubocop in ci #251
+* Enhance rubocop configuration and test syntax #344
+* CI: Drop rbx-2, uninstallable #364
+* Fix RuboCop warnings #312
+* Fix wrong error class #305
+* CONTRIBUTING.md: Repair link to Issues #309
+* Make the generate() method more idiomatic... #326
+* Make encode_sort_controls() more idiomatic... #327
+* Make the instrument() method more idiomatic... #328
+* Fix uninitialised Net::LDAP::LdapPduError #338
+* README.rdoc: Use SVG build badge #310
+* Update TravisCI config to inclue Ruby 2.7 #346
+* add explicit ** to silence Ruby 2.7 warning #342
+* Support parsing filters with attribute tags #345
+* Bump rubocop development dependency version #336
+* Add link to generated and hosted documentation on rubydoc #319
+* Fix 'uninitialized constant Net::LDAP::PDU::LdapPduError' error #317
+* simplify encoding logic: no more chomping required #362
+
 === Net::LDAP 0.16.2
 
 * Net::LDAP#open does not cache bind result {#334}[https://github.com/ruby-ldap/ruby-net-ldap/pull/334]

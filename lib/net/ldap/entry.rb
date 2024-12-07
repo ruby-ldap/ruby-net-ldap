@@ -134,6 +134,13 @@ class Net::LDAP::Entry
   end
 
   ##
+  # Creates a duplicate of the internal Hash containing the attributes
+  # of the entry.
+  def to_h
+    @myhash.dup
+  end
+
+  ##
   # Accesses each of the attributes present in the Entry.
   #
   # Calls a user-supplied block with each attribute in turn, passing two
@@ -187,6 +194,8 @@ class Net::LDAP::Entry
     sym.to_s[-1] == ?=
   end
   private :setter?
-end # class Entry
 
-require 'net/ldap/dataset' unless defined? Net::LDAP::Dataset
+  def ==(other)
+    other.instance_of?(self.class) && @myhash == other.to_h
+  end
+end # class Entry

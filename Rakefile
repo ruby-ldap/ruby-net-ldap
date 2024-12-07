@@ -15,7 +15,7 @@ Rake::TestTask.new do |t|
 end
 
 desc 'Run tests and RuboCop (RuboCop runs on mri only)'
-task ci: [:test]
+task ci: Bundler.current_ruby.mri? ? [:test, :rubocop] : [:test]
 
 desc 'Run tests and RuboCop'
 task rubotest: [:test, :rubocop]

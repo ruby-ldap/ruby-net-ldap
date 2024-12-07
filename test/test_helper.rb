@@ -1,6 +1,6 @@
 # Add 'lib' to load path.
 require 'test/unit'
-require 'net/ldap'
+require_relative '../lib/net/ldap'
 require 'flexmock/test_unit'
 
 # Whether integration tests should be run.

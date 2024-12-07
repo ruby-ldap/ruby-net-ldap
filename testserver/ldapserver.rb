@@ -15,8 +15,7 @@
 #------------------------------------------------
 
 module LdapServer
-
-  LdapServerAsnSyntax = {
+  LdapServerAsnSyntaxTemplate = {
     :application => {
       :constructed => {
         0 => :array,               # LDAP BindRequest
@@ -46,7 +45,7 @@ module LdapServer
     @data ||= ""; @data << data
     while pdu = @data.read_ber!(LdapServerAsnSyntax)
       begin
-      handle_ldap_pdu pdu
+        handle_ldap_pdu pdu
       rescue
         $logger.error "closing connection due to error #{$!}"
         close_connection
@@ -87,9 +86,7 @@ module LdapServer
     end
   end
 
-
-
-  #--
+  # --
   # Search Response ::=
   #       CHOICE {
   #            entry          [APPLICATION 4] SEQUENCE {
@@ -119,9 +116,9 @@ module LdapServer
     # pdu[1][7] is the list of requested attributes.
     # If it's an empty array, that means that *all* attributes were requested.
     requested_attrs = if pdu[1][7].length > 0
-      pdu[1][7].map(&:downcase)
-    else
-      :all
+                        pdu[1][7].map(&:downcase)
+                      else
+                        :all
     end
 
     filters = pdu[1][6]
@@ -131,13 +128,13 @@ module LdapServer
     end
 
     # TODO, what if this returns nil?
-    filter = Net::LDAP::Filter.parse_ldap_filter( filters )
+    filter = Net::LDAP::Filter.parse_ldap_filter(filters)
 
     $ldif.each do |dn, entry|
-      if filter.match( entry )
+      if filter.match(entry)
         attrs = []
         entry.each do |k, v|
-          if requested_attrs == :all or requested_attrs.include?(k.downcase)
+          if requested_attrs == :all || requested_attrs.include?(k.downcase)
             attrvals = v.map(&:to_ber).to_ber_set
             attrs << [k.to_ber, attrvals].to_ber_sequence
           end
@@ -149,18 +146,13 @@ module LdapServer
       end
     end
 
-
     send_ldap_response 5, pdu[0].to_i, 0, "", "Was that what you wanted?"
   end
 
-
-
   def send_ldap_response pkt_tag, msgid, code, dn, text
-    send_data( [msgid.to_ber, [code.to_ber, dn.to_ber, text.to_ber].to_ber_appsequence(pkt_tag)].to_ber )
+    send_data([msgid.to_ber, [code.to_ber, dn.to_ber, text.to_ber].to_ber_appsequence(pkt_tag)].to_ber)
   end
-
 end
-
 
 #------------------------------------------------
 
@@ -168,13 +160,13 @@ end
 # parses out LDIF data. It will be used to serve LDAP queries out of this server.
 #
 def load_test_data
-  ary = File.readlines( "./testdata.ldif" )
+  ary = File.readlines("./testdata.ldif")
   hash = {}
-  while line = ary.shift and line.chomp!
+  while (line = ary.shift) && line.chomp!
     if line =~ /^dn:[\s]*/i
       dn = $'
       hash[dn] = {}
-      while attr = ary.shift and attr.chomp! and attr =~ /^([\w]+)[\s]*:[\s]*/
+      while (attr = ary.shift) && attr.chomp! && attr =~ /^([\w]+)[\s]*:[\s]*/
         hash[dn][$1.downcase] ||= []
         hash[dn][$1.downcase] << $'
       end
@@ -182,7 +174,6 @@ def load_test_data
   end
   hash
 end
-
 
 #------------------------------------------------
 
@@ -200,10 +191,10 @@ if __FILE__ == $0
   $ldif = load_test_data
 
   require 'net/ldap'
-
+  LdapServerAsnSyntax = Net::BER.compile_syntax(LdapServerAsnSyntaxTemplate)
   EventMachine.run do
     $logger.info "starting LDAP server on 127.0.0.1 port 3890"
     EventMachine.start_server "127.0.0.1", 3890, LdapServer
-    EventMachine.add_periodic_timer 60, proc {$logger.info "heartbeat"}
+    EventMachine.add_periodic_timer 60, proc { $logger.info "heartbeat" }
   end
 end

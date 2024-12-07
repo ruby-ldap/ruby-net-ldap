@@ -1,4 +1,4 @@
-require 'net/ldap/auth_adapter'
+require_relative '../auth_adapter'
 
 module Net
   class LDAP
@@ -11,7 +11,7 @@ module Net
                         ["", ""]
                       end
 
-          raise Net::LDAP::BindingInformationInvalidError, "Invalid binding information" unless (user && psw)
+          raise Net::LDAP::BindingInformationInvalidError, "Invalid binding information" unless user && psw
 
           message_id = @connection.next_msgid
           request    = [

@@ -1,9 +1,16 @@
 require_relative '../test_helper'
 
 class TestPasswordModifyIntegration < LDAPIntegrationTestCase
+  # see: https://www.rfc-editor.org/rfc/rfc3062#section-2
+  PASSWORD_MODIFY_SYNTAX = Net::BER.compile_syntax(
+    application: {},
+    universal: {},
+    context_specific: { primitive: { 0 => :string } },
+  )
+
   def setup
     super
-    @admin_account = {dn: 'cn=admin,dc=example,dc=org', password: 'admin', method: :simple}
+    @admin_account = { dn: 'cn=admin,dc=example,dc=org', password: 'admin', method: :simple }
     @ldap.authenticate @admin_account[:dn], @admin_account[:password]
 
     @dn = 'uid=modify-password-user1,ou=People,dc=example,dc=org'
@@ -35,13 +42,13 @@ class TestPasswordModifyIntegration < LDAPIntegrationTestCase
                                  new_password: 'passworD2')
 
     assert @ldap.get_operation_result.extended_response.nil?,
-      'Should not have generated a new password'
+           'Should not have generated a new password'
 
     refute @ldap.bind(username: @dn, password: 'admin', method: :simple),
-      'Old password should no longer be valid'
+           'Old password should no longer be valid'
 
     assert @ldap.bind(username: @dn, password: 'passworD2', method: :simple),
-      'New password should be valid'
+           'New password should be valid'
   end
 
   def test_password_modify_generate
@@ -49,30 +56,41 @@ class TestPasswordModifyIntegration < LDAPIntegrationTestCase
                                  auth: @auth,
                                  old_password: 'admin')
 
-    generated_password = @ldap.get_operation_result.extended_response[0][0]
+    passwd_modify_response_value = @ldap.get_operation_result.extended_response
+    seq = Net::BER::BerIdentifiedArray.new
+    sio = StringIO.new(passwd_modify_response_value)
+    until (e = sio.read_ber(PASSWORD_MODIFY_SYNTAX)).nil?
+      seq << e
+    end
+    generated_password = seq[0][0]
 
     assert generated_password, 'Should have generated a password'
 
     refute @ldap.bind(username: @dn, password: 'admin', method: :simple),
-      'Old password should no longer be valid'
+           'Old password should no longer be valid'
 
     assert @ldap.bind(username: @dn, password: generated_password, method: :simple),
-      'New password should be valid'
+           'New password should be valid'
   end
 
   def test_password_modify_generate_no_old_password
     assert @ldap.password_modify(dn: @dn,
                                  auth: @auth)
 
-    generated_password = @ldap.get_operation_result.extended_response[0][0]
-
+    passwd_modify_response_value = @ldap.get_operation_result.extended_response
+    seq = Net::BER::BerIdentifiedArray.new
+    sio = StringIO.new(passwd_modify_response_value)
+    until (e = sio.read_ber(PASSWORD_MODIFY_SYNTAX)).nil?
+      seq << e
+    end
+    generated_password = seq[0][0]
     assert generated_password, 'Should have generated a password'
 
     refute @ldap.bind(username: @dn, password: 'admin', method: :simple),
-      'Old password should no longer be valid'
+           'Old password should no longer be valid'
 
     assert @ldap.bind(username: @dn, password: generated_password, method: :simple),
-      'New password should be valid'
+           'New password should be valid'
   end
 
   def test_password_modify_overwrite_old_password
@@ -81,10 +99,10 @@ class TestPasswordModifyIntegration < LDAPIntegrationTestCase
                                  new_password: 'passworD3')
 
     refute @ldap.bind(username: @dn, password: 'admin', method: :simple),
-      'Old password should no longer be valid'
+           'Old password should no longer be valid'
 
     assert @ldap.bind(username: @dn, password: 'passworD3', method: :simple),
-      'New password should be valid'
+           'New password should be valid'
   end
 
   def teardown

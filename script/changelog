@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Usage: script/changelog [-r <repo>] [-b <base>] [-h <head>]
 #
 #  repo: BASE string of GitHub REPOsitory url. e.g. "user_or_org/REPOsitory". Defaults to git remote url.

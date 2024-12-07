@@ -1,9 +1,23 @@
 require_relative 'test_helper'
-require 'net/ldap/dn'
+require_relative '../lib/net/ldap/dn'
 
 class TestDN < Test::Unit::TestCase
   def test_escape
     assert_equal '\\,\\+\\"\\\\\\<\\>\\;', Net::LDAP::DN.escape(',+"\\<>;')
+  end
+
+  def test_escape_pound_sign
+    assert_equal '\\#test', Net::LDAP::DN.escape('#test')
+  end
+
+  def test_escape_space
+    assert_equal '\\ before_after\\ ', Net::LDAP::DN.escape(' before_after ')
+  end
+
+  def test_retain_spaces
+    dn = Net::LDAP::DN.new('CN=Foo.bar.baz, OU=Foo   \ ,OU=\  Bar, O=Baz')
+    assert_equal "CN=Foo.bar.baz, OU=Foo   \\ ,OU=\\  Bar, O=Baz", dn.to_s
+    assert_equal ["CN", "Foo.bar.baz", "OU", "Foo    ", "OU", "  Bar", "O", "Baz"], dn.to_a
   end
 
   def test_escape_on_initialize
@@ -18,7 +32,7 @@ class TestDN < Test::Unit::TestCase
 
   def test_to_a_parenthesis
     dn = Net::LDAP::DN.new('cn =  \ James , ou  =  "Comp\28ny"  ')
-    assert_equal ['cn', ' James', 'ou', 'Comp(ny'], dn.to_a
+    assert_equal ['cn', ' James ', 'ou', 'Comp(ny'], dn.to_a
   end
 
   def test_to_a_hash_symbol
@@ -26,7 +40,6 @@ class TestDN < Test::Unit::TestCase
     assert_equal ['1.23.4', '#A3B4D5', 'ou', 'Company'], dn.to_a
   end
 
-  # TODO: raise a more specific exception than RuntimeError
   def test_bad_input_raises_error
     [
       'cn=James,',
@@ -38,7 +51,7 @@ class TestDN < Test::Unit::TestCase
       'd1.2=Value',
     ].each do |input|
       dn = Net::LDAP::DN.new(input)
-      assert_raises(RuntimeError) { dn.to_a }
+      assert_raises(Net::LDAP::InvalidDNError) { dn.to_a }
     end
   end
 end

@@ -123,7 +123,7 @@ class Net::LDAP::PDU
     when ExtendedResponse
       parse_extended_response(ber_object[1])
     else
-      raise LdapPduError.new("unknown pdu-type: #{@app_tag}")
+      raise Error.new("unknown pdu-type: #{@app_tag}")
     end
 
     parse_controls(ber_object[2]) if ber_object[2]
@@ -194,13 +194,13 @@ class Net::LDAP::PDU
   #           requestValue     [1] OCTET STRING OPTIONAL }
 
   def parse_extended_response(sequence)
-    sequence.length >= 3 or raise Net::LDAP::PDU::Error, "Invalid LDAP result length."
+    sequence.length.between?(3, 5) or raise Net::LDAP::PDU::Error, "Invalid LDAP result length."
     @ldap_result = {
       :resultCode => sequence[0],
       :matchedDN => sequence[1],
       :errorMessage => sequence[2],
     }
-    @extended_response = sequence[3]
+    @extended_response = sequence.length == 3 ? nil : sequence.last
   end
   private :parse_extended_response
 

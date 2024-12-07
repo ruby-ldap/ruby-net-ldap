@@ -1,7 +1,7 @@
 # $Id: testsnmp.rb 231 2006-12-21 15:09:29Z blackhedd $
 
 require_relative 'test_helper'
-require 'net/snmp'
+require_relative '../lib/net/snmp'
 
 class TestSnmp < Test::Unit::TestCase
   def self.raw_string(s)
@@ -17,7 +17,7 @@ class TestSnmp < Test::Unit::TestCase
   def test_invalid_packet
     data = "xxxx"
     assert_raise(Net::BER::BerError) do
-ary = data.read_ber(Net::SNMP::AsnSyntax)
+      data.read_ber(Net::SNMP::AsnSyntax)
     end
   end
 
@@ -41,7 +41,7 @@ ary = data.read_ber(Net::SNMP::AsnSyntax)
 
   def test_weird_packet
     assert_raise(Net::SnmpPdu::Error) do
-Net::SnmpPdu.parse("aaaaaaaaaaaaaa")
+      Net::SnmpPdu.parse("aaaaaaaaaaaaaa")
     end
   end
 
@@ -93,7 +93,7 @@ Net::SnmpPdu.parse("aaaaaaaaaaaaaa")
 
   def test_make_bad_response
     pdu = Net::SnmpPdu.new
-    assert_raise(Net::SnmpPdu::Error) {pdu.to_ber_string}
+    assert_raise(Net::SnmpPdu::Error) { pdu.to_ber_string }
     pdu.pdu_type = :get_response
     pdu.request_id = 999
     pdu.to_ber_string
@@ -115,5 +115,4 @@ Net::SnmpPdu.parse("aaaaaaaaaaaaaa")
     pdu = Net::SnmpPdu.parse(ary)
     assert_equal("xxxxxx", pdu.community)
   end
-
 end
