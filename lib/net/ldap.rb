@@ -556,6 +556,7 @@ class Net::LDAP
     @force_no_page = args[:force_no_page] || DefaultForceNoPage
     @encryption = normalize_encryption(args[:encryption]) # may be nil
     @connect_timeout = args[:connect_timeout]
+    @socket_class = args[:socket_class]
 
     if pr = @auth[:password] and pr.respond_to?(:call)
       @auth[:password] = pr.call
@@ -1343,6 +1344,7 @@ class Net::LDAP
       :hosts                   => @hosts,
       :encryption              => @encryption,
       :instrumentation_service => @instrumentation_service,
+      :socket_class            => @socket_class,
       :connect_timeout         => @connect_timeout
 
     # Force connect to see if there's a connection error
