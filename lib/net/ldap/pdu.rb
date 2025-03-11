@@ -194,13 +194,13 @@ class Net::LDAP::PDU
   #           requestValue     [1] OCTET STRING OPTIONAL }
 
   def parse_extended_response(sequence)
-    sequence.length >= 3 or raise Net::LDAP::PDU::Error, "Invalid LDAP result length."
+    sequence.length.between?(3, 5) or raise Net::LDAP::PDU::Error, "Invalid LDAP result length."
     @ldap_result = {
       :resultCode => sequence[0],
       :matchedDN => sequence[1],
       :errorMessage => sequence[2],
     }
-    @extended_response = sequence[3]
+    @extended_response = sequence.length == 3 ? nil : sequence.last
   end
   private :parse_extended_response
 

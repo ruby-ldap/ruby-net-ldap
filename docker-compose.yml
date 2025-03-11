@@ -1,5 +1,3 @@
-version: "3.8"
-
 networks:
   integration_test_network:
 
@@ -23,34 +21,6 @@ services:
     hostname: "ldap.example.org"
     volumes:
       - ./test/fixtures/ldif:/ldif:ro
-
-  ci-2.6:
-    image: ruby:2.7
-    entrypoint: /code/ci-run.sh
-    environment:
-      INTEGRATION: openldap
-      INTEGRATION_HOST: ldap.example.org
-    depends_on:
-      - openldap
-    networks:
-      integration_test_network:
-    volumes:
-      - .:/code
-    working_dir: /code
-
-  ci-2.7:
-    image: ruby:2.7
-    entrypoint: /code/ci-run.sh
-    environment:
-      INTEGRATION: openldap
-      INTEGRATION_HOST: ldap.example.org
-    depends_on:
-      - openldap
-    networks:
-      integration_test_network:
-    volumes:
-      - .:/code
-    working_dir: /code
 
   ci-3.0:
     image: ruby:3.0
@@ -94,9 +64,23 @@ services:
       - .:/code
     working_dir: /code
 
+  ci-3.3:
+    image: ruby:3.3
+    entrypoint: /code/ci-run.sh
+    environment:
+      INTEGRATION: openldap
+      INTEGRATION_HOST: ldap.example.org
+    depends_on:
+      - openldap
+    networks:
+      integration_test_network:
+    volumes:
+      - .:/code
+    working_dir: /code
+
   # https://github.com/flavorjones/truffleruby/pkgs/container/truffleruby
-  ci-truffleruby-22:
-    image: ghcr.io/flavorjones/truffleruby:22.3.1
+  ci-truffleruby:
+    image: ghcr.io/flavorjones/truffleruby:stable
     entrypoint: /code/ci-run.sh
     environment:
       INTEGRATION: openldap
