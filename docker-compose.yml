@@ -78,6 +78,20 @@ services:
       - .:/code
     working_dir: /code
 
+  ci-3.4:
+    image: ruby:3.4
+    entrypoint: /code/ci-run.sh
+    environment:
+      INTEGRATION: openldap
+      INTEGRATION_HOST: ldap.example.org
+    depends_on:
+      - openldap
+    networks:
+      integration_test_network:
+    volumes:
+      - .:/code
+    working_dir: /code
+
   # https://github.com/flavorjones/truffleruby/pkgs/container/truffleruby
   ci-truffleruby:
     image: ghcr.io/flavorjones/truffleruby:stable
