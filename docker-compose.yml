@@ -24,7 +24,7 @@ services:
 
   ci-3.0:
     image: ruby:3.0
-    entrypoint: /code/ci-run.sh
+    command: /code/ci-run.sh
     environment:
       INTEGRATION: openldap
       INTEGRATION_HOST: ldap.example.org
@@ -38,7 +38,7 @@ services:
 
   ci-3.1:
     image: ruby:3.1
-    entrypoint: /code/ci-run.sh
+    command: /code/ci-run.sh
     environment:
       INTEGRATION: openldap
       INTEGRATION_HOST: ldap.example.org
@@ -52,7 +52,7 @@ services:
 
   ci-3.2:
     image: ruby:3.2
-    entrypoint: /code/ci-run.sh
+    command: /code/ci-run.sh
     environment:
       INTEGRATION: openldap
       INTEGRATION_HOST: ldap.example.org
@@ -66,7 +66,7 @@ services:
 
   ci-3.3:
     image: ruby:3.3
-    entrypoint: /code/ci-run.sh
+    command: /code/ci-run.sh
     environment:
       INTEGRATION: openldap
       INTEGRATION_HOST: ldap.example.org
@@ -81,7 +81,7 @@ services:
   # https://github.com/flavorjones/truffleruby/pkgs/container/truffleruby
   ci-truffleruby:
     image: ghcr.io/flavorjones/truffleruby:stable
-    entrypoint: /code/ci-run.sh
+    command: /code/ci-run.sh
     environment:
       INTEGRATION: openldap
       INTEGRATION_HOST: ldap.example.org
@@ -95,7 +95,7 @@ services:
 
   ci-jruby-9.3:
     image: jruby:9.3
-    entrypoint: /code/ci-run.sh
+    command: /code/ci-run.sh
     environment:
       INTEGRATION: openldap
       INTEGRATION_HOST: ldap.example.org
@@ -109,7 +109,7 @@ services:
 
   ci-jruby-9.4:
     image: jruby:9.4
-    entrypoint: /code/ci-run.sh
+    command: /code/ci-run.sh
     environment:
       INTEGRATION: openldap
       INTEGRATION_HOST: ldap.example.org
