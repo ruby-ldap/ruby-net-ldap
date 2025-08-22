@@ -431,7 +431,7 @@ class Net::LDAP::Connection #:nodoc:
             Net::LDAP::LDAPControls::PAGED_RESULTS.to_ber,
             # Criticality MUST be false to interoperate with normal LDAPs.
             false.to_ber,
-            rfc2696_cookie.map(&:to_ber).to_ber_sequence.to_s.to_ber,
+            [rfc2696_cookie[0].to_ber, rfc2696_cookie[1].to_ber_bin].to_ber_sequence.to_ber_bin,
           ].to_ber_sequence if paged
         controls << ber_sort if ber_sort
         if controls.empty? && user_controls.empty?
