@@ -28,10 +28,14 @@ class Net::LDAP::Password
          '{SHA}' + Base64.strict_encode64(Digest::SHA1.digest(str))
       when :ssha
          salt = SecureRandom.random_bytes(16)
-         '{SSHA}' + Base64.strict_encode64(Digest::SHA1.digest(str + salt) + salt)
+         digest = Digest::SHA1.new
+         digest << str << salt
+         '{SSHA}' + Base64.strict_encode64(digest.digest + salt)
       when :ssha256
         salt = SecureRandom.random_bytes(16)
-        '{SSHA256}' + Base64.strict_encode64(Digest::SHA256.digest(str + salt) + salt)
+        digest = Digest::SHA256.new
+        digest << str << salt
+        '{SSHA256}' + Base64.strict_encode64(digest.digest + salt)
       else
          raise Net::LDAP::HashTypeUnsupportedError, "Unsupported password-hash type (#{type})"
       end
