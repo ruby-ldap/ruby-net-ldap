@@ -1,3 +1,14 @@
+=== Net::LDAP 0.20.0
+* Update test.yml by @HarlemSquirrel in #433
+* Add `ostruct` as a dependency to the gemspec by @Ivanov-Anton in #432
+* Require Ruby >= 3.0 by @HarlemSquirrel in #435
+* Link to usage examples by @sebbASF in #428
+* Add controls for modify and add operations by @zeroSteiner in #426
+* Add support for ldapwhoami (RFC4532) (now with tests) by @zeroSteiner in #425
+* Update for ruby 3.4 by @HarlemSquirrel in #439
+* Add ruby 3.4 to CI by @hakeem0114 in #438
+* Add support for UTF-8 encoded passwords by @frankwalentowski in #430
+
 === Net::LDAP 0.19.0
 * Net::LDAP::DN - Retain trailing spaces in RDN values in DNs #412
 * Add in ability for users to specify LDAP controls when conducting searches #411
