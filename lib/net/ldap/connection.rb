@@ -535,6 +535,7 @@ class Net::LDAP::Connection #:nodoc:
     :add => 0,
     :delete => 1,
     :replace => 2,
+    :increment => 3, # OpenLDAP extension 
   }
 
   def self.modify_ops(operations)
