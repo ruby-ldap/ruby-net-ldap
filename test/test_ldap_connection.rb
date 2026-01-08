@@ -363,6 +363,28 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
     @connection = Net::LDAP::Connection.new(:host => 'test.mocked.com', :port => 636)
   end
 
+  def capture_stderr
+    stderr, $stderr = $stderr, StringIO.new
+    yield
+    $stderr.string
+  ensure
+    $stderr = stderr
+  end
+
+  # Fake socket for testing
+  #
+  # FakeTCPSocket.new("success", 636)
+  # FakeTCPSocket.new("fail.SocketError", 636)  # raises SocketError
+  class FakeTCPSocket
+    def initialize(host, port, socket_opts = {})
+      parts = host.split(".")
+      status = parts.shift
+      error  = parts.join(".")
+
+      raise Object.const_get(error) if status == "fail"
+    end
+  end
+
   def test_error_failed_operation
     ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeUnwillingToPerform, "", "The provided password value was rejected by a password validator:  The provided password did not contain enough characters from the character set 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.  The minimum number of characters from that set that must be present in user passwords is 1"])
     ber.ber_identifier = Net::LDAP::PDU::ModifyResponse
@@ -381,6 +403,22 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
     result = @connection.modify(:dn => "1", :operations => [[:replace, "mail", "something@sothsdkf.com"]])
     assert result.success?, "should be success"
     assert_equal "", result.error_message
+  end
+
+  def test_connection_timeout_io_timeout_error
+    return if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("4.0.0")
+
+    connection = Net::LDAP::Connection.new(
+      :host => "fail.IO::TimeoutError",
+      :port => 636,
+      :socket_class => FakeTCPSocket,
+    )
+
+    capture_stderr do
+      assert_raise Net::LDAP::Error do
+        connection.socket
+      end
+    end
   end
 end
 
