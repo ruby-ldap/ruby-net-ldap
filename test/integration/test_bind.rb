@@ -16,7 +16,7 @@ class TestBindIntegration < LDAPIntegrationTestCase
     end
     msgs = ['Operation timed out - user specified timeout',
             'Connection timed out - user specified timeout']
-    assert_send([msgs, :include?, error.message])
+    assert msgs.any? { |m| error.message.include?(m) }, "unexpected message: #{error.message.inspect}"
   end
 
   def test_bind_anonymous_fail
