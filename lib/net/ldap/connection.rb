@@ -62,7 +62,7 @@ class Net::LDAP::Connection #:nodoc:
         end
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
-             OpenSSL::SSL::SSLError => e
+             OpenSSL::SSL::SSLError, IO::TimeoutError => e
         # Ensure the connection is closed in the event a setup failure.
         close
         errors << [e, host, port]
