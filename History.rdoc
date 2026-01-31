@@ -1,3 +1,8 @@
+=== Net::LDAP (Unreleased)
+* Enforce size limit when paged searches are enabled
+  When paging is enabled and the requested size exceeds 126, the client now
+  correctly stops fetching additional pages once the size limit is reached.
+
 === Net::LDAP 0.20.0
 * Update test.yml by @HarlemSquirrel in #433
 * Add `ostruct` as a dependency to the gemspec by @Ivanov-Anton in #432

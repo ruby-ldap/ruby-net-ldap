@@ -353,6 +353,44 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
       Net::LDAP::PDU.new([0, ber])
     end
   end
+
+  # Test that size limit is enforced client-side when paging is enabled.
+  def test_search_size_limit_stops_paging_early
+    make_search_entry = lambda { |entry_dn|
+      ber = Net::BER::BerIdentifiedArray.new([1, [entry_dn, [["uid", ["user"]]]]])
+      ber.ber_identifier = Net::LDAP::PDU::SearchReturnedData
+      [1, ber]
+    }
+
+    make_search_result = lambda { |cookie = nil|
+      ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
+      ber.ber_identifier = Net::LDAP::PDU::SearchResult
+      return [1, ber] if cookie.nil?
+
+      paging_value = "\x30".b + (126.to_ber + cookie.to_ber).then { |s| s.length.chr + s }
+      controls = [[Net::LDAP::LDAPControls::PAGED_RESULTS, false, paging_value]]
+      [1, ber, controls]
+    }
+
+    # Page 1: 5 entries + result with "more" cookie
+    # Page 2: 5 entries + result with empty cookie (shouldn't be reached)
+    page1 = 5.times.map { |i| make_search_entry.call("uid=user#{i}") } + [make_search_result.call("more")]
+    page2 = 5.times.map { |i| make_search_entry.call("uid=user#{i + 5}") } + [make_search_result.call]
+
+    mock = flexmock("socket")
+    write_count = 0
+    mock.should_receive(:write).and_return { write_count += 1 }
+    mock.should_receive(:read_ber).and_return(*(page1 + page2))
+
+    conn = Net::LDAP::Connection.new(socket: mock)
+    results = []
+    conn.search(base: "dc=test", size: 3, paged_searches_supported: true) { |e| results << e }
+
+    # With fix: 5 entries >= size 3, stops after page 1
+    # Without fix: would fetch page 2 and get 10 entries
+    assert_equal 5, results.size
+    assert_equal 1, write_count, "Should stop paging when size limit reached"
+  end
 end
 
 class TestLDAPConnectionErrors < Test::Unit::TestCase
