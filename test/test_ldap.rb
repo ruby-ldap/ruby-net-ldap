@@ -48,6 +48,24 @@ class TestLDAPInstrumentation < Test::Unit::TestCase
     assert_equal bind_result, payload[:bind]
   end
 
+  def test_bind_requires_success_result_code
+    [Net::LDAP::ResultCodeSuccess,
+     Net::LDAP::ResultCodeReferral,
+     Net::LDAP::ResultCodeCompareFalse,
+     Net::LDAP::ResultCodeCompareTrue,
+     Net::LDAP::ResultCodeSaslBindInProgress,
+     Net::LDAP::ResultCodeInvalidCredentials].each do |code|
+      ber = Net::BER::BerIdentifiedArray.new([code, "", ""])
+      ber.ber_identifier = Net::LDAP::PDU::BindResult
+      result = Net::LDAP::PDU.new([1, ber])
+      @subject.connection = flexmock(:bind => result)
+
+      assert_equal code == Net::LDAP::ResultCodeSuccess, @subject.bind,
+                   "unexpected bind result for code #{code}"
+      assert_equal code, @subject.get_operation_result.code
+    end
+  end
+
   def test_instrument_search
     events = @service.subscribe "search.net_ldap"
 
