@@ -22,7 +22,7 @@ jobs:
           ruby-version: ruby
       - name: Set Environment Variables
         run: |
-          version=$(ruby -e 'require_relative "lib/amazing_print/version.rb"; puts AmazingPrint.version')
+          version=$(ruby -e 'require_relative "lib/net/ldap/version"; puts Net::LDAP::VERSION')
           echo "APP_VERSION=$version" >> $GITHUB_ENV
 
       # Release
