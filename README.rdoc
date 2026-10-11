@@ -1,6 +1,8 @@
 = Net::LDAP for Ruby 
-{<img src="https://badge.fury.io/rb/net-ldap.svg" alt="Gem Version" />}[https://badge.fury.io/rb/net-ldap]
-{<img src="https://travis-ci.org/ruby-ldap/ruby-net-ldap.svg" />}[https://travis-ci.org/ruby-ldap/ruby-net-ldap]
+
+{<img src="https://badge.fury.io/rb/net-ldap.svg?icon=si%3Arubygems" alt="Gem Version" />}[https://badge.fury.io/rb/net-ldap]
+
+{<img src="https://github.com/ruby-ldap/ruby-net-ldap/actions/workflows/test.yml/badge.svg" alt="Test Action Status" />}[https://github.com/ruby-ldap/ruby-net-ldap/actions/workflows/test.yml]
 
 == Description
 
