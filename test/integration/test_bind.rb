@@ -14,9 +14,8 @@ class TestBindIntegration < LDAPIntegrationTestCase
     error = assert_raise Net::LDAP::Error do
       @ldap.bind BIND_CREDS
     end
-    msgs = ['Operation timed out - user specified timeout',
-            'Connection timed out - user specified timeout']
-    assert_send([msgs, :include?, error.message])
+    # Ruby 3.4+ appends " for host:port" to the message
+    assert_match(/\A(Operation|Connection) timed out - user specified timeout/, error.message)
   end
 
   def test_bind_anonymous_fail
