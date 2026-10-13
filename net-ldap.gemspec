@@ -20,11 +20,11 @@ earlier versions of the IETF LDAP RFCs (2251-2256, 2829-2830, 3377, and 3771).
 Our roadmap for Net::LDAP 1.0 is to gain full <em>client</em> compliance with
 the most recent LDAP RFCs (4510-4519, plutions of 4520-4532).}
   s.email = ["blackhedd@rubyforge.org", "gemiel@gmail.com", "rory.ocon@gmail.com", "kaspar.schiess@absurd.li", "austin@rubyforge.org"]
-  s.extra_rdoc_files = ["Contributors.rdoc", "Hacking.rdoc", "History.rdoc", "License.rdoc", "README.rdoc"]
-  s.files = Dir["*.rdoc", "lib/**/*"]
+  s.extra_rdoc_files = ["Contributors.rdoc", "Hacking.rdoc", "History.rdoc", "License.rdoc", "README.md"]
+  s.files = Dir["README.md", "*.rdoc", "lib/**/*"]
   s.test_files = s.files.grep(%r{^test})
   s.homepage = %q{http://github.com/ruby-ldap/ruby-net-ldap}
-  s.rdoc_options = ["--main", "README.rdoc"]
+  s.rdoc_options = ["--main", "README.md"]
   s.require_paths = ["lib"]
   s.required_ruby_version = ">= 3.0.0"
   s.summary = %q{Net::LDAP for Ruby (also called net-ldap) implements client access for the Lightweight Directory Access Protocol (LDAP), an IETF standard protocol for accessing distributed directory services}
