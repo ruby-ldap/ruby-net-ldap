@@ -28,7 +28,7 @@ See [Net::LDAP on rubydoc.info](https://www.rubydoc.info/github/ruby-ldap/ruby-n
 
 ## Requirements
 
-Net::LDAP requires a Ruby 2.0.0 compatible interpreter or better.
+Net::LDAP requires a Ruby 3.0.0 compatible interpreter or better.
 
 ## Install
 
@@ -71,7 +71,7 @@ INTEGRATION=openldap rake test
 Or, use [Docker Compose](https://docs.docker.com/compose/). See `docker-compose.yml` for available Ruby versions.
 
 ```bash
-docker-compose run ci-2.7
+docker-compose run ci-4.0
 ```
 
 **CAVEAT:** you need to add the following lines to `/etc/hosts`
