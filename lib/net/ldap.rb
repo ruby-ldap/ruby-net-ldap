@@ -874,7 +874,7 @@ class Net::LDAP
         end
       end
 
-      @result.success?
+      @result.result_code == ResultCodeSuccess
     end
   end
 
