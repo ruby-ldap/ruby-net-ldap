@@ -5,6 +5,8 @@ require 'rake/testtask'
 require 'rubocop/rake_task'
 require 'bundler'
 
+Bundler::GemHelper.install_tasks
+
 RuboCop::RakeTask.new
 
 Rake::TestTask.new do |t|

@@ -1,3 +1,6 @@
+=== Net::LDAP 0.21.0
+* Patch bind success by @HarlemSquirrel in #447
+
 === Net::LDAP 0.20.0
 * Update test.yml by @HarlemSquirrel in #433
 * Add `ostruct` as a dependency to the gemspec by @Ivanov-Anton in #432
