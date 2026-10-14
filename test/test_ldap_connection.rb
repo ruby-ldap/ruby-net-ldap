@@ -406,7 +406,7 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
   end
 
   def test_connection_timeout_io_timeout_error
-    return if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("4.0.0")
+    omit("IO::TimeoutError is unavailable") unless defined?(IO::TimeoutError)
 
     connection = Net::LDAP::Connection.new(
       :host => "fail.IO::TimeoutError",
@@ -419,6 +419,49 @@ class TestLDAPConnectionErrors < Test::Unit::TestCase
         connection.socket
       end
     end
+  end
+
+  def test_connection_error_without_io_timeout_error
+    omit("IO::TimeoutError is available") if defined?(IO::TimeoutError)
+
+    connection = Net::LDAP::Connection.new(
+      :host => "fail.SocketError",
+      :port => 636,
+      :socket_class => FakeTCPSocket,
+    )
+
+    assert_raise Net::LDAP::Error do
+      connection.socket
+    end
+  end
+
+  def test_io_error_is_not_rescued
+    connection = Net::LDAP::Connection.new(
+      :host => "fail.IOError",
+      :port => 636,
+      :socket_class => FakeTCPSocket,
+    )
+
+    assert_raise IOError do
+      connection.socket
+    end
+  end
+
+  def test_setup_failure_closes_socket_and_tries_next_host
+    error_class = defined?(IO::TimeoutError) ? IO::TimeoutError : SocketError
+    hosts = [["first.host", 636], ["second.host", 636]]
+    connection = Net::LDAP::Connection.new(:hosts => hosts)
+    @tcp_socket.should_receive(:close).once
+    flexmock(connection)
+      .should_receive(:setup_encryption)
+      .with({ :method => :simple_tls }, Net::LDAP::Connection::DefaultConnectTimeout, "first.host")
+      .and_raise(error_class).once
+    flexmock(connection)
+      .should_receive(:setup_encryption)
+      .with({ :method => :simple_tls }, Net::LDAP::Connection::DefaultConnectTimeout, "second.host").once
+    @tcp_socket.should_receive(:post_connection_check).with("second.host").once
+
+    connection.open_connection(:hosts => hosts, :encryption => { :method => :simple_tls })
   end
 end
 

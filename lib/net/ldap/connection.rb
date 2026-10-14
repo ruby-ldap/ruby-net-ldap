@@ -47,6 +47,9 @@ class Net::LDAP::Connection #:nodoc:
       connect_timeout: timeout,
     }
 
+    additional_connection_errors = []
+    additional_connection_errors << IO::TimeoutError if defined?(IO::TimeoutError)
+
     errors = []
     hosts.each do |host, port|
       begin
@@ -62,7 +65,7 @@ class Net::LDAP::Connection #:nodoc:
         end
         return
       rescue Net::LDAP::Error, SocketError, SystemCallError,
-             OpenSSL::SSL::SSLError, IO::TimeoutError => e
+             OpenSSL::SSL::SSLError, *additional_connection_errors => e
         # Ensure the connection is closed in the event a setup failure.
         close
         errors << [e, host, port]
