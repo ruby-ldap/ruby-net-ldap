@@ -513,6 +513,11 @@ class Net::LDAP::Connection #:nodoc:
           end
         end
 
+        # Stop paging if we've reached the caller's requested size limit.
+        # When paging is enabled, we set query_limit=0 (no server-side limit)
+        # for efficiency, so we must enforce the limit client-side here.
+        break if size > 0 && n_results >= size
+
         break unless more_pages
       end # loop
 

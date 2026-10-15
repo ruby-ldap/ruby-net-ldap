@@ -1,5 +1,8 @@
-=== Unreleased
+=== Net::LDAP (Unreleased)
 * Move readme to md in #452
+* Enforce size limit when paged searches are enabled
+  When paging is enabled and the requested size exceeds 126, the client now
+  correctly stops fetching additional pages once the size limit is reached.
 
 === Net::LDAP 0.21.0
 * Patch bind success by @HarlemSquirrel in #447
