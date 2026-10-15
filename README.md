@@ -24,7 +24,7 @@ the most recent LDAP RFCs (4510–4519, plus portions of 4520–4532).
 
 ## Synopsis
 
-See [Net::LDAP on rubydoc.info](https://www.rubydoc.info/github/ruby-ldap/ruby-net-ldap/Net/LDAP) for documentation and usage samples.
+See [Net::LDAP on rubydoc.info](https://www.rubydoc.info/gems/ruby-net-ldap/Net/LDAP) for documentation and usage samples.
 
 ## Requirements
 
