@@ -129,6 +129,55 @@ class TestLDAPConnection < Test::Unit::TestCase
     assert_equal(expected, result)
   end
 
+  def sort_keys(control)
+    oid, criticality, value = control.read_ber
+    assert_equal(Net::LDAP::LDAPControls::SORT_REQUEST, oid)
+    assert_equal(false, criticality)
+    value.read_ber(Net::LDAP::AsnSyntax)
+  end
+
+  def test_encode_sort_controls_attribute_only
+    conn = Net::LDAP::Connection.new
+    keys = sort_keys(conn.encode_sort_controls(["cn"]))
+    assert_equal([["cn"]], keys)
+  end
+
+  def test_encode_sort_controls_rule_and_reverse
+    conn = Net::LDAP::Connection.new
+    control = conn.encode_sort_controls([["cn", "caseIgnoreOrderingMatch", true]])
+    _oid, _criticality, value = control.read_ber
+    assert_equal("0\x22" \
+                 "0\x20" \
+                 "\x04\x02cn" \
+                 "\x80\x17caseIgnoreOrderingMatch" \
+                 "\x81\x01\xFF".b, value)
+    attribute, rule, reverse = sort_keys(control).first
+    assert_equal("cn", attribute)
+    assert_equal("caseIgnoreOrderingMatch", rule)
+    assert_equal(0x80, rule.ber_identifier)
+    assert_equal("\xFF".b, reverse)
+    assert_equal(0x81, reverse.ber_identifier)
+  end
+
+  def test_encode_sort_controls_omits_defaults
+    conn = Net::LDAP::Connection.new
+    keys = sort_keys(conn.encode_sort_controls([["cn", nil, false]]))
+    assert_equal(["cn"], keys.first)
+  end
+
+  def test_encode_sort_controls_multiple_keys
+    conn = Net::LDAP::Connection.new
+    keys = sort_keys(conn.encode_sort_controls(["givenname", ["sn", nil, true]]))
+    assert_equal(["givenname"], keys[0])
+    assert_equal(["sn", "\xFF".b], keys[1])
+  end
+
+  def test_encode_sort_controls_passes_through_false
+    conn = Net::LDAP::Connection.new
+    assert_equal(false, conn.encode_sort_controls(false))
+    assert_nil(conn.encode_sort_controls(nil))
+  end
+
   def test_write
     mock = flexmock("socket")
     mock.should_receive(:write).with([1.to_ber, "request"].to_ber_sequence).and_return(true)

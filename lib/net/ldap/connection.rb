@@ -289,21 +289,21 @@ class Net::LDAP::Connection #:nodoc:
   #
   # The format of the sort control needs to be:
   #
-  # :sort_control => ["cn"]  # just a string
+  # :sort_controls => ["cn"]  # just a string
   # or
-  # :sort_control => [["cn", "matchingRule", true]] #attribute, matchingRule, direction (true / false)
+  # :sort_controls => [["cn", "orderingRule", true]] #attribute, orderingRule, reverseOrder (true / false)
   # or
-  # :sort_control => ["givenname","sn"] #multiple strings or arrays
+  # :sort_controls => ["givenname","sn"] #multiple strings or arrays
   #
   def encode_sort_controls(sort_definitions)
     return sort_definitions unless sort_definitions
 
     sort_control_values = sort_definitions.map do |control|
-      control = Array(control) # if there is only an attribute name as a string then infer the orderinrule and reverseorder
-      control[0] = String(control[0]).to_ber,
-      control[1] = String(control[1]).to_ber,
-      control[2] = (control[2] == true).to_ber
-      control.to_ber_sequence
+      attribute, rule, reverse = Array(control) # a bare string is just the attribute name
+      key = [String(attribute).to_ber]
+      key << String(rule).to_ber_contextspecific(0) unless rule.nil? || rule.to_s.empty?
+      key << "\xFF".b.to_ber_contextspecific(1) if reverse == true
+      key.to_ber_sequence
     end
     [
       Net::LDAP::LDAPControls::SORT_REQUEST.to_ber,
