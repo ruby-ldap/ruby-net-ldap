@@ -354,42 +354,57 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
     end
   end
 
-  # Test that size limit is enforced client-side when paging is enabled.
-  def test_search_size_limit_stops_paging_early
-    make_search_entry = lambda { |entry_dn|
-      ber = Net::BER::BerIdentifiedArray.new([1, [entry_dn, [["uid", ["user"]]]]])
+  # A size limit that ends on a page boundary leaves 0 remaining, and a
+  # sizelimit of 0 means "no limit" to the server.
+  def test_search_size_limit_on_page_boundary_stops_paging
+    # The third page is what an unlimited request would return.
+    responses = paged_search_page(0, "more") + paged_search_page(1, "more") + paged_search_page(2, nil)
+    results, write_count = run_paged_search(responses, size: 252)
+
+    assert_equal 252, results.size
+    assert_equal 2, write_count, "Should not request a page after reaching the size limit"
+  end
+
+  # The second request asks for the 4 remaining entries, but this server keeps
+  # the first request's sizelimit of 0 and sends a full page.
+  def test_search_size_limit_drops_entries_past_the_limit
+    responses = paged_search_page(0, "more") + paged_search_page(1, nil)
+    results, write_count, result = run_paged_search(responses, size: 130)
+
+    assert_equal 130, results.size
+    assert_equal 2, write_count
+    assert result.success?, "Should read the rest of the page through to its search result"
+  end
+
+  def paged_search_page(page, cookie)
+    entries = 126.times.map do |index|
+      ber = Net::BER::BerIdentifiedArray.new([1, ["uid=user#{(page * 126) + index}", [["uid", ["user"]]]]])
       ber.ber_identifier = Net::LDAP::PDU::SearchReturnedData
       [1, ber]
-    }
+    end
+    entries + [paged_search_result(cookie)]
+  end
 
-    make_search_result = lambda { |cookie = nil|
-      ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
-      ber.ber_identifier = Net::LDAP::PDU::SearchResult
-      return [1, ber] if cookie.nil?
+  def paged_search_result(cookie)
+    ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
+    ber.ber_identifier = Net::LDAP::PDU::SearchResult
+    return [1, ber] if cookie.nil?
 
-      paging_value = "\x30".b + (126.to_ber + cookie.to_ber).then { |s| s.length.chr + s }
-      controls = [[Net::LDAP::LDAPControls::PAGED_RESULTS, false, paging_value]]
-      [1, ber, controls]
-    }
+    paging_value = "\x30".b + (126.to_ber + cookie.to_ber).then { |s| s.length.chr + s }
+    controls = [[Net::LDAP::LDAPControls::PAGED_RESULTS, false, paging_value]]
+    [1, ber, controls]
+  end
 
-    # Page 1: 5 entries + result with "more" cookie
-    # Page 2: 5 entries + result with empty cookie (shouldn't be reached)
-    page1 = 5.times.map { |i| make_search_entry.call("uid=user#{i}") } + [make_search_result.call("more")]
-    page2 = 5.times.map { |i| make_search_entry.call("uid=user#{i + 5}") } + [make_search_result.call]
-
+  def run_paged_search(responses, size:)
     mock = flexmock("socket")
     write_count = 0
     mock.should_receive(:write).and_return { write_count += 1 }
-    mock.should_receive(:read_ber).and_return(*(page1 + page2))
+    mock.should_receive(:read_ber).and_return(*responses)
 
     conn = Net::LDAP::Connection.new(socket: mock)
     results = []
-    conn.search(base: "dc=test", size: 3, paged_searches_supported: true) { |e| results << e }
-
-    # With fix: 5 entries >= size 3, stops after page 1
-    # Without fix: would fetch page 2 and get 10 entries
-    assert_equal 5, results.size
-    assert_equal 1, write_count, "Should stop paging when size limit reached"
+    result = conn.search(base: "dc=test", size: size, paged_searches_supported: true) { |entry| results << entry }
+    [results, write_count, result]
   end
 end
 
