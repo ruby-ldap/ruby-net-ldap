@@ -353,6 +353,59 @@ class TestLDAPConnectionSocketReads < Test::Unit::TestCase
       Net::LDAP::PDU.new([0, ber])
     end
   end
+
+  # A size limit that ends on a page boundary leaves 0 remaining, and a
+  # sizelimit of 0 means "no limit" to the server.
+  def test_search_size_limit_on_page_boundary_stops_paging
+    # The third page is what an unlimited request would return.
+    responses = paged_search_page(0, "more") + paged_search_page(1, "more") + paged_search_page(2, nil)
+    results, write_count = run_paged_search(responses, size: 252)
+
+    assert_equal 252, results.size
+    assert_equal 2, write_count, "Should not request a page after reaching the size limit"
+  end
+
+  # The second request asks for the 4 remaining entries, but this server keeps
+  # the first request's sizelimit of 0 and sends a full page.
+  def test_search_size_limit_drops_entries_past_the_limit
+    responses = paged_search_page(0, "more") + paged_search_page(1, nil)
+    results, write_count, result = run_paged_search(responses, size: 130)
+
+    assert_equal 130, results.size
+    assert_equal 2, write_count
+    assert result.success?, "Should read the rest of the page through to its search result"
+  end
+
+  def paged_search_page(page, cookie)
+    entries = 126.times.map do |index|
+      ber = Net::BER::BerIdentifiedArray.new([1, ["uid=user#{(page * 126) + index}", [["uid", ["user"]]]]])
+      ber.ber_identifier = Net::LDAP::PDU::SearchReturnedData
+      [1, ber]
+    end
+    entries + [paged_search_result(cookie)]
+  end
+
+  def paged_search_result(cookie)
+    ber = Net::BER::BerIdentifiedArray.new([Net::LDAP::ResultCodeSuccess, "", ""])
+    ber.ber_identifier = Net::LDAP::PDU::SearchResult
+    return [1, ber] if cookie.nil?
+
+    paging_value = "\x30".b + (126.to_ber + cookie.to_ber).then { |s| s.length.chr + s }
+    controls = [[Net::LDAP::LDAPControls::PAGED_RESULTS, false, paging_value]]
+    [1, ber, controls]
+  end
+
+  def run_paged_search(responses, size:)
+    mock = flexmock("socket")
+    write_count = 0
+    mock.should_receive(:write).and_return { write_count += 1 }
+    mock.should_receive(:read_ber).and_return(*responses)
+
+    conn = Net::LDAP::Connection.new(socket: mock)
+    results = []
+    result = conn.search(base: "dc=test", size: size, paged_searches_supported: true) { |entry| results << entry }
+    [results, write_count, result]
+  end
 end
 
 class TestLDAPConnectionErrors < Test::Unit::TestCase

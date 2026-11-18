@@ -402,15 +402,7 @@ class Net::LDAP::Connection #:nodoc:
                deref:      deref,
                attributes: attrs do |payload|
       loop do
-        # should collect this into a private helper to clarify the structure
-        query_limit = 0
-        if size > 0
-          query_limit = if paged
-                          (((size - n_results) < 126) ? (size - n_results) : 0)
-                        else
-                          size
-                        end
-        end
+        query_limit = search_query_limit(size, n_results, paged)
 
         request = [
           base.to_ber,
@@ -452,6 +444,12 @@ class Net::LDAP::Connection #:nodoc:
         while pdu = queued_read(message_id)
           case pdu.app_tag
           when Net::LDAP::PDU::SearchReturnedData
+            # Later page requests carry a different sizelimit from the first,
+            # which RFC 2696 says they must not, so a server may keep the first
+            # request's limit and send a full page. Read past the extra entries
+            # to keep the connection in sync, but don't return them.
+            next if size_limit_reached?(size, n_results)
+
             n_results += 1
             yield pdu.search_entry if block_given?
           when Net::LDAP::PDU::SearchResultReferral
@@ -512,6 +510,11 @@ class Net::LDAP::Connection #:nodoc:
             end
           end
         end
+
+        # Stop once the caller's size limit is reached. When the limit ends on
+        # a page boundary nothing remains, and the query_limit computed for
+        # the next round would be 0, which the server reads as "no limit".
+        break if size_limit_reached?(size, n_results)
 
         break unless more_pages
       end # loop
@@ -743,6 +746,25 @@ class Net::LDAP::Connection #:nodoc:
   end
 
   private
+
+  # The sizelimit for one search request; 0 means "no limit" to the server.
+  # A paged request can't carry a sizelimit larger than its page size of 126,
+  # so it sends 0 until fewer than 126 entries remain.
+  def search_query_limit(size, n_results, paged)
+    return 0 if size.zero?
+
+    if paged
+      remaining = size - n_results
+      remaining < 126 ? remaining : 0
+    else
+      size
+    end
+  end
+
+  # A size of 0 means the caller set no limit.
+  def size_limit_reached?(size, n_results)
+    size > 0 && n_results >= size
+  end
 
   # Wrap around Socket.tcp to normalize with other Socket initializers
   class DefaultSocket
